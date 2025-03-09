@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Contribution</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/styles.css"> <!-- Adjusted the path assuming css folder is outside html folder -->
+</head>
+<body>
+    <header class="bg-warning text-white text-center py-4">
+        <h1>Make Contribution</h1>
+    </header>
+    <main class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2>Contribution Form</h2>
+                <p>Status: <!-- Example: Contributed/Pending --></p>
+                <form action="../contribute.php" method="POST">
+                    <div class="form-group">
+                        <label for="amount">Contribution Amount:</label>
+                        <input type="number" class="form-control" id="amount" name="amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Submit Contribution</button>
+                </form>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-light text-center py-4 mt-5">
+        <p>&copy; 2025 Thrift Management System. All rights reserved.</p>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
