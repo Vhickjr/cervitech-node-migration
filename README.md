@@ -1,6 +1,6 @@
 # folder structure 
-#cervitech-nodejs/
-├##── src/
+# cervitech-nodejs/
+├## ── src/
 │   ├── app.ts                    # App bootstrap logic
 │   ├── server.ts                 # Main server entry point
 │   ├── config/                   # Environment config, DB, Redis
