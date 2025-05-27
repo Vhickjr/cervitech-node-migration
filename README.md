@@ -1,8 +1,8 @@
-## folder structure 
-# cervitech-nodejs/
-# ├── src/
-# │ ├── app.ts  App bootstrap logic
-# │ ├── server.ts # Main server entry point
+# folder structure 
+#### cervitech-nodejs/
+#### ├── src/
+#### │ ├── app.ts  App bootstrap logic
+#### │ ├── server.ts # Main server entry point
 │ ├── config/ # Environment config, DB, Redis
 │ ├── controllers/ # REST API controllers (handles requests/responses)
 │ ├── domain/ # Domain models/entities (e.g., users)
