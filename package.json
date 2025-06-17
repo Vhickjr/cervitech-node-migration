@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Nodejs backend version for CerviTech App",
   "main": "index.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
+    "start": "ts-node src/server.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "repository": "https://github.com/Vhickjr/cervitech-node-migration.git",
@@ -13,6 +14,7 @@
   "private": false,
   "devDependencies": {
     "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.15.21",
     "prettier": "^3.5.3",
@@ -25,6 +27,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "morgan": "^1.10.0",
     "winston": "^3.17.0"
