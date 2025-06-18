@@ -10,5 +10,22 @@ export const AuthController = {
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }
+  },
+  async requestReset(req: Request, res: Response){
+     try{
+      const result = await AuthService.requestPasswordReset(req.body);
+      res.status(200).json(result);
+      } catch (err: any) {
+        res.status(400).json({ error: err.message });
+     }
+  },
+  async resetPassword(req: Request, res: Response){
+    try{
+      const result = await AuthService.resetPassword(req.body);
+      res.status(200).json(result);
+    } catch(err: any){
+      res.status(400).json({error: err.message});
+    }
   }
+
 };

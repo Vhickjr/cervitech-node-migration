@@ -9,3 +9,12 @@ export interface SignupResponse {
   message: string;
   userId: string;
 }
+
+export interface passwordResetRequest{
+  email: string;
+}
+
+export interface passwordResetResponse{
+  token: string;
+  newPassword: string;
+}

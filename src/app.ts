@@ -13,6 +13,6 @@ app.use('/api/auth', authRoutes);
 
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cervitech' )
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+  .catch((err: unknown) => console.error(err));
   
 export default app;
