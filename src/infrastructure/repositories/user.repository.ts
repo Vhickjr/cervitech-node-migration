@@ -1,5 +1,5 @@
 // src/infrastructure/repositories/user.repository.ts
-import { User } from '../../domain/user.entity';
+import { User } from '../../dtos/user.entity';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema<User>({
