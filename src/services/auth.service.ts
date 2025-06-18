@@ -4,6 +4,9 @@ import { UserRepository } from '../infrastructure/repositories/user.repository';
 import { HashUtil } from '../utils/hash.utils';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import {TokenUtil} from '../utils/token.util';
+import { LoginResponse } from '../dtos/auth.entity';
+import jwt from 'jsonwebtoken';
+import generateToken from '../utils/generateToken';
 
 
 export class AuthService {
@@ -41,5 +44,21 @@ export class AuthService {
     const hashed = await HashUtil.hash(newPassword);;
     await UserRepository.updatePassword(userId, hashed);
     return{ messsage:'Password reset successfully'};  
+  }
+  static async login(data: { email: string; password: string }): Promise<LoginResponse> {
+    const user = await UserRepository.findByEmail(data.email);
+    if (!user) throw new Error('User not found');
+
+    const isValidPassword = await HashUtil.compare(data.password, user.password);
+    if (!isValidPassword) throw new Error('Invalid password');
+
+    const token: string = generateToken(user);
+
+    return {
+      id: user._id.toString(),
+      username: user.name,
+      email: user.email,
+      token
+    };
   }
 }
