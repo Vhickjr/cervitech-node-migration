@@ -1,13 +1,12 @@
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
 //1. Import AppUser from the actual MongoDB model
-import AppUser from "../models/User"; 
+import AppUser from "../viewmodels/AppUser"; 
 
 export const updatePictureUrlAsync = async (update: PictureUrlUpdateViewModel): Promise<boolean> => {
   if (!update || update.userId < 1) {
     throw new Error("UserId not provided");
   }
 
-  //2. user is of type User but im not sure if User model exists yet
     const user = await AppUser.findById(update.userId);
 
   if (!user) {
