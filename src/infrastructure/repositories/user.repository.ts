@@ -1,6 +1,7 @@
 // src/infrastructure/repositories/user.repository.ts
 import { User } from '../../dtos/user.entity';
 import mongoose from 'mongoose';
+import AppUser, { IAppUser } from '../../models/AppUser';
 
 const userSchema = new mongoose.Schema<User>({
   name: String,
@@ -18,8 +19,14 @@ export const UserRepository = {
   async create(user: User) {
     return await UserModel.create(user);
   },
-  async updatePassword(userId: string,newPassword: string ){
-    return await UserModel.findByIdAndUpdate(userId, {password: newPassword}, {new: true});
+  async updatePassword(userId: string, newPassword: string) {
+    return await UserModel.findByIdAndUpdate(userId, { password: newPassword }, { new: true });
+  },
+  async updateAllowPushNotifications(userId: string, allow: boolean): Promise<IAppUser | null> {
+    return await AppUser.findByIdAndUpdate(userId, { allowPushNotifications: allow }, { new: true });
+  },
+  async findAppUserById(userId: string): Promise<IAppUser | null> {
+    return await AppUser.findById(userId);
   }
 };
 
