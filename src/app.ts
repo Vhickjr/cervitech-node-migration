@@ -11,7 +11,7 @@ app.use(morgan('dev', { stream: loggerStream }));
 
 app.use('/api/auth', authRoutes);
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/cervitech' )
+mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://mabdurrahmanbalogun:pass.word123@afretec.i5dm3.mongodb.net/' )
   .then(() => console.log('MongoDB connected'))
   .catch((err: unknown) => console.error(err));
   

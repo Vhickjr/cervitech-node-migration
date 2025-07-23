@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { UserService } from '../services/user.service';
+import { AppUserService } from '../services/appuser.service';
 
 class CustomException extends Error {
   constructor(message: string) {
@@ -36,7 +36,7 @@ export const UserController = {
       }
 
       try {
-        data = await UserService.toggleAllowPushNotifications(userId);
+        data = await AppUserService.toggleAllowPushNotifications(userId);
         dataResult = {
           statusCode: ApiResponseStatus.Successful,
           message: 'Successful',

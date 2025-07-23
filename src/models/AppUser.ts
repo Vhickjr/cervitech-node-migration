@@ -20,6 +20,17 @@ export interface IAppUser extends IUser {
 }
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
+  // Base User fields
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  telephone: { type: String, required: false },
+  hash: { type: String, required: true },
+  salt: { type: String, required: true },
+  pictureUrl: { type: String, required: false },
+  dateRegistered: { type: Date, required: true, default: Date.now },
+  
+  // AppUser specific fields
   fcmToken: { type: String },
   username: { type: String, required: true, unique: true },
   lastLoginDateTime: { type: Date, default: Date.now },
