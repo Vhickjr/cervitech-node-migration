@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "Nodejs backend version for CerviTech App",
   "main": "index.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
     "dev": "dotenv -e .env.dev -- tsx watch src/server.ts",
     "stage": "dotenv -e .env.staging -- tsx watch src/server.ts",
-    "prod": "dotenv -e .env.prod -- tsx watch src/server.ts",
-    "start": "ts-node src/server.ts"
+    "prod": "dotenv -e .env.prod -- tsx watch src/server.ts"
   },
   "repository": "https://github.com/Vhickjr/cervitech-node-migration.git",
   "author": "CerviTech",

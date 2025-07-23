@@ -1,6 +1,6 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../services/auth.service.js';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
@@ -33,9 +33,10 @@ export const AuthController = {
       res.status(200).json(result);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
-    },
+    }
+  },
 
-  async logout(_req: Request, res: Response) {
+  async logout(req: Request, res: Response) {
     try {
       // Send back logout confirmation
       res.status(200).json({ message: 'Logged out successfully' });
@@ -43,13 +44,5 @@ export const AuthController = {
       res.status(500).json({ error: 'Logout failed' });
     }
   },
-  async logout(_req: Request, res: Response) {
-    try {
-      // Send back logout confirmation
-      res.status(200).json({ message: 'Logged out successfully' });
-    } catch (err: any) {
-      res.status(500).json({ error: 'Logout failed' });
-    }
-  }
 
 };
