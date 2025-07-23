@@ -43,7 +43,7 @@ export const updateSubscriptionAsync = async (userId: number) => {
     id: user._id,
     username: user.username,
     email: user.email,
-    FCMToken: user.FCMToken,
+    // FCMToken: user.FCMToken,
     hasPaid: user.hasPaid,
     firstName: user.firstName,
     lastName: user.lastName,
@@ -53,7 +53,7 @@ export const updateSubscriptionAsync = async (userId: number) => {
     isGoalOn: user.isGoalOn,
     allowPushNotifications: user.allowPushNotifications,
     mobileChannel: user.mobileChannel,
-    dateRegistered: user.dateRegistered?.toISOString(),
+    dateRegistered: user.dateRegistered?.toString(),
     responseRate: user.responseRate,
     lastLoginDateTime: user.lastLoginDateTime
   };

@@ -1,12 +1,12 @@
 // MAIN BUSINESS LOGIC
 // src/services/auth.service.ts
-import { UserRepository } from '../infrastructure/repositories/user.repository';
-import { HashUtil } from '../utils/hash.utils';
-import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
-import {TokenUtil} from '../utils/token.util';
-import { LoginResponse } from '../dtos/auth.entity';
+import { UserRepository } from '../infrastructure/repositories/user.repository.js';
+import { HashUtil } from '../utils/hash.utils.js';
+import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel.js';
+import {TokenUtil} from '../utils/token.util.js';
+import { LoginResponse } from '../dtos/auth.entity.js';
 import jwt from 'jsonwebtoken';
-import generateToken from '../utils/generateToken';
+import generateToken from '../utils/generateToken.js';
 
 
 export class AuthService {
