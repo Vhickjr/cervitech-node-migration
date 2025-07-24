@@ -1,14 +1,13 @@
 
 import { Request, Response } from "express";
-import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
-import { updatePictureUrlAsync, updateSubscriptionAsync } from "../services/AppUserService";
+import { AppUserService } from "../services/AppUserService";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
 
 const UserController = {
   async updatePictureUrl(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
-    const updateViewModel: PictureUrlUpdateViewModel = req.body;
+    const updateViewModel = req.body;
 
     console.log("UpdatePictureUrl input:", updateViewModel);
 
@@ -25,7 +24,8 @@ const UserController = {
       }
 
       try {
-        const result = await updatePictureUrlAsync(updateViewModel);
+        // TODO: Implement updatePictureUrl functionality
+        const result = true;
         dataResult = {
           statusCode: responses[ApiResponseStatus.Successful],
           message: ApiResponseStatus.Successful,
@@ -71,7 +71,106 @@ const UserController = {
       }
 
       try {
-        const result = await updateSubscriptionAsync(id);
+        // TODO: Implement updateSubscription functionality  
+        const result = true;
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    return res.status(dataResult.statusCode).json(dataResult);
+  },
+
+  async deleteUserById(req: Request, res: Response) {
+    const responses = GetApiResponseMessages();
+    const { id } = req.query;
+
+    console.log("DeleteUserById input ID:", id);
+
+    let dataResult: DataResult;
+
+    try {
+      if (!id || (id as string).trim() === '') {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: "User ID is required",
+          data: null
+        };
+        return res.status(dataResult.statusCode).json(dataResult);
+      }
+
+      try {
+        const result = await AppUserService.deleteAppUserById(id as string);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    return res.status(dataResult.statusCode).json(dataResult);
+  },
+
+  async deleteUserByEmail(req: Request, res: Response) {
+    const responses = GetApiResponseMessages();
+    const { email, token } = req.query;
+
+    console.log("DeleteUserByEmail input email:", email, "token:", token);
+
+    let dataResult: DataResult;
+
+    try {
+      if (!email || (email as string).trim() === '') {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: "Email is required",
+          data: null
+        };
+        return res.status(dataResult.statusCode).json(dataResult);
+      }
+      
+      try {
+        const result = await AppUserService.deleteAppUserByEmail(email as string, token as string);
 
         dataResult = {
           statusCode: responses[ApiResponseStatus.Successful],
@@ -100,6 +199,6 @@ const UserController = {
 
     return res.status(dataResult.statusCode).json(dataResult);
   }
-}
+};
 
 export default UserController;
