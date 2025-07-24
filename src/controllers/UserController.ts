@@ -6,7 +6,7 @@ import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiRespons
 import { DataResult } from "../helpers/DataResult";
 
 const UserController = {
-  async updatePictureUrl(req: Request, res: Response) {
+  async updatePictureUrl(req: Request, res: Response): Promise<void> {
     const responses = GetApiResponseMessages();
     const updateViewModel: PictureUrlUpdateViewModel = req.body;
 
@@ -21,7 +21,8 @@ const UserController = {
           message: ApiResponseStatus.BadRequest,
           data: null
         };
-        return res.status(dataResult.statusCode).json(dataResult);
+        res.status(dataResult.statusCode).json(dataResult);
+        return 
       }
 
       try {
@@ -52,7 +53,7 @@ const UserController = {
     res.status(dataResult.statusCode).json(dataResult);
     return;
   },
-  async updateSubscription(req: Request, res: Response) {
+  async updateSubscription(req: Request, res: Response): Promise<void> {
     const responses = GetApiResponseMessages();
     const id = parseInt(req.params.id);
 
@@ -67,7 +68,8 @@ const UserController = {
           message: ApiResponseStatus.BadRequest,
           data: null
         };
-        return res.status(dataResult.statusCode).json(dataResult);
+        res.status(dataResult.statusCode).json(dataResult);
+        return
       }
 
       try {
@@ -98,7 +100,8 @@ const UserController = {
       };
     }
 
-    return res.status(dataResult.statusCode).json(dataResult);
+    res.status(dataResult.statusCode).json(dataResult);
+    return
   }
 }
 
