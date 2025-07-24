@@ -13,7 +13,8 @@ const UserController = {
                     message: ApiResponseStatus.BadRequest,
                     data: null
                 };
-                return res.status(dataResult.statusCode).json(dataResult);
+                res.status(dataResult.statusCode).json(dataResult);
+                return;
             }
             try {
                 const result = await updatePictureUrlAsync(updateViewModel);
@@ -56,7 +57,8 @@ const UserController = {
                     message: ApiResponseStatus.BadRequest,
                     data: null
                 };
-                return res.status(dataResult.statusCode).json(dataResult);
+                res.status(dataResult.statusCode).json(dataResult);
+                return;
             }
             try {
                 const result = await updateSubscriptionAsync(id);
@@ -84,7 +86,8 @@ const UserController = {
                 data: null
             };
         }
-        return res.status(dataResult.statusCode).json(dataResult);
+        res.status(dataResult.statusCode).json(dataResult);
+        return;
     }
 };
 export default UserController;

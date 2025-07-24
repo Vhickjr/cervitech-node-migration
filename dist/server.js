@@ -15,8 +15,8 @@ app.use(express.json());
 app.use(morgan('dev', { stream: loggerStream }));
 app.use('/api/auth', authRoutes);
 // app.use('/api/users', userRoutes);
-console.log('MongoDB connected', process.env.MONGODB_URI);
+// console.log('MongoDB URI: ', process.env.MONGODB_URI);
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/cervitech')
-    .then(() => console.log('MongoDB connected', process.env.MONGODB_URI))
+    .then(() => console.log('MongoDB connected'))
     .catch(err => console.error(err));
 export default app;
