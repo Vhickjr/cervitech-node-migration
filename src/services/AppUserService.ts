@@ -58,3 +58,21 @@ export const updateSubscriptionAsync = async (userId: number) => {
     lastLoginDateTime: user.lastLoginDateTime
   };
 };
+
+export const toggleAllowPushNotificationsAsync = async (userId: number): Promise<boolean> => {
+  if (!userId || userId < 1) {
+    throw new CustomException("UserId not provided");
+  }
+
+  const user = await AppUser.findById(userId);
+  
+  if (!user) {
+    throw new CustomException("cannot find user");
+  }
+
+  user.allowPushNotifications = !user.allowPushNotifications;
+
+  await user.save();
+
+  return true;
+};

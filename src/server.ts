@@ -2,7 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import { loggerStream } from './utils/logger.js';
 import authRoutes from './routes/auth.routes.js';
-// import userRoutes from './routes/userRoutes';
+import userRoutes from './routes/userRoutes';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(morgan('dev', { stream: loggerStream }));
 
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);
 
 // console.log('MongoDB URI: ', process.env.MONGODB_URI);
 
