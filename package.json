@@ -4,15 +4,15 @@
   "description": "Nodejs backend version for CerviTech App",
   "main": "index.js",
   "scripts": {
-  "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
-},
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+  },
   "repository": "https://github.com/Vhickjr/cervitech-node-migration.git",
   "author": "CerviTech",
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "@types/express": "^5.0.2",
-    "@types/morgan": "^1.9.9",
+    "@types/express": "^5.0.3",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^22.15.21",
     "prettier": "^3.5.3",
     "ts-node-dev": "^2.0.0",
