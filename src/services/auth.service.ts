@@ -1,7 +1,7 @@
 // MAIN BUSINESS LOGIC
 // src/services/auth.service.ts
 import { UserRepository } from '../infrastructure/repositories/user.repository';
-import { HashUtil } from '../utils/hash.utils';
+import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import {TokenUtil} from '../utils/token.util';
 import { LoginResponse } from '../dtos/auth.entity';
@@ -11,6 +11,7 @@ import generateToken from '../utils/generateToken';
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
+    console.log("Data", data)
     const existing = await UserRepository.findByEmail(data.email);
     if (existing) throw new Error('Email already in use');
 
@@ -26,7 +27,7 @@ export class AuthService {
       userId: newUser._id.toString()
     };
   }
-  static async requestPasswordReset({email}: passwordResetRequest){
+  static async sendPasswordResetToken({email}: passwordResetRequest){
    const user = await UserRepository.findByEmail(email);
     if(!user) throw new Error('User not found');
 
