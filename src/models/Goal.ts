@@ -1,9 +1,8 @@
 import { Schema, Document } from 'mongoose';
 import {
   GoalCycleCompletionReportSchema,
-  IGoalCycleCompletionReport,
-} from './GoalCycleCompletionReport';
-
+  IGoalCycleCompletionReport,} from './GoalCycleCompletionReport';
+import mongoose from 'mongoose';
 export interface IGoal extends Document {
   dateSet: Date;
   targetedAverageNeckAngle: number;
@@ -20,3 +19,8 @@ export const GoalSchema = new Schema<IGoal>({
     default: [],
   },
 });
+
+export const Goal = mongoose.model<IGoal>(
+  'Goal',
+  GoalSchema
+);

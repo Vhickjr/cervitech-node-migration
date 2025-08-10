@@ -2,11 +2,18 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from './User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import { NeckAngleRecordSchema, INeckAngleRecord } from './NeckAngleRecord';
-import { GoalSchema, IGoal } from './Goal';
+import { GoalSchema, IGoal } from './goal';
 
 export interface IAppUser extends IUser {
+  _id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  pictureUrl: string;
   fcmToken: string;
   username: string;
+  hash: string;
+  salt: string;
   lastLoginDateTime: Date;
   allowPushNotifications: boolean;
   hasPaid: boolean;
@@ -15,9 +22,13 @@ export interface IAppUser extends IUser {
   neckAngleRecords: INeckAngleRecord[];
   goals: IGoal[];
   mobileChannel: MOBILE_CHANNEL;
-  prompt?: number;
+  prompt: number;
   notificationCount?: number;
+  currentTargetedAverageNeckAngle: number;
+  dateRegistered: Date;
+  notificationResponse?: number;
 }
+
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
   fcmToken: { type: String },
@@ -27,6 +38,7 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   hasPaid: { type: Boolean, default: false },
   isGoalOn: { type: Boolean, default: false },
   responseRate: { type: Number, default: 0 },
+  notificationResponse: { type: Number, required: false },
 
   neckAngleRecords: {
     type: [NeckAngleRecordSchema],
