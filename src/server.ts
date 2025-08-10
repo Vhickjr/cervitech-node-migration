@@ -12,6 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cervitech';
+console.log(MONGODB_URI)
 
 // Middleware
 app.use(express.json());
@@ -20,7 +21,7 @@ app.use(morgan('dev', { stream: loggerStream }));
 // Routes
 
 app.use('/auth', authRoutes);
-app.use('/api', neckAngleRoutes); // Add this line
+app.use('/api', neckAngleRoutes);
 
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI)
