@@ -1,5 +1,5 @@
 // src/utils/hash.util.ts
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
 
 export const HashUtil = {
   async hash(password: string) {
