@@ -1,5 +1,5 @@
 // src/infrastructure/repositories/user.repository.ts
-import { User } from '../../domain/user.entity';
+import { User } from '../../dtos/user.entity';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema<User>({
@@ -17,6 +17,9 @@ export const UserRepository = {
   },
   async create(user: User) {
     return await UserModel.create(user);
+  },
+  async updatePassword(userId: string,newPassword: string ){
+    return await UserModel.findByIdAndUpdate(userId, {password: newPassword}, {new: true});
   }
 };
 
