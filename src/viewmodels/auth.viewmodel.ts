@@ -18,3 +18,4 @@ export interface passwordResetResponse{
   token: string;
   newPassword: string;
 }
+

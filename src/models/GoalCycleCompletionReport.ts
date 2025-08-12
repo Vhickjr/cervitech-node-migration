@@ -1,5 +1,5 @@
 import { Schema, Document } from 'mongoose';
-
+import mongoose from 'mongoose';
 export interface IGoalCycleCompletionReport extends Document {
   actualAverageNeckAngle: number;
   complianceInPercentage: number;
@@ -11,3 +11,8 @@ export const GoalCycleCompletionReportSchema = new Schema<IGoalCycleCompletionRe
   complianceInPercentage: { type: Number, required: true },
   dateOfConcludedCycle: { type: Date, required: true },
 });
+
+export const GoalCycleCompletionReport = mongoose.model<IGoalCycleCompletionReport>(
+  'GoalCycleCompletionReport',
+  GoalCycleCompletionReportSchema
+);
