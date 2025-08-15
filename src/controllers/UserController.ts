@@ -22,7 +22,7 @@ const UserController = {
           data: null
         };
         res.status(dataResult.statusCode).json(dataResult);
-        return 
+        return
       }
 
       try {
@@ -104,21 +104,18 @@ const UserController = {
     return
   }
 }
-  return res.status(dataResult.statusCode).json(dataResult);
-};
-
 
 export const getResponseRate = async (req: Request, res: Response) => {
   const responses = GetApiResponseMessages();
 
-  const id = parseInt(req.query.id as string);
+  const id = req.query.id as string;
   const dateStr = req.query.date as string;
 
   let dataResult: DataResult;
 
   try {
     // Validate input
-    if (!id || isNaN(id) || !dateStr || isNaN(Date.parse(dateStr))) {
+    if (!id || !dateStr || isNaN(Date.parse(dateStr))) {
       dataResult = {
         statusCode: responses[ApiResponseStatus.BadRequest],
         message: ApiResponseStatus.BadRequest,
