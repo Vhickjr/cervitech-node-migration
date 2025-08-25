@@ -2,10 +2,9 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from './User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import { NeckAngleRecordSchema, INeckAngleRecord } from './NeckAngleRecord';
-import { GoalSchema, IGoal } from './goal';
+import { GoalSchema, IGoal } from './Goal';
 
 export interface IAppUser extends IUser {
-  _id: number;
   email: string;
   firstName: string;
   lastName: string;
