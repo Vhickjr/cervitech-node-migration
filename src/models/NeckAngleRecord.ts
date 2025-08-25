@@ -2,8 +2,7 @@ import { Schema, Document } from 'mongoose';
 import mongoose from 'mongoose';
 
 export interface INeckAngleRecord extends Document {
-  id: number;
-  appUserId: number;
+  appUserId: string;
   angle: number;
   craniumVertebralAngle: number;
   dateTimeRecorded: Date;
@@ -11,8 +10,7 @@ export interface INeckAngleRecord extends Document {
 } 
 
 export const NeckAngleRecordSchema = new Schema<INeckAngleRecord>({
-  id: { type: Number, required: true },
-  appUserId: { type: Number, required: true },
+  appUserId: { type: String, ref: 'User', required: true },
   angle: { type: Number, required: true },
   craniumVertebralAngle: { type: Number, required: true },
   dateTimeRecorded: { type: Date, required: true },
