@@ -10,7 +10,7 @@ import { INeckAngleRecord } from '../models/NeckAngleRecord';
 import ResponseRate from '../models/ResponseRate';
 import { IAppUser } from '../models/AppUser';
 import { Logger } from 'winston'; // or your preferred logger
-import { TokenGeneratorService } from './TokenGenerator';
+// import { TokenGeneratorService } from './TokenGenerator';
 import { MailService } from './MailService';
 import { MailSender } from './MailSender';
 import { PushNotificationDriver } from './pushNotificationDriver';
@@ -22,6 +22,7 @@ import { Utils } from '../helpers/utils';
 import { neckAngleRecordViewModel } from '../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../helpers/calculator';
 import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePostNeckAngleRecords';
+import { Types } from 'mongoose';
 
 export class AppUserService {
   private logger: Logger;
@@ -163,7 +164,7 @@ export async function sendPushNotificationMessageForAverageNeckAngle(this: any, 
 
       let averageNeckAngle: number;
       try {
-        averageNeckAngle = await calculateAverageOfLastSetNeckAngles(appUser._id.toString());
+        averageNeckAngle = await calculateAverageOfLastSetNeckAngles((appUser._id as Types.ObjectId).toString() as string);
       } catch (error: any) {
         logger.info(error.message);
         continue;
@@ -174,7 +175,7 @@ export async function sendPushNotificationMessageForAverageNeckAngle(this: any, 
 
       if (appUser.notificationCount > appUser.prompt) {
         // You can use node-cron or agenda for scheduling in Node.js
-        scheduleResetNotificationCount(appUser._id.toString());
+        scheduleResetNotificationCount((appUser._id as Types.ObjectId).toString());
       }
 
       const pushNotificationModel = {
@@ -243,10 +244,6 @@ export async function postRandomBatchNeckAngleRecordForTestAsync(
     await NeckAngleRecordModel.insertMany({ data: neckAngleRecords }); // Adjust based on your ORM
     return true;
   } catch (error) {
-    if (error instanceof CustomException) {
-      logger.error(error.message);
-      throw error;
-    }
     throw error;
   }
 }
