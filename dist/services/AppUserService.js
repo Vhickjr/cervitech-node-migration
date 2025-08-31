@@ -1,6 +1,7 @@
 //1. Import AppUser from the actual MongoDB model
 import AppUser from "../viewmodels/AppUser";
 import { CustomException } from "../helpers/CustomException";
+import ResponseRate from "../viewmodels/ResponseRateViewModel";
 export const updatePictureUrlAsync = async (update) => {
     if (!update || update.userId < 1) {
         throw new Error("UserId not provided");
@@ -28,7 +29,7 @@ export const updateSubscriptionAsync = async (userId) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        // FCMToken: user.FCMToken,
+        FCMToken: user.fcmToken,
         hasPaid: user.hasPaid,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -42,4 +43,49 @@ export const updateSubscriptionAsync = async (userId) => {
         responseRate: user.responseRate,
         lastLoginDateTime: user.lastLoginDateTime
     };
+};
+export const getResponseRateAsync = async (userId, day) => {
+    try {
+        // Set time boundaries for the day
+        const startOfDay = new Date(day);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(day);
+        endOfDay.setHours(23, 59, 59, 999);
+        // Query response rates for that user on that day
+        const responseRates = await ResponseRate.find({
+            appUserId: userId,
+            dateCreated: { $gte: startOfDay, $lte: endOfDay }
+        });
+        const totalPrompts = responseRates.reduce((sum, r) => sum + (r.prompt || 0), 0);
+        const totalResponses = responseRates.reduce((sum, r) => sum + (r.response || 0), 0);
+        // Group by hour
+        const groupedByHour = {};
+        responseRates.forEach((entry) => {
+            const hour = new Date(entry.dateCreated).getHours();
+            if (!groupedByHour[hour]) {
+                groupedByHour[hour] = { prompts: 0, responses: 0 };
+            }
+            groupedByHour[hour].prompts += entry.prompt || 0;
+            groupedByHour[hour].responses += entry.response || 0;
+        });
+        const activity = Object.entries(groupedByHour).map(([hourStr, group]) => {
+            const hour = parseInt(hourStr);
+            const { prompts, responses } = group;
+            const activityPercentage = prompts === 0 ? 0 : (responses / prompts) * 100;
+            return { hour, prompts, responses, activityPercentage };
+        });
+        const responseRate = totalPrompts === 0 ? 0 : (totalResponses / totalPrompts) * 100;
+        const rrvm = {
+            appUserId: userId,
+            responseRate,
+            totalPrompts,
+            totalResponses,
+            activity
+        };
+        return rrvm;
+    }
+    catch (err) {
+        console.error("Error in getResponseRateAsync:", err.message);
+        throw new CustomException("Error retrieving response rate.");
+    }
 };
