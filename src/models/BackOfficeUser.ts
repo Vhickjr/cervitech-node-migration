@@ -1,21 +1,38 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IUser, UserSchema } from './User';
+// src/models/BackofficeUser.ts
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface IBackOfficeUser extends IUser {
+export interface IBackofficeUser extends Document {
+  firstName: string;
+  lastName: string;
+  email: string;
+  telephone: string;
   username: string;
-  verified: boolean;
+  password:string;
+  hash: string;
+  salt: string;
   accessLevel: string;
-  readOnly: string;
+  readOnly: boolean;
+  resetToken?: string;
+  resetTokenExpires?: Date;
 }
 
-const BackOfficeUserSchema = new Schema<IBackOfficeUser>({
+const BackofficeUserSchema: Schema = new Schema({
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  telephone: { type: String },
   username: { type: String, required: true, unique: true },
-  verified: { type: Boolean, default: false },
+  hash: { type: String, required: true },
+  salt: { type: String, required: true },
   accessLevel: { type: String, required: true },
-  readOnly: { type: String, required: true },
+  readOnly: { type: Boolean, default: false },
+  resetToken: { type: String },
+  resetTokenExpires: { type: Date },
 });
 
-BackOfficeUserSchema.add({...UserSchema.obj});
+const BackofficeUser = mongoose.model<IBackofficeUser>(
+  "BackofficeUser",
+  BackofficeUserSchema
+);
 
-const BackOfficeUser = mongoose.model<IBackOfficeUser>('BackOfficeUser', BackOfficeUserSchema);
-export default BackOfficeUser;
+export default BackofficeUser;

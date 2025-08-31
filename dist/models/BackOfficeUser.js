@@ -1,11 +1,15 @@
-import mongoose, { Schema } from 'mongoose';
-import { UserSchema } from './User';
-const BackOfficeUserSchema = new Schema({
+// src/models/BackofficeUser.ts
+import mongoose, { Schema } from "mongoose";
+const BackofficeUserSchema = new Schema({
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    telephone: { type: String },
     username: { type: String, required: true, unique: true },
-    verified: { type: Boolean, default: false },
+    hash: { type: String, required: true },
+    salt: { type: String, required: true },
     accessLevel: { type: String, required: true },
-    readOnly: { type: String, required: true },
+    readOnly: { type: Boolean, default: false },
 });
-BackOfficeUserSchema.add({ ...UserSchema.obj });
-const BackOfficeUser = mongoose.model('BackOfficeUser', BackOfficeUserSchema);
-export default BackOfficeUser;
+const BackofficeUser = mongoose.model("BackofficeUser", BackofficeUserSchema);
+export default BackofficeUser;

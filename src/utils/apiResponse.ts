@@ -15,4 +15,10 @@ function getApiResponseMessages() {
   };
 }
 
+export interface DataResult<T = any> {
+  StatusCode: number;
+  Message: string;
+  Data: T | string;
+}
+
 export { getApiResponseMessages, ApiResponseStatus };

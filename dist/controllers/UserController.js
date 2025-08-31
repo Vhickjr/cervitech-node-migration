@@ -1,4 +1,4 @@
-import { updatePictureUrlAsync, updateSubscriptionAsync } from "../services/AppUserService";
+import { updatePictureUrlAsync, updateSubscriptionAsync, getResponseRateAsync } from "../services/AppUserService";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 const UserController = {
     async updatePictureUrl(req, res) {
@@ -89,5 +89,49 @@ const UserController = {
         res.status(dataResult.statusCode).json(dataResult);
         return;
     }
+};
+export const getResponseRate = async (req, res) => {
+    const responses = GetApiResponseMessages();
+    const id = req.query.id;
+    const dateStr = req.query.date;
+    let dataResult;
+    try {
+        // Validate input
+        if (!id || !dateStr || isNaN(Date.parse(dateStr))) {
+            dataResult = {
+                statusCode: responses[ApiResponseStatus.BadRequest],
+                message: ApiResponseStatus.BadRequest,
+                data: null
+            };
+            return res.status(dataResult.statusCode).json(dataResult);
+        }
+        try {
+            const date = new Date(dateStr);
+            const result = await getResponseRateAsync(id, date);
+            dataResult = {
+                statusCode: responses[ApiResponseStatus.Successful],
+                message: ApiResponseStatus.Successful,
+                data: result
+            };
+        }
+        catch (customError) {
+            console.error("CustomException:", customError.message);
+            dataResult = {
+                statusCode: responses[ApiResponseStatus.Failed],
+                message: customError.message,
+                data: null
+            };
+        }
+    }
+    catch (error) {
+        console.error("Unhandled Exception:", error.message);
+        dataResult = {
+            statusCode: responses[ApiResponseStatus.UnknownError],
+            message: ApiResponseStatus.UnknownError,
+            exceptionErrorMessage: error.message,
+            data: null
+        };
+    }
+    return res.status(dataResult.statusCode).json(dataResult);
 };
 export default UserController;
