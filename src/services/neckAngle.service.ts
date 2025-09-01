@@ -4,68 +4,19 @@ import { NeckAngleRecordModel } from '../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../helpers/computations';
 import  AppUser  from '../models/AppUser';
-import CustomException from '../exceptions/customException';
+import { CustomException } from '../helpers/CustomException';
 import { logger } from '../utils/logger';
 import { INeckAngleRecord } from '../models/NeckAngleRecord';
 import ResponseRate from '../models/ResponseRate';
 import { IAppUser } from '../models/AppUser';
-import { Logger } from 'winston'; // or your preferred logger
-// import { TokenGeneratorService } from './TokenGenerator';
-import { MailService } from './MailService';
-import { MailSender } from './MailSender';
 import { PushNotificationDriver } from './pushNotificationDriver';
-import { SendGridEmailSender } from './SendGridEmailSender';
-import { CerviTechDbContext } from '../config/CerviTechDbContext';
-import { ApplicationConstant } from '../utils/applicationConstants';
-import { DataSource } from 'typeorm';
 import { Utils } from '../helpers/utils';
 import { neckAngleRecordViewModel } from '../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../helpers/calculator';
 import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePostNeckAngleRecords';
 import { Types } from 'mongoose';
 
-export class AppUserService {
-  private logger: Logger;
-  private db: DataSource = CerviTechDbContext;
-  private config: NodeJS.ProcessEnv;
-  private tokenGenerator: TokenGeneratorService;
-  private mailService: MailService;
-  private mailSender: MailSender;
-  private pushNotificationDriver: PushNotificationDriver;
-  private sendGridEmailSender: SendGridEmailSender;
-  private numberOfRecordPostBeforeSendingAverageNeckAngle: number;
-  private defaultPrompt: number;
 
-  constructor(
-    logger: Logger,
-    cerviTechDbContext: DataSource = CerviTechDbContext,
-    tokenGenerator: TokenGeneratorService,
-    mailService: MailService,
-    mailSender: MailSender,
-    pushNotificationDriver: PushNotificationDriver,
-    configuration: NodeJS.ProcessEnv,
-    sendGridEmailSender: SendGridEmailSender
-  ) {
-    this.logger = logger;
-    this.db = cerviTechDbContext;
-    this.config = configuration;
-    this.tokenGenerator = tokenGenerator;
-    this.mailService = mailService;
-    this.mailSender = mailSender;
-    this.pushNotificationDriver = pushNotificationDriver;
-    this.sendGridEmailSender = sendGridEmailSender;
-
-    this.numberOfRecordPostBeforeSendingAverageNeckAngle = parseInt(
-      ApplicationConstant.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0',
-      10
-    );
-
-    this.defaultPrompt = parseInt(
-      ApplicationConstant.ENV_DEFAULT_PROMPT || '0',
-      10
-    );
-  }
-}
 
 export const postBatchNeckAngleRecordAsync = async (
   neckAngleModel: NeckAngleModel
@@ -221,27 +172,29 @@ export async function postRandomBatchNeckAngleRecordForTestAsync(
       throw new CustomException('The maximum number of records allowed is 30 per request');
     }
 
-    const neckAngleRecords: neckAngleRecordViewModel[] = [];
+    const neckAngleRecords: INeckAngleRecord[] = [];
     const random = () => Math.floor(Math.random() * (90 - 10 + 1)) + 10;
 
     for (let i = 0; i < model.numberOfRecords; i++) {
-      const angle = random();
-
-      const timeSpanMinutes = (model.endDate.getTime() - model.startDate.getTime()) / (1000 * 60);
+      const angle = random()
+      const start = new Date(model.startDate);
+      const end = new Date(model.endDate);
+      const timeSpanMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
       const randomMinutes = Math.floor(Math.random() * timeSpanMinutes);
-      const randomDate = new Date(model.startDate.getTime() + randomMinutes * 60 * 1000);
+      const randomDate = new Date(start.getTime() + randomMinutes * 60 * 1000);
 
-      const record: neckAngleRecordViewModel = {
-        appUserId: model.appUserId,
-        angle: angle,
-        dateTimeRecorded: randomDate,
-        craniumVertebralAngle: Calculator.getCraniumVertebralAngleFromNeckAngle(angle),
-      };
+      const record = new NeckAngleRecordModel ({
+  appUserId: model.appUserId,
+  angle,
+  craniumVertebralAngle: Calculator.getCraniumVertebralAngleFromNeckAngle(angle),
+  dateTimeRecorded: randomDate,
+  counter: 0,
+});
 
       neckAngleRecords.push(record);
     }
 
-    await NeckAngleRecordModel.insertMany({ data: neckAngleRecords }); // Adjust based on your ORM
+    await NeckAngleRecordModel.insertMany(neckAngleRecords); // Adjust based on your ORM
     return true;
   } catch (error) {
     throw error;

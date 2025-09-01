@@ -6,6 +6,14 @@ import { CustomException } from "../helpers/CustomException";
 import { AppUserResponse, ResponseRateViewModel } from "../viewmodels/ResponseRateViewModel";
 import ResponseRate from "../viewmodels/ResponseRateViewModel";
 import { Activity } from "../viewmodels/Activity";
+import { NeckAngleRecordModel } from "../models/NeckAngleRecord";
+import { DateLibrary } from "../helpers/dateLibrary";
+import { Goal } from "../models/Goal";
+import { GoalCycleCompletionReport } from "../models/GoalCycleCompletionReport";
+import { logger } from "../utils/logger";
+import { PushNotificationDriver } from "./pushNotificationDriver";
+import { PushNotificationModelDTO } from "../dtos/PushNotificationModelDTO";
+
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -128,8 +136,90 @@ export class AppUserService {
 
 }
 
+export const calculateAverageOfLastWeekOrDay = async (
+  userId: number,
+  frequency: string,
+  dateCreated: Date,
+  goalId: string
+): Promise<boolean> => {
+  try {
+    let average = 0;
+    let records;
 
+    if (frequency === 'DAILY') {
+      records = await NeckAngleRecordModel.find({
+        appUserId: userId,
+        dateTimeRecorded: {
+          $gte: DateLibrary.getYesterdayDateTime(),
+          $lte: DateLibrary.getCurrentDateTime()
+        }
+      });
+    } else if (frequency === 'WEEKLY') {
+      records = await NeckAngleRecordModel.find({
+        appUserId: userId,
+        dateTimeRecorded: {
+          $gte: DateLibrary.getLastWeekDateTime(),
+          $lte: DateLibrary.getCurrentDateTime()
+        }
+      });
+    } else {
+      throw new CustomException('Invalid Goal Frequency');
+    }
 
+    if (records.length === 0) return false;
 
+    average = records.reduce((sum, r) => sum + r.angle, 0) / records.length;
 
+    const goal = await Goal.findById(goalId);
+    if (!goal) return false;
 
+    const goalCycleReport = new GoalCycleCompletionReport({
+      actualAverageNeckAngle: isNaN(average) ? 0 : Math.round(average * 10) / 10,
+      complianceInPercentage: 0,
+      dateOfConcludedCycle: DateLibrary.getCurrentDateTime(),
+      goalId
+    });
+
+    if (average >= goal.targetedAverageNeckAngle) {
+      goalCycleReport.complianceInPercentage = 100;
+    } else {
+      const compliance = (average / goal.targetedAverageNeckAngle) * 100;
+      goalCycleReport.complianceInPercentage = isNaN(compliance)
+        ? 0
+        : Math.min(100, Math.round(compliance * 10) / 10);
+    }
+
+    await goalCycleReport.save();
+
+    const userFCMToken = await getFCMTokenById(userId);
+    if (!userFCMToken) throw new CustomException('User does not have an FCM Token');
+
+    const pushNotificationModel: PushNotificationModelDTO = {
+      to: userFCMToken,
+      title: 'Your set goal',
+      body: `Hi, you scored ${goalCycleReport.complianceInPercentage}/100`
+    };
+
+    await PushNotificationDriver.sendPushNotification(pushNotificationModel);
+
+    return true;
+  } catch (error) {
+    logger.error(error instanceof CustomException ? error.message : String(error));
+    throw error;
+  }
+}
+
+async function getFCMTokenById(id: number): Promise<string> {
+  try {
+    const user = await AppUser.findOne({ id }).exec();
+
+    if (!user) {
+      throw new CustomException('User does not exist in our system');
+    }
+
+    return user.fcmToken;
+  } catch (error) {
+    logger.error(error instanceof CustomException ? error.message : String(error));
+    throw error;
+  }
+}

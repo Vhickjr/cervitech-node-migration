@@ -21,8 +21,8 @@ export const postBatchNeckAngleRecords = async (
     if (
       !postNeckAngleRecordViewModel ||
       typeof postNeckAngleRecordViewModel.appUserId !== 'number' ||
-      !Array.isArray(postNeckAngleRecordViewModel.angles) ||
-      postNeckAngleRecordViewModel.angles.length === 0
+      !Array.isArray(postNeckAngleRecordViewModel.neckAngleRecords) ||
+      postNeckAngleRecordViewModel.neckAngleRecords.length === 0
     ) {
       console.log("I am not here!")
       res.status(400).json({
@@ -75,9 +75,8 @@ export const postRandomTestBatchNeckAngleRecords = async (
   try {
     if (
       !model ||
-      typeof model.appUserId !== 'number' ||
-      !Array.isArray(model.testValues) ||
-      model.testValues.length === 0
+      typeof model.appUserId !== 'string' ||
+      !Array.isArray(model.testValues)
     ) {
       res.status(400).json({
         statusCode: responses[ApiResponseStatus.BadRequest],
