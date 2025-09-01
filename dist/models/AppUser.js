@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import { NeckAngleRecordSchema } from './NeckAngleRecord';
-import { GoalSchema } from './Goal';
+import { GoalSchema } from './goal';
 const AppUserSchema = new Schema({
     fcmToken: { type: String },
     username: { type: String, required: true, unique: true },
@@ -10,6 +10,7 @@ const AppUserSchema = new Schema({
     hasPaid: { type: Boolean, default: false },
     isGoalOn: { type: Boolean, default: false },
     responseRate: { type: Number, default: 0 },
+    notificationResponse: { type: Number, required: false },
     neckAngleRecords: {
         type: [NeckAngleRecordSchema],
         default: [],
