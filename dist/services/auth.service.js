@@ -1,27 +1,31 @@
 // MAIN BUSINESS LOGIC
 // src/services/auth.service.ts
-import { UserRepository } from '../infrastructure/repositories/user.repository.js';
-import { HashUtil } from '../utils/hash.utils.js';
-import { TokenUtil } from '../utils/token.util.js';
-import generateToken from '../utils/generateToken.js';
+// import { UserRepository } from '../infrastructure/repositories/user.repository';
+import { HashUtil } from '../utils/hash';
+import { TokenUtil } from '../utils/token.util';
+// import jwt from 'jsonwebtoken';
+import generateToken from '../utils/generateToken';
+import User from '../models/User';
 export class AuthService {
     static async signup(data) {
-        const existing = await UserRepository.findByEmail(data.email);
+        console.log("Data", data);
+        const existing = await User.findOne({ email: data.email });
         if (existing)
             throw new Error('Email already in use');
         const hashedPassword = await HashUtil.hash(data.password);
-        const newUser = await UserRepository.create({
-            name: data.name,
+        const newUser = await User.create({
+            firstName: data.firstName,
+            lastName: data.lastName,
             email: data.email,
             password: hashedPassword,
         });
         return {
             message: 'Signup successful',
-            userId: newUser._id.toString()
+            data: newUser,
         };
     }
-    static async requestPasswordReset({ email }) {
-        const user = await UserRepository.findByEmail(email);
+    static async sendPasswordResetToken({ email }) {
+        const user = await User.findOne({ email });
         if (!user)
             throw new Error('User not found');
         const token = TokenUtil.generateResetToken(user._id.toString());
@@ -33,15 +37,14 @@ export class AuthService {
     static async resetPassword({ token, newPassword }) {
         const { userId } = TokenUtil.verifyResetToken(token);
         const hashed = await HashUtil.hash(newPassword);
-        ;
-        await UserRepository.updatePassword(userId, hashed);
-        return { messsage: 'Password reset successfully' };
+        await User.findByIdAndUpdate(userId, { password: hashed });
+        return { message: 'Password reset successfully' };
     }
-    static async login(data) {
-        const user = await UserRepository.findByEmail(data.email);
+    static async login(email, password) {
+        const user = await User.findOne({ email: email });
         if (!user)
             throw new Error('User not found');
-        const isValidPassword = await HashUtil.compare(data.password, user.password);
+        const isValidPassword = await HashUtil.compare(password, user.password);
         if (!isValidPassword)
             throw new Error('Invalid password');
         const token = generateToken(user);
