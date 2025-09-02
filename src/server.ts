@@ -8,9 +8,8 @@ import authRoutes from './routes/auth.routes.js';
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transactionRoutes';
 import 'reflect-metadata'; // 👈 ADD THIS AS THE FIRST LINE
+import goalsroutes from './routes/goals.routes.js';
 // Load environment variables
-dotenv.config();
-
 dotenv.config();
 
 const app = express();
@@ -25,8 +24,9 @@ app.use(morgan('dev', { stream: loggerStream }));
 // Routes
 
 app.use('/api/v1/auth', authRoutes);
-// app.use('/api/v1/neck-angle', neckAngleRoutes);
+app.use('/api/neck-angle', neckAngleRoutes);
 app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/goals', goalsroutes);
 
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI)

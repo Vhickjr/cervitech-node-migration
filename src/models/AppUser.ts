@@ -28,7 +28,6 @@ export interface IAppUser extends IUser {
   notificationResponse?: number;
 }
 
-
 const AppUserSchema: Schema = new Schema<IAppUser>({
   fcmToken: { type: String },
   username: { type: String, required: true, unique: true },
@@ -58,5 +57,7 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   notificationCount: { type: Number, required: false },
 });
 
-const AppUser = mongoose.model<IAppUser>('AppUser', AppUserSchema);
+const AppUser =
+  mongoose.models.AppUser || mongoose.model('AppUser', AppUserSchema);
+
 export default AppUser;
