@@ -1,6 +1,6 @@
 // viewmodels/SendAverageNeckAnglePushNotificationViewModel.ts
 
 export interface SendAverageNeckAnglePushNotificationViewModel {
-  userId: number;
+  userId: string;
   averageNeckAngle: number;
 }

@@ -116,7 +116,7 @@ export class AppUserService {
   }
 
   static async calculateAverageOfLastWeekOrDay(
-    userId: number,
+    userId: string,
     frequency: string,
     dateCreated: Date,
     goalId: string
@@ -181,7 +181,7 @@ export class AppUserService {
     }
   }
 
-  static async getFCMTokenById(id: number): Promise<string> {
+  static async getFCMTokenById(id: string): Promise<string> {
     try {
       const user = await AppUser.findOne({ id }).exec();
       if (!user) {
