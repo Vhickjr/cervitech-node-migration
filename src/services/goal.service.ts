@@ -1,14 +1,14 @@
 import AppUser from '../models/AppUser';
 import { Goal } from '../models/Goal';
-import { SetGoalViewModel, TurnOnGoalViewModel } from '../viewmodels/goal.viewmodel';
-import { GoalCycleReportViewModel } from '../viewmodels/goalCycleReport.viewmodel';
+import { SetGoalViewModel, TurnOnGoalViewModel } from '../dtos/goal.DTO';
+import { GoalCycleReportViewModel } from '../dtos/GoalCycleReport.DTO';
 import { CustomException } from '../helpers/CustomException';
 import { DateLibrary } from '../helpers/dateLibrary';
 import { Utils } from '../helpers/utils';
 import { PushNotificationDriver } from './pushNotificationDriver';
 import { CronJob } from 'cron';
 import { logger } from '../utils/logger';
-import { calculateAverageOfLastWeekOrDay } from './appUserService.service';
+import { AppUserService } from './appUserService.service';
 import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
 import { GoalCycleCompletionReport } from '../models/GoalCycleCompletionReport';
 
@@ -76,7 +76,7 @@ export class GoalService {
     try {
       const goals = await Goal.findById(model.appUserId);
 
-      if (!goals.length) throw new CustomException('No goals found');
+      if (!goals.length) {return []};
 
       const reports: GoalCycleReportViewModel[] = [];
 
@@ -149,7 +149,7 @@ export class GoalService {
     const cronTime = frequency === 'DAILY' ? '*/5 * * * *' : '*/10 * * * *';
 
     new CronJob(cronTime, () => {
-      calculateAverageOfLastWeekOrDay(userId, frequency, dateSet, goalId);
+      AppUserService.calculateAverageOfLastWeekOrDay(userId, frequency, dateSet, goalId);
     }, null, true, undefined, undefined, false);
   }
 
