@@ -14,6 +14,6 @@ const ResponseRateSchema = new Schema<IResponseRate>({
   dateCreated: { type: Date, default: Date.now },
 });
 
-const ResponseRate = mongoose.model<IResponseRate>('ResponseRate', ResponseRateSchema);
+const ResponseRate = mongoose.models.ResponseRate || mongoose.model('ResponseRate', ResponseRateSchema);
 
 export default ResponseRate;

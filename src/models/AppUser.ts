@@ -2,10 +2,9 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from './User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import { NeckAngleRecordSchema, INeckAngleRecord } from './NeckAngleRecord';
-import { GoalSchema, IGoal } from './goal';
+import { GoalSchema, IGoal } from './Goal';
 
 export interface IAppUser extends IUser {
-  _id: number;
   email: string;
   firstName: string;
   lastName: string;
@@ -28,7 +27,6 @@ export interface IAppUser extends IUser {
   dateRegistered: Date;
   notificationResponse?: number;
 }
-
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
   fcmToken: { type: String },
@@ -59,5 +57,7 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   notificationCount: { type: Number, required: false },
 });
 
-const AppUser = mongoose.model<IAppUser>('AppUser', AppUserSchema);
+const AppUser =
+  mongoose.models.AppUser || mongoose.model('AppUser', AppUserSchema);
+
 export default AppUser;

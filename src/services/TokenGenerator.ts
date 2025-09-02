@@ -1,33 +1,34 @@
-// token-generator.service.ts
-import { Injectable, Logger } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import PasswordResetToken from '../models/PasswordResetToken';
+// // token-generator.service.ts
+// import { Injectable, Logger } from '@nestjs/common';
+// import { DataSource } from 'typeorm';
+// import PasswordResetToken from '../models/PasswordResetToken';
 
-@Injectable()
-export class TokenGeneratorService {
-  private readonly logger = new Logger(TokenGeneratorService.name);
+// @Injectable()
+// export class TokenGeneratorService {
+//   private readonly logger = new Logger(TokenGeneratorService.name);
 
-  constructor(private readonly dataSource: DataSource) {}
+//   constructor(private readonly dataSource: DataSource) {}
 
-  async getToken(): Promise<string> {
-    const token = this.generateToken();
+//   async getToken(): Promise<string> {
+//     const token = this.generateToken();
 
-    const exists = await this.tokenExists(token);
-    if (exists) {
-      this.logger.debug(`Token ${token} already exists. Generating a new one.`);
-      return this.getToken(); // recursion
-    }
+//     const exists = await this.tokenExists(token);
 
-    return token;
-  }
+//     if (exists) {
+//       this.logger.debug(`Token ${token} already exists. Generating a new one.`);
+//       return this.getToken(); // recursion
+//     }
 
-  private generateToken(): string {
-    const randomNumber = Math.floor(Math.random() * 100000);
-    return randomNumber.toString().padStart(5, '0');
-  }
+//     return token;
+//   }
 
-  private async tokenExists(token: string): Promise<boolean> {
-    const repo = this.dataSource.getRepository(PasswordResetToken);
-    return await repo.exist({ where: { token } });
-  }
-}
+//   private generateToken(): string {
+//     const randomNumber = Math.floor(Math.random() * 100000);
+//     return randomNumber.toString().padStart(5, '0');
+//   }
+
+//   private async tokenExists(token: string): Promise<boolean> {
+//     const repo = this.dataSource.getRepository(PasswordResetToken);
+//     return await repo.exist({ where: { token } });
+//   }
+// }

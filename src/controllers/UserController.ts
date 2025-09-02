@@ -1,7 +1,7 @@
 
 import { Request, Response } from "express";
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
-import { updatePictureUrlAsync, updateSubscriptionAsync, getResponseRateAsync } from "../services/AppUserService";
+import { AppUserService } from "../services/appUserService.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
 
@@ -26,7 +26,7 @@ const UserController = {
       }
 
       try {
-        const result = await updatePictureUrlAsync(updateViewModel);
+        const result = await AppUserService.updatePictureUrlAsync(updateViewModel);
         dataResult = {
           statusCode: responses[ApiResponseStatus.Successful],
           message: ApiResponseStatus.Successful,
@@ -55,25 +55,26 @@ const UserController = {
   },
   async updateSubscription(req: Request, res: Response): Promise<void> {
     const responses = GetApiResponseMessages();
-    const id = parseInt(req.params.id);
+    // const id = parseInt(req.params.id);
+    const id = req.params.id;
 
     console.log("UpdateSubscription input ID:", id);
 
     let dataResult: DataResult;
 
     try {
-      if (!id || isNaN(id)) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null
-        };
-        res.status(dataResult.statusCode).json(dataResult);
-        return
-      }
+      // if (!id || isNaN(id)) {
+      //   dataResult = {
+      //     statusCode: responses[ApiResponseStatus.BadRequest],
+      //     message: ApiResponseStatus.BadRequest,
+      //     data: null
+      //   };
+      //   res.status(dataResult.statusCode).json(dataResult);
+      //   return
+      // }
 
       try {
-        const result = await updateSubscriptionAsync(id);
+        const result = await AppUserService.updateSubscriptionAsync(id);
 
         dataResult = {
           statusCode: responses[ApiResponseStatus.Successful],
@@ -126,7 +127,7 @@ export const getResponseRate = async (req: Request, res: Response) => {
 
     try {
       const date = new Date(dateStr);
-      const result = await getResponseRateAsync(id, date);
+      const result = await AppUserService.getResponseRateAsync(id, date);
 
       dataResult = {
         statusCode: responses[ApiResponseStatus.Successful],
