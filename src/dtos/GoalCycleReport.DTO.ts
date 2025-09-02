@@ -1,6 +1,6 @@
 export interface GoalCycleReportViewModel {
   id: number;
-  appUserId: number;
+  appUserId: string;
   frequency: string;
   targetedAverageNeckAngle?: number;
   actualAverageNeckAngle?: number;

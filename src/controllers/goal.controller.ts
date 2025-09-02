@@ -1,110 +1,98 @@
 import { Request, Response } from 'express';
 import { GoalService } from '../services/goal.service';
-import { SetGoalViewModel, TurnOnGoalViewModel } from '../viewmodels/goal.viewmodel';
-import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
-import { DataResult } from '../helpers/DataResult';
+import { SetGoalViewModel, TurnOnGoalViewModel } from '../dtos/goal.DTO';
 import { logger } from '../utils/logger';
 
+export class GoalController {
+  static async turnOnGoalByUserId(req: Request, res: Response): Promise<void> {
+    const model: SetGoalViewModel = req.body;
 
-export async function turnOnGoalByUserId(req: Request, res: Response): Promise<void> {
-  const model: SetGoalViewModel = req.body;
-  logger.info(JSON.stringify(model));
+    if (!model || !model.appUserId) {
+      res.status(400).json({ error: "Goal data with valid user ID is required." });
+      return;
+    }
 
-  const responses = getApiResponseMessages();
-  let dataResult: DataResult;
-  try {
-    const data = await GoalService.turnOnGoalAsync(model);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Successful],
-      message: ApiResponseStatus.Successful,
-      data,
-    };
-  } catch (error: any) {
-    logger.error(error.message);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Failed],
-      message: error.message,
-      data: null,
-    };
+    try {
+      const result = await GoalService.turnOnGoalAsync(model);
+
+      if (!result) {
+        res.status(400).json({ error: "Failed to turn on goal." });
+        return;
+      }
+
+      res.status(201).json(result);
+    } catch (error) {
+      logger.error("Error turning on goal:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 
-  res.status(dataResult.statusCode).json(dataResult);
-}
+  static async turnOffGoalByUserId(req: Request, res: Response): Promise<void> {
+    const model: TurnOnGoalViewModel = req.body;
 
-export async function turnOffGoalByUserId(req: Request, res: Response): Promise<void> {
-  const model: TurnOnGoalViewModel = req.body;
-  logger.info(JSON.stringify(model));
+    if (!model || !model.appUserId) {
+      res.status(400).json({ error: "Goal data with valid user ID is required." });
+      return;
+    }
 
-  const responses = getApiResponseMessages();
-  let dataResult: DataResult;
+    try {
+      const result = await GoalService.turnOffGoalAsync(model);
 
-  try {
-    const data = await GoalService.turnOffGoalAsync(model);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Successful],
-      message: ApiResponseStatus.Successful,
-      data,
-    };
-  } catch (error: any) {
-    logger.error(error.message);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Failed],
-      message: error.message,
-      data: null,
-    };
+      if (!result) {
+        res.status(400).json({ error: "Failed to turn off goal." });
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (error) {
+      logger.error("Error turning off goal:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 
-  res.status(dataResult.statusCode).json(dataResult);
-}
+  static async getGoalsByUserId(req: Request, res: Response): Promise<void> {
+    const model: TurnOnGoalViewModel = req.body;
 
-export async function getGoalsByUserId(req: Request, res: Response): Promise<void> {
-  const model: TurnOnGoalViewModel = req.body;
-  logger.info(model.appUserId);
+    if (!model || !model.appUserId) {
+      res.status(400).json({ error: "User ID is required to fetch goals." });
+      return;
+    }
 
-  const responses = getApiResponseMessages();
-  let dataResult: DataResult;
+    try {
+      const result = await GoalService.getAllGoalsByIdAsync(model);
 
-  try {
-    const data = await GoalService.getAllGoalsByIdAsync(model);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Successful],
-      message: ApiResponseStatus.Successful,
-      data,
-    };
-  } catch (error: any) {
-    logger.error(error.message);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Failed],
-      message: error.message,
-      data: null,
-    };
+      if (!result || result.length === 0) {
+        res.status(404).json({ error: "No goals found for this user." });
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (error) {
+      logger.error("Error fetching goals by user ID:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 
-  res.status(dataResult.statusCode).json(dataResult);
-}
+  static async getCurrentTargetedAverageNeckAngle(req: Request, res: Response): Promise<void> {
+    const userId = parseInt(req.query.userid as string);
 
-export async function getCurrentTargetedAverageNeckAngle(req: Request, res: Response): Promise<void> {
-  const userId = parseInt(req.query.userid as string);
-  logger.info(userId.toString());
+    if (isNaN(userId)) {
+      res.status(400).json({ error: "Valid user ID is required." });
+      return;
+    }
 
-  const responses = getApiResponseMessages();
-  let dataResult: DataResult;
+    try {
+      const result = await GoalService.getCurrentTargetedAverageNeckAngleAsync(userId);
 
-  try {
-    const data = await GoalService.getCurrentTargetedAverageNeckAngleAsync(userId);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Successful],
-      message: ApiResponseStatus.Successful,
-      data,
-    };
-  } catch (error: any) {
-    logger.error(error.message);
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Failed],
-      message: error.message,
-      data: null,
-    };
+      if (result === null || result === undefined) {
+        res.status(404).json({ error: "No neck angle data found for this user." });
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (error) {
+      logger.error("Error fetching neck angle data:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
-
-  res.status(dataResult.statusCode).json(dataResult);
 }
