@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { UserRepository } from '../infrastructure/repositories/user.repository';
 import { User } from '../dtos/user.entity';
 import { MininmalUser } from '../dtos/auth.entity';
 
