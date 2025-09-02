@@ -1,5 +1,5 @@
 import TransactionRecord from "../models/TransactionRecord";
-import { TransactionViewModel, AppUserViewModel } from "../viewmodels/transaction.viewmodel";
+import { TransactionViewModel, AppUserViewModel } from "../dtos/transaction.DTO";
 import { AppUserService } from "./appUserService.service";
 import { CustomException } from "../helpers/CustomException";
 import { TRANSACTION_STATUS } from "../enums/transaction";

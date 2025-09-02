@@ -1,4 +1,4 @@
-import { MobileChannel } from "./AppUser";
+import { MobileChannel } from "../viewmodels/AppUser";
 
 export interface TransactionViewModel {
   id?: string;

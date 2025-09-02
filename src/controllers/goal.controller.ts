@@ -74,9 +74,9 @@ export class GoalController {
   }
 
   static async getCurrentTargetedAverageNeckAngle(req: Request, res: Response): Promise<void> {
-    const userId = parseInt(req.query.userid as string);
+    const userId = req.query.userid as string;
 
-    if (isNaN(userId)) {
+    if (!userId || userId.trim() === "") {
       res.status(400).json({ error: "Valid user ID is required." });
       return;
     }

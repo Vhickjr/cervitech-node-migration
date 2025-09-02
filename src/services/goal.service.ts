@@ -104,7 +104,7 @@ export class GoalService {
     }
   }
 
-  static async getCurrentTargetedAverageNeckAngleAsync(appUserId: number): Promise<number> {
+  static async getCurrentTargetedAverageNeckAngleAsync(appUserId: string): Promise<number> {
     try {
       const goals = await Goal.find({ appUserId }).sort({ dateSet: -1 }).exec();
       const lastGoal = goals[0]; // Most recent goal due to sorting
@@ -144,7 +144,7 @@ export class GoalService {
     return days[dayIndex] ?? 'NIL';
   }
 
-  private scheduleJob(userId: number, frequency: string, dateSet: Date, goalId: string): void {
+  private scheduleJob(userId: string, frequency: string, dateSet: Date, goalId: string): void {
     const jobId = `userid-${userId}`;
     const cronTime = frequency === 'DAILY' ? '*/5 * * * *' : '*/10 * * * *';
 
@@ -153,7 +153,7 @@ export class GoalService {
     }, null, true, undefined, undefined, false);
   }
 
-  private removeScheduledJob(userId: number): void {
+  private removeScheduledJob(userId: string): void {
     const jobId = `userid-${userId}`;
     // Implement job removal logic depending on your scheduler
   }
