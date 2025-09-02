@@ -61,4 +61,5 @@ const AppUserSchema: Schema = new Schema({
   notificationResponse: { type: Number }
 }, { timestamps: true });
 
-export default mongoose.model<IAppUser>("AppUser", AppUserSchema);
+export default mongoose.models.AppUser || mongoose.model<IAppUser>("AppUser", AppUserSchema);
+

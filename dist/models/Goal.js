@@ -1,5 +1,6 @@
 import { Schema } from 'mongoose';
 import { GoalCycleCompletionReportSchema, } from './GoalCycleCompletionReport';
+import mongoose from 'mongoose';
 export const GoalSchema = new Schema({
     dateSet: { type: Date, required: true },
     targetedAverageNeckAngle: { type: Number, required: true },
@@ -9,3 +10,4 @@ export const GoalSchema = new Schema({
         default: [],
     },
 });
+export const Goal = mongoose.model('Goal', GoalSchema);
