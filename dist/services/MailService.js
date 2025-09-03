@@ -1,8 +1,14 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MailService = void 0;
 // src/helpers/MailService.ts
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
-export class MailService {
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+class MailService {
     constructor(logger, emailTemplates, mailSender, sendGridMailSender) {
         this.mailSender = mailSender;
         this.sendGridMailSender = sendGridMailSender;
@@ -55,7 +61,7 @@ export class MailService {
     }
     async sendMail(toMail, subject, body) {
         try {
-            const transporter = nodemailer.createTransport({
+            const transporter = nodemailer_1.default.createTransport({
                 host: 'smtp.gmail.com',
                 port: this.port,
                 secure: true,
@@ -127,3 +133,4 @@ export class MailService {
         }
     }
 }
+exports.MailService = MailService;

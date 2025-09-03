@@ -1,19 +1,19 @@
 // services/appUserService.ts
-import { NeckAngleModel } from '../models/neckAngle';
-import { NeckAngleRecordModel } from '../models/NeckAngleRecord';
-import { SendAverageNeckAnglePushNotificationViewModel } from '../viewmodels/PushNotificationViewModel';
-import { getCraniumVertebralAngleFromNeckAngle } from '../helpers/computations';
-import  AppUser  from '../models/AppUser';
-import { CustomException } from '../helpers/CustomException';
-import { logger } from '../utils/logger';
-import { INeckAngleRecord } from '../models/NeckAngleRecord';
-import ResponseRate from '../models/ResponseRate';
-import { IAppUser } from '../models/AppUser';
-import { PushNotificationDriver } from './pushNotificationDriver';
-import { Utils } from '../helpers/utils';
-import { neckAngleRecordViewModel } from '../viewmodels/neckAngleRecord.viewmodels';
-import { Calculator } from '../helpers/calculator';
-import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePostNeckAngleRecords';
+import { NeckAngleModel } from '../../models/neckAngle';
+import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
+import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
+import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
+import  AppUser  from '../../models/AppUser';
+import { CustomException } from '../../helpers/CustomException';
+import { logger } from '../../utils/logger';
+import { INeckAngleRecord } from '../../models/NeckAngleRecord';
+import ResponseRate from '../../models/ResponseRate';
+import { IAppUser } from '../../models/AppUser';
+import { PushNotificationDriver } from '../pushNotificationDriver';
+import { Utils } from '../../helpers/utils';
+import { neckAngleRecordViewModel } from '../../viewmodels/neckAngleRecord.viewmodels';
+import { Calculator } from '../../helpers/calculator';
+import { AutomatePostNeckAngleRecordsViewModel } from '../../viewmodels/AutomatePostNeckAngleRecords';
 import { Types } from 'mongoose';
 
 

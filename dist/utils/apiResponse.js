@@ -1,9 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ApiResponseStatus = void 0;
+exports.getApiResponseMessages = getApiResponseMessages;
 const ApiResponseStatus = {
     BadRequest: 'BadRequest',
     Successful: 'Successful',
     Failed: 'Failed',
     UnknownError: 'UnknownError',
 };
+exports.ApiResponseStatus = ApiResponseStatus;
 function getApiResponseMessages() {
     return {
         [ApiResponseStatus.BadRequest]: 400,
@@ -12,4 +17,3 @@ function getApiResponseMessages() {
         [ApiResponseStatus.UnknownError]: 500,
     };
 }
-export { getApiResponseMessages, ApiResponseStatus };

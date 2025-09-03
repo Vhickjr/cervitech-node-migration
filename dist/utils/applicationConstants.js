@@ -1,7 +1,14 @@
-import dotenv from 'dotenv';
-dotenv.config();
-export class ApplicationConstant {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ApplicationConstant = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+class ApplicationConstant {
 }
+exports.ApplicationConstant = ApplicationConstant;
 ApplicationConstant.ENV_COLOR_GREEN = process.env.ENV_COLOR_GREEN || '';
 ApplicationConstant.ENV_COLOR_BLUE = process.env.ENV_COLOR_BLUE || '';
 ApplicationConstant.ENV_COLOR_YELLOW = process.env.ENV_COLOR_YELLOW || '';

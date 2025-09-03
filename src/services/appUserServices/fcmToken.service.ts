@@ -1,4 +1,3 @@
-"use strict";
 // // services/appUserService.ts
 // import  AppUser  from '../models/AppUser';
 // import { appUserViewModel } from '../viewmodels/AppUserViewModel';
@@ -14,6 +13,7 @@
 // import { CerviTechDbContext } from '../config/CerviTechDbContext';
 // import { ApplicationConstant } from '../utils/applicationConstants';
 // import { DataSource } from 'typeorm';
+
 // export class AppUserService {
 //   private logger: Logger;
 //   private db: DataSource = CerviTechDbContext;
@@ -25,6 +25,7 @@
 //   private sendGridEmailSender: SendGridEmailSender;
 //   private numberOfRecordPostBeforeSendingAverageNeckAngle: number;
 //   private defaultPrompt: number;
+
 //   constructor(
 //     logger: Logger,
 //     cerviTechDbContext: DataSource = CerviTechDbContext,
@@ -43,16 +44,19 @@
 //     this.mailSender = mailSender;
 //     this.pushNotificationDriver = pushNotificationDriver;
 //     this.sendGridEmailSender = sendGridEmailSender;
+
 //     this.numberOfRecordPostBeforeSendingAverageNeckAngle = parseInt(
 //       ApplicationConstant.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0',
 //       10
 //     );
+
 //     this.defaultPrompt = parseInt(
 //       ApplicationConstant.ENV_DEFAULT_PROMPT || '0',
 //       10
 //     );
 //   }
 // }
+
 // const updateFCMTokenAsync = async (
 //   update: FCMTokenUpdateViewModel
 // ): Promise<appUserViewModel> => {
@@ -60,14 +64,18 @@
 //     if (!update || typeof update.userId !== 'number' || update.userId < 1) {
 //       throw new CustomException('UserId is not provided');
 //     }
+
 //     const user = await AppUser.findOne({ id: update.userId });
 //     if (!user) {
 //       throw new CustomException(
 //         'This user cannot be retrieved at the moment, please contact support.'
 //       );
 //     }
+
 //     user.fcmToken = update.fcmToken ?? user.fcmToken;
+
 //     await user.save();
+
 //     return {
 //       id: user.id,
 //       username: user.username,
@@ -97,7 +105,9 @@
 //     throw error;
 //   }
 // };
+
 // export default {
 //   updateFCMTokenAsync,
 //   // Add other service functions here as needed
 // };
+

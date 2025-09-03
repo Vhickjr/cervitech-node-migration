@@ -1,2 +1,3 @@
+"use strict";
 // viewModels/FCMTokenUpdateViewModel.ts
-export {};
+Object.defineProperty(exports, "__esModule", { value: true });

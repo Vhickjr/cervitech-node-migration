@@ -1,5 +1,8 @@
-import { TransactionService } from "../services/TransactionService";
-export class TransactionController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TransactionController = void 0;
+const TransactionService_1 = require("../services/TransactionService");
+class TransactionController {
     static async createTransactionRecord(req, res) {
         const transactionVM = req.body;
         if (!transactionVM) {
@@ -7,7 +10,7 @@ export class TransactionController {
             return;
         }
         try {
-            const result = await TransactionService.transactionRecords(transactionVM);
+            const result = await TransactionService_1.TransactionService.transactionRecords(transactionVM);
             if (!result) {
                 res.status(400).json({ error: "Failed to create transaction record." });
                 return;
@@ -21,7 +24,7 @@ export class TransactionController {
     }
     static async getAllTransactionRecords(req, res) {
         try {
-            const result = await TransactionService.getAllTransactionRecords();
+            const result = await TransactionService_1.TransactionService.getAllTransactionRecords();
             if (!result) {
                 res.status(404).json({ error: "No transaction records found." });
                 return;
@@ -40,7 +43,7 @@ export class TransactionController {
             return;
         }
         try {
-            const result = await TransactionService.getTransactionRecordById(id);
+            const result = await TransactionService_1.TransactionService.getTransactionRecordById(id);
             if (!result) {
                 res.status(404).json({ error: "Transaction record not found." });
                 return;
@@ -59,7 +62,7 @@ export class TransactionController {
             return;
         }
         try {
-            const result = await TransactionService.getTransactionRecordsByUserId(userId);
+            const result = await TransactionService_1.TransactionService.getTransactionRecordsByUserId(userId);
             if (!result) {
                 res.status(404).json({ error: "No transaction records found for this user." });
                 return;
@@ -72,3 +75,4 @@ export class TransactionController {
         }
     }
 }
+exports.TransactionController = TransactionController;

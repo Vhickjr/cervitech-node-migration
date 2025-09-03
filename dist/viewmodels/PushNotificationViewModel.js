@@ -1,2 +1,3 @@
+"use strict";
 // viewmodels/SendAverageNeckAnglePushNotificationViewModel.ts
-export {};
+Object.defineProperty(exports, "__esModule", { value: true });

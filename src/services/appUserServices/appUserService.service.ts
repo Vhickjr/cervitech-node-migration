@@ -1,17 +1,17 @@
-import AppUser from "../viewmodels/AppUser";
-import ResponseRate from "../viewmodels/ResponseRateViewModel";
-import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
-import { SubscriptionUpdateViewModel } from "../viewmodels/SubscriptionUpdateViewModel";
-import { AppUserResponse, ResponseRateViewModel } from "../viewmodels/ResponseRateViewModel";
-import { Activity } from "../viewmodels/Activity";
-import { CustomException } from "../helpers/CustomException";
-import { NeckAngleRecordModel } from "../models/NeckAngleRecord";
-import { DateLibrary } from "../helpers/dateLibrary";
-import { Goal } from "../models/Goal";
-import { GoalCycleCompletionReport } from "../models/GoalCycleCompletionReport";
-import { PushNotificationDriver } from "./pushNotificationDriver";
-import { PushNotificationModelDTO } from "../dtos/PushNotificationModelDTO";
-import { logger } from "../utils/logger";
+import AppUser from "../../viewmodels/AppUser";
+import ResponseRate from "../../viewmodels/ResponseRateViewModel";
+import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
+import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
+import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
+import { Activity } from "../../viewmodels/Activity";
+import { CustomException } from "../../helpers/CustomException";
+import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
+import { DateLibrary } from "../../helpers/dateLibrary";
+import { Goal } from "../../models/Goal";
+import { GoalCycleCompletionReport } from "../../models/GoalCycleCompletionReport";
+import { PushNotificationDriver } from "../pushNotificationDriver";
+import { PushNotificationModelDTO } from "../../dtos/PushNotificationModelDTO";
+import { logger } from "../../utils/logger";
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {

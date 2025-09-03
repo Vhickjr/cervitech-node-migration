@@ -1,135 +1,106 @@
-import { NeckAngleRecordModel } from '../models/NeckAngleRecord';
-import { getCraniumVertebralAngleFromNeckAngle } from '../helpers/computations';
-import AppUser from '../models/AppUser';
-import CustomException from '../exceptions/customException';
-import { logger } from '../utils/logger';
-import ResponseRate from '../models/ResponseRate';
-import { PushNotificationDriver } from './pushNotificationDriver';
-import { CerviTechDbContext } from '../config/CerviTechDbContext';
-import { ApplicationConstant } from '../utils/applicationConstants';
-import { Utils } from '../helpers/utils';
-import { Calculator } from '../helpers/calculator';
-export class AppUserService {
-    constructor(logger, cerviTechDbContext = CerviTechDbContext, tokenGenerator, mailService, mailSender, pushNotificationDriver, configuration, sendGridEmailSender) {
-        this.db = CerviTechDbContext;
-        this.logger = logger;
-        this.db = cerviTechDbContext;
-        this.config = configuration;
-        this.tokenGenerator = tokenGenerator;
-        this.mailService = mailService;
-        this.mailSender = mailSender;
-        this.pushNotificationDriver = pushNotificationDriver;
-        this.sendGridEmailSender = sendGridEmailSender;
-        this.numberOfRecordPostBeforeSendingAverageNeckAngle = parseInt(ApplicationConstant.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0', 10);
-        this.defaultPrompt = parseInt(ApplicationConstant.ENV_DEFAULT_PROMPT || '0', 10);
-    }
-}
-export const postBatchNeckAngleRecordAsync = async (neckAngleModel) => {
-    try {
-        const neckAngleRecords = [];
-        for (const record of neckAngleModel.neckAngleRecords) {
-            const appUser = await AppUser.findOne({ id: record.appUserId });
-            if (!appUser) {
-                logger.warn(`AppUser ${record.appUserId} not found, skipping.`);
-                continue;
-            }
-            const alreadyExists = await NeckAngleRecordModel.exists({ appUserId: record.appUserId });
-            let counter = 1;
-            if (alreadyExists) {
-                const last = await NeckAngleRecordModel
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NeckAngleService = void 0;
+const NeckAngleRecord_1 = require("../models/NeckAngleRecord");
+const computations_1 = require("../helpers/computations");
+const AppUser_1 = __importDefault(require("../models/AppUser"));
+const CustomException_1 = require("../helpers/CustomException");
+const logger_1 = require("../utils/logger");
+const ResponseRate_1 = __importDefault(require("../models/ResponseRate"));
+const pushNotificationDriver_1 = require("./pushNotificationDriver");
+const utils_1 = require("../helpers/utils");
+const calculator_1 = require("../helpers/calculator");
+class NeckAngleService {
+    static async postBatchNeckAngleRecordAsync(neckAngleModel) {
+        try {
+            for (const record of neckAngleModel.neckAngleRecords) {
+                const appUser = await AppUser_1.default.findOne({ id: record.appUserId });
+                if (!appUser) {
+                    logger_1.logger.warn(`AppUser ${record.appUserId} not found, skipping.`);
+                    continue;
+                }
+                const lastRecord = await NeckAngleRecord_1.NeckAngleRecordModel
                     .findOne({ appUserId: record.appUserId })
                     .sort({ counter: -1 });
-                counter = (last?.counter ?? 0) + 1;
+                const counter = (lastRecord?.counter ?? 0) + 1;
+                const craniumVertebralAngle = (0, computations_1.getCraniumVertebralAngleFromNeckAngle)(record.angle);
+                const neckAngleRecord = new NeckAngleRecord_1.NeckAngleRecordModel({
+                    appUserId: record.appUserId,
+                    craniumVertebralAngle,
+                    counter,
+                    dateTimeRecorded: new Date(record.dateTimeRecorded),
+                    angle: record.angle,
+                });
+                await neckAngleRecord.save();
+                if (appUser.prompt && counter % appUser.prompt === 0) {
+                    const averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(record.appUserId);
+                    const notificationPayload = {
+                        userId: record.appUserId,
+                        averageNeckAngle,
+                    };
+                    await this.sendPushNotificationMessageForAverageNeckAngle(notificationPayload);
+                }
             }
-            const craniumVertebralAngle = getCraniumVertebralAngleFromNeckAngle(record.angle);
-            const neckAngleRecord = new NeckAngleRecordModel({
-                appUserId: record.appUserId,
-                craniumVertebralAngle,
-                counter,
-                dateTimeRecorded: new Date(record.dateTimeRecorded),
-                angle: record.angle,
-            });
-            await neckAngleRecord.save();
-            if (appUser.prompt && counter % appUser.prompt === 0) {
-                const averageNeckAngle = await calculateAverageOfLastSetNeckAngles(record.appUserId);
-                const notificationPayload = {
-                    userId: 123,
-                    averageNeckAngle: 75.2,
-                };
-                await sendPushNotificationMessageForAverageNeckAngle(notificationPayload);
-            }
+            return true;
         }
-        return true;
+        catch (error) {
+            logger_1.logger.error(error.message || 'Unhandled exception');
+            throw error;
+        }
     }
-    catch (ex) {
-        const error = ex instanceof Error ? ex : new Error('Unhandled exception');
-        logger.error(error.message);
-        throw error;
-    }
-};
-const numberOfRecordPostBeforeSendingAverageNeckAngle = parseInt(process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0', 10);
-async function calculateAverageOfLastSetNeckAngles(userId) {
-    try {
-        const records = await NeckAngleRecordModel.find({ appUserId: userId })
+    static async calculateAverageOfLastSetNeckAngles(userId) {
+        const records = await NeckAngleRecord_1.NeckAngleRecordModel.find({ appUserId: userId })
             .sort({ _id: -1 })
-            .limit(numberOfRecordPostBeforeSendingAverageNeckAngle);
+            .limit(NeckAngleService.numberOfRecordPostBeforeSendingAverageNeckAngle);
         if (!records || records.length === 0) {
             throw new Error("No records found for this user");
         }
         const sumOfAngles = records.reduce((sum, record) => sum + record.angle, 0);
-        let averageAngle = Math.round((sumOfAngles / numberOfRecordPostBeforeSendingAverageNeckAngle) * 10) / 10;
-        if (isNaN(averageAngle)) {
+        let averageAngle = Math.round((sumOfAngles / NeckAngleService.numberOfRecordPostBeforeSendingAverageNeckAngle) * 10) / 10;
+        if (isNaN(averageAngle))
             averageAngle = 0;
-        }
-        const user = await AppUser.findById(userId);
+        const user = await AppUser_1.default.findById(userId);
         if (user) {
             user.responseRate = 100 - (100 * (90 - averageAngle) / 90);
             await user.save();
         }
         return averageAngle;
     }
-    catch (error) {
-        console.error(error.message);
-        throw error;
-    }
-}
-export async function sendPushNotificationMessageForAverageNeckAngle(notificationPayload) {
-    try {
-        const appUsers = await AppUser.find();
+    static async sendPushNotificationMessageForAverageNeckAngle(notificationPayload) {
+        const appUsers = await AppUser_1.default.find();
         for (const appUser of appUsers) {
             if (!appUser.fcmToken)
                 continue;
             let averageNeckAngle;
             try {
-                averageNeckAngle = await calculateAverageOfLastSetNeckAngles(appUser._id.toString());
+                averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(appUser._id.toString());
             }
             catch (error) {
-                logger.info(error.message);
+                logger_1.logger.info(error.message);
                 continue;
             }
             appUser.notificationCount ?? (appUser.notificationCount = 0);
             appUser.prompt ?? (appUser.prompt = this.defaultPrompt);
             if (appUser.notificationCount > appUser.prompt) {
-                // You can use node-cron or agenda for scheduling in Node.js
-                scheduleResetNotificationCount(appUser._id.toString());
+                NeckAngleService.scheduleResetNotificationCount(appUser._id.toString());
             }
+            const [title, body] = await utils_1.Utils.compareAverageNeckAngle(averageNeckAngle);
             const pushNotificationModel = {
                 to: appUser.fcmToken,
-                title: '',
-                body: ''
+                title,
+                body,
             };
-            const utils = new Utils();
-            const [title, body] = await Utils.compareAverageNeckAngle(averageNeckAngle);
-            pushNotificationModel.title = title;
-            pushNotificationModel.body = body;
-            const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
+            const sent = await pushNotificationDriver_1.PushNotificationDriver.sendPushNotification(pushNotificationModel);
             if (sent) {
                 appUser.notificationCount++;
-                const responseRate = new ResponseRate({
+                const responseRate = new ResponseRate_1.default({
                     appUserId: appUser._id,
                     dateCreated: new Date(),
                     prompt: 1,
-                    response: 0
+                    response: 0,
                 });
                 await responseRate.save();
             }
@@ -137,47 +108,36 @@ export async function sendPushNotificationMessageForAverageNeckAngle(notificatio
         }
         return true;
     }
-    catch (error) {
-        logger.error(error.message);
-        throw error;
-    }
-}
-export async function postRandomBatchNeckAngleRecordForTestAsync(model) {
-    try {
+    static async postRandomBatchNeckAngleRecordForTestAsync(model) {
         if (model.numberOfRecords > 30) {
-            throw new CustomException('The maximum number of records allowed is 30 per request');
+            throw new CustomException_1.CustomException('The maximum number of records allowed is 30 per request');
         }
         const neckAngleRecords = [];
         const random = () => Math.floor(Math.random() * (90 - 10 + 1)) + 10;
         for (let i = 0; i < model.numberOfRecords; i++) {
             const angle = random();
-            const timeSpanMinutes = (model.endDate.getTime() - model.startDate.getTime()) / (1000 * 60);
+            const start = new Date(model.startDate);
+            const end = new Date(model.endDate);
+            const timeSpanMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
             const randomMinutes = Math.floor(Math.random() * timeSpanMinutes);
-            const randomDate = new Date(model.startDate.getTime() + randomMinutes * 60 * 1000);
-            const record = {
+            const randomDate = new Date(start.getTime() + randomMinutes * 60 * 1000);
+            const record = new NeckAngleRecord_1.NeckAngleRecordModel({
                 appUserId: model.appUserId,
-                angle: angle,
+                angle,
+                craniumVertebralAngle: calculator_1.Calculator.getCraniumVertebralAngleFromNeckAngle(angle),
                 dateTimeRecorded: randomDate,
-                craniumVertebralAngle: Calculator.getCraniumVertebralAngleFromNeckAngle(angle),
-            };
+                counter: 0,
+            });
             neckAngleRecords.push(record);
         }
-        await NeckAngleRecordModel.insertMany({ data: neckAngleRecords }); // Adjust based on your ORM
+        await NeckAngleRecord_1.NeckAngleRecordModel.insertMany(neckAngleRecords);
         return true;
     }
-    catch (error) {
-        if (error instanceof CustomException) {
-            logger.error(error.message);
-            throw error;
-        }
-        throw error;
+    static scheduleResetNotificationCount(userId) {
+        throw new Error('Function not implemented.');
     }
 }
-export default {
-    postBatchNeckAngleRecordAsync,
-    postRandomBatchNeckAngleRecordForTestAsync,
-    // Add other service functions here as needed
-};
-function scheduleResetNotificationCount(arg0) {
-    throw new Error('Function not implemented.');
-}
+exports.NeckAngleService = NeckAngleService;
+NeckAngleService.numberOfRecordPostBeforeSendingAverageNeckAngle = parseInt(process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0', 10);
+// Optional: Define defaultPrompt if needed
+NeckAngleService.defaultPrompt = 5;

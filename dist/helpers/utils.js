@@ -1,22 +1,25 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Utils = void 0;
 // utils.ts
-import { ApplicationConstant } from '../utils/applicationConstants';
-export class Utils {
+const applicationConstants_1 = require("../utils/applicationConstants");
+class Utils {
     static getColorTag(complianceInPercentage) {
         try {
             if (complianceInPercentage >= 85) {
-                return ApplicationConstant.ENV_COLOR_GREEN;
+                return applicationConstants_1.ApplicationConstant.ENV_COLOR_GREEN;
             }
             else if (complianceInPercentage >= 70) {
-                return ApplicationConstant.ENV_COLOR_BLUE;
+                return applicationConstants_1.ApplicationConstant.ENV_COLOR_BLUE;
             }
             else if (complianceInPercentage >= 50) {
-                return ApplicationConstant.ENV_COLOR_YELLOW;
+                return applicationConstants_1.ApplicationConstant.ENV_COLOR_YELLOW;
             }
             else if (complianceInPercentage >= 30) {
-                return ApplicationConstant.ENV_COLOR_ORANGE;
+                return applicationConstants_1.ApplicationConstant.ENV_COLOR_ORANGE;
             }
             else {
-                return ApplicationConstant.ENV_COLOR_RED;
+                return applicationConstants_1.ApplicationConstant.ENV_COLOR_RED;
             }
         }
         catch (error) {
@@ -57,3 +60,4 @@ export class Utils {
         }
     }
 }
+exports.Utils = Utils;
