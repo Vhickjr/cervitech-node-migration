@@ -8,7 +8,7 @@ import { Utils } from '../helpers/utils';
 import { PushNotificationDriver } from './pushNotificationDriver';
 import { CronJob } from 'cron';
 import { logger } from '../utils/logger';
-import { AppUserService } from './appUserService.service';
+import { AppUserService } from './appUserServices/appUserService.service';
 import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
 import { GoalCycleCompletionReport } from '../models/GoalCycleCompletionReport';
 

@@ -1,19 +1,25 @@
-import axios from 'axios';
-import { CerviTechDbContext } from '../config/CerviTechDbContext';
-import { ApplicationConstant } from '../utils/applicationConstants';
-import AppUser from '../models/AppUser';
-export class PushNotificationDriver {
-    constructor(logger, configuration, cerviTechDbContext = CerviTechDbContext) {
-        this.db = CerviTechDbContext;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PushNotificationDriver = void 0;
+const axios_1 = __importDefault(require("axios"));
+const CerviTechDbContext_1 = require("../config/CerviTechDbContext");
+const applicationConstants_1 = require("../utils/applicationConstants");
+const AppUser_1 = __importDefault(require("../models/AppUser"));
+class PushNotificationDriver {
+    constructor(logger, configuration, cerviTechDbContext = CerviTechDbContext_1.CerviTechDbContext) {
+        this.db = CerviTechDbContext_1.CerviTechDbContext;
         this.logger = logger;
         this.config = configuration;
-        this.FCMApiUrl = ApplicationConstant.ENV_FCM_API_URL;
-        this.FCMServerKey = ApplicationConstant.ENV_FCM_SERVER_KEY;
+        this.FCMApiUrl = applicationConstants_1.ApplicationConstant.ENV_FCM_API_URL;
+        this.FCMServerKey = applicationConstants_1.ApplicationConstant.ENV_FCM_SERVER_KEY;
         this.db = cerviTechDbContext;
     }
     async sendPushNotification(model) {
         try {
-            const appUserRepo = CerviTechDbContext.getRepository(AppUser);
+            const appUserRepo = CerviTechDbContext_1.CerviTechDbContext.getRepository(AppUser_1.default);
             const user = await appUserRepo.findOne({ where: { fcmToken: model.to } });
             if (user && !user.allowPushNotifications) {
                 return true;
@@ -34,7 +40,7 @@ export class PushNotificationDriver {
                     body: model.body,
                 },
             };
-            const response = await axios.post(`${this.FCMApiUrl}/fcm/send`, pushNotificationDTO, {
+            const response = await axios_1.default.post(`${this.FCMApiUrl}/fcm/send`, pushNotificationDTO, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `key=${this.FCMServerKey}`,
@@ -49,3 +55,4 @@ export class PushNotificationDriver {
         }
     }
 }
+exports.PushNotificationDriver = PushNotificationDriver;

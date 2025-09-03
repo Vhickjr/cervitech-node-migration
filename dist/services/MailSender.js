@@ -1,8 +1,14 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MailSender = void 0;
 // src/helpers/MailSender.ts
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
-export class MailSender {
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+class MailSender {
     constructor(logger) {
         this.logger = logger;
         this.cerviTechEmail = process.env.CERVITECH_EMAIL || '';
@@ -11,7 +17,7 @@ export class MailSender {
     }
     async sendEmail(emailAddress, subject, message) {
         try {
-            const transporter = nodemailer.createTransport({
+            const transporter = nodemailer_1.default.createTransport({
                 host: 'smtp.live.com', // or smtp.gmail.com
                 port: this.port,
                 secure: false,
@@ -37,3 +43,4 @@ export class MailSender {
         }
     }
 }
+exports.MailSender = MailSender;

@@ -11,4 +11,4 @@ const generateToken = (user: MininmalUser): string =>  {
   return token;
 }
 
-export default generateToken;
+export { generateToken };

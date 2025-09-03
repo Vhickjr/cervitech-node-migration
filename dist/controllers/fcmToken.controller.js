@@ -1,7 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateFCMToken = void 0;
 const { getApiResponseMessages, ApiResponseStatus } = require('../utils/apiResponse');
 const appUserService = require('../services/appUserService');
 const logger = require('../utils/logger');
-export const updateFCMToken = async (req, res) => {
+const updateFCMToken = async (req, res) => {
     const updateViewModel = req.body;
     logger.info(`FCMTokenUpdateViewModel: ${JSON.stringify(updateViewModel)}`);
     const responses = getApiResponseMessages();
@@ -45,3 +48,4 @@ export const updateFCMToken = async (req, res) => {
         });
     }
 };
+exports.updateFCMToken = updateFCMToken;

@@ -1,8 +1,11 @@
-import { AuthService } from '../services/auth.service.js';
-export const AuthController = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthController = void 0;
+const auth_service_js_1 = require("../services/auth.service.js");
+exports.AuthController = {
     async signup(req, res) {
         try {
-            const result = await AuthService.signup(req.body);
+            const result = await auth_service_js_1.AuthService.signup(req.body);
             res.status(201).json(result);
         }
         catch (err) {
@@ -11,7 +14,7 @@ export const AuthController = {
     },
     async sendPasswordToken(req, res) {
         try {
-            const result = await AuthService.sendPasswordResetToken(req.body);
+            const result = await auth_service_js_1.AuthService.sendPasswordResetToken(req.body);
             res.status(200).json(result);
         }
         catch (err) {
@@ -20,7 +23,7 @@ export const AuthController = {
     },
     async resetPassword(req, res) {
         try {
-            const result = await AuthService.resetPassword(req.body);
+            const result = await auth_service_js_1.AuthService.resetPassword(req.body);
             res.status(200).json(result);
         }
         catch (err) {
@@ -30,7 +33,7 @@ export const AuthController = {
     async login(req, res) {
         try {
             const { email, password } = req.body;
-            const result = await AuthService.login(email, password);
+            const result = await auth_service_js_1.AuthService.login(email, password);
             res.status(200).json(result);
         }
         catch (err) {

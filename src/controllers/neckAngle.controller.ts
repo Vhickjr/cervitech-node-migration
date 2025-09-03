@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePostNeckAngleRecords';
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
-import { NeckAngleService } from '../services/neckAngle.service';
+import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
 import { NeckAngleModel } from '../models/neckAngle';
 

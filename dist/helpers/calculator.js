@@ -1,5 +1,8 @@
+"use strict";
 // helpers/Calculator.ts
-export class Calculator {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Calculator = void 0;
+class Calculator {
     static getCraniumVertebralAngleFromNeckAngle(neckAngle) {
         try {
             let craniumVertebralAngle = neckAngle - 40;
@@ -13,3 +16,4 @@ export class Calculator {
         }
     }
 }
+exports.Calculator = Calculator;

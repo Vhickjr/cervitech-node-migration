@@ -1,7 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getNeckAngleParameters = exports.sendPasswordResetToken = void 0;
 const { getApiResponseMessages, ApiResponseStatus } = require('../utils/apiResponse');
 const appUserService = require('../services/appUserService');
 const logger = require('../utils/logger');
-export const sendPasswordResetToken = async (req, res) => {
+const sendPasswordResetToken = async (req, res) => {
     const { email } = req.body;
     logger.info(`Email: ${email}`);
     const responses = getApiResponseMessages();
@@ -43,7 +46,8 @@ export const sendPasswordResetToken = async (req, res) => {
         });
     }
 };
-export const getNeckAngleParameters = async (req, res) => {
+exports.sendPasswordResetToken = sendPasswordResetToken;
+const getNeckAngleParameters = async (req, res) => {
     const id = parseInt(req.query.id, 10);
     logger.info(`Received ID: ${id}`);
     const responses = getApiResponseMessages();
@@ -83,3 +87,4 @@ export const getNeckAngleParameters = async (req, res) => {
         });
     }
 };
+exports.getNeckAngleParameters = getNeckAngleParameters;

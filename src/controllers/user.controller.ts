@@ -1,93 +1,148 @@
-// user.controller.ts
-import { Request, Response } from 'express';
-const { getApiResponseMessages, ApiResponseStatus } = require('../utils/apiResponse');
-const appUserService = require('../services/appUserService');
-const logger = require('../utils/logger');
 
-export const sendPasswordResetToken = async (req: Request, res: Response): Promise<void> => {
-  const { email } = req.body;
-  logger.info(`Email: ${email}`);
+import { Request, Response } from "express";
+import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
+import { AppUserService } from "../services/appUserServices/appUserService.service";
+import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
+import { DataResult } from "../helpers/DataResult";
 
-  const responses = getApiResponseMessages();
+export class UserController {
+  static async updatePictureUrl(req: Request, res: Response): Promise<void> {
+    const responses = GetApiResponseMessages();
+    const updateViewModel: PictureUrlUpdateViewModel = req.body;
 
-  try {
-    if (!email || typeof email !== 'string') {
-      res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: ApiResponseStatus.BadRequest,
-        data: null,
-      });
-      return;
-    }
+    console.log("UpdatePictureUrl input:", updateViewModel);
+
+    let dataResult: DataResult;
 
     try {
-      const data = await appUserService.sendPasswordResetTokenAsync(email);
-      res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
-        data,
-      });
-    } catch (ex: unknown) {
-      const error = ex instanceof Error ? ex : new Error('Unknown error');
-      logger.error(error.message);
+      if (!updateViewModel.userId || !updateViewModel.pictureUrl) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null
+        };
+        res.status(dataResult.statusCode).json(dataResult);
+        return
+      }
 
-      res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: error.message,
-        data: null,
-      });
-    }
-  } catch (ex: unknown) {
-    const error = ex instanceof Error ? ex : new Error('Unknown error');
-    logger.error(error.message);
-
-    res.status(500).json({
-      statusCode: responses[ApiResponseStatus.UnknownError],
-      message: ApiResponseStatus.UnknownError,
-      exceptionErrorMessage: error.message,
-      data: null,
-    });
-  }
-};
-
-export const getNeckAngleParameters = async (req: Request, res: Response) => {
-  const id = parseInt(req.query.id as string, 10);
-  logger.info(`Received ID: ${id}`);
-
-  const responses = getApiResponseMessages();
-
-  try {
-    // Basic validation
-    if (isNaN(id)) {
-      return res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: ApiResponseStatus.BadRequest,
-        data: null,
-      });
-    }
-
-    try {
-      const data = await appUserService.computeNeckAngleParametersAsync(id);
-      return res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
-        data,
-      });
+      try {
+        const result = await AppUserService.updatePictureUrlAsync(updateViewModel);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
+      }
     } catch (error: any) {
-      logger.error(error.message);
-      return res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: error.message,
-        data: null,
-      });
+      console.error("Exception:", error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
     }
-  } catch (error: any) {
-    logger.error(error.message);
-    return res.status(500).json({
-      statusCode: responses[ApiResponseStatus.UnknownError],
-      message: ApiResponseStatus.UnknownError,
-      exceptionErrorMessage: error.message,
-      data: null,
-    });
+
+    res.status(dataResult.statusCode).json(dataResult);
+    return;
   }
-};
+
+  static async updateSubscription(req: Request, res: Response): Promise<void> {
+    const responses = GetApiResponseMessages();
+    // const id = parseInt(req.params.id);
+    const id = req.params.id;
+
+    console.log("UpdateSubscription input ID:", id);
+
+    let dataResult: DataResult;
+
+    try {
+      try {
+        const result = await AppUserService.updateSubscriptionAsync(id);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    res.status(dataResult.statusCode).json(dataResult);
+    return
+  }
+
+  static async getResponseRate(req: Request, res: Response) {
+    const responses = GetApiResponseMessages();
+
+    const id = req.query.id as string;
+    const dateStr = req.query.date as string;
+
+    let dataResult: DataResult;
+
+    try {
+      // Validate input
+      if (!id || !dateStr || isNaN(Date.parse(dateStr))) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null
+        };
+        return res.status(dataResult.statusCode).json(dataResult);
+      }
+
+      try {
+        const date = new Date(dateStr);
+        const result = await AppUserService.getResponseRateAsync(id, date);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    return res.status(dataResult.statusCode).json(dataResult);
+  };
+
+}
