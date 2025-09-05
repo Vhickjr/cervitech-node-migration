@@ -1,31 +1,19 @@
 import { Router } from "express";
-import {
-  createUser,
-  getBySessionUserName,
-  loginController,
-  forgotPassword,
-  changePassword,
-  resetPassword,
-  getAllUsers,
-  getNumberOfBackOfficeUsers,
-  deleteUser,
-  updateUser,
-  testUserById,
-} from "../controllers/backOfficeUser.controller";
+import BackOfficeUserController from "../controllers/backOfficeUser.controller";
 
 const router = Router();
 
-router.post("/", createUser);
-router.post("/login", loginController)
-router.get("/by-session", getBySessionUserName);
-router.post("/forgot-password", forgotPassword);
-router.post("/change-password", changePassword);
-router.post("/reset-password", resetPassword);
-router.get("/", getAllUsers);
-router.get("/count/:number", getNumberOfBackOfficeUsers);
-router.delete("/:id", deleteUser);
-router.put("/", updateUser);
-router.put("/:id", updateUser);
-router.get("/test/:id", testUserById);
+router.post("/", BackOfficeUserController.createUser);
+router.post("/login", BackOfficeUserController.loginController);
+router.get("/by-session", BackOfficeUserController.getBySessionUserName);
+router.post("/forgot-password", BackOfficeUserController.forgotPassword);
+router.post("/change-password", BackOfficeUserController.changePassword);
+router.post("/reset-password", BackOfficeUserController.resetPassword);
+router.get("/", BackOfficeUserController.getAllUsers);
+router.get("/count/:number", BackOfficeUserController.getNumberOfBackOfficeUsers);
+router.delete("/:id", BackOfficeUserController.deleteUser);
+router.put("/", BackOfficeUserController.updateUser);
+router.put("/:id", BackOfficeUserController.updateUser);
+router.get("/test/:id", BackOfficeUserController.testUserById);
 
 export default router;
