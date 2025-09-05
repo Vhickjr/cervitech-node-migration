@@ -32,12 +32,13 @@ app.use(
   })
 );
 app.use(morgan('dev', { stream: loggerStream }));
-app.use("/api/backoffice-users", backOfficeUser);
+
 
 // Routes
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/neck-angle', neckAngleRoutes);
+app.use("/api/backoffice-users", backOfficeUser);
 app.use('/api/v1/transactions', transactionRoutes);
 app.use('/api/goals', goalsroutes);
 
