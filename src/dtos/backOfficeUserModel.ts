@@ -1,11 +1,13 @@
-// src/viewmodels/CreateBackofficeUserDTO.ts
+// src/dtos/backOfficeUserModel.ts
 export interface backOfficeUserModel {
   firstName: string;
   lastName: string;
   email: string;
   telephone?: string;
   username: string;
-  password: string;   // client provides this
+  password: string;
   accessLevel: string;
   readOnly?: boolean;
 }
+
+
