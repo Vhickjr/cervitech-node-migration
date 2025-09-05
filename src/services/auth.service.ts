@@ -6,7 +6,7 @@ import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetRespo
 import { TokenUtil } from '../utils/token.util';
 import { LoginResponse } from '../dtos/auth.entity';
 // import jwt from 'jsonwebtoken';
-import generateToken from '../utils/generateToken';
+import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
 
 export class AuthService {
