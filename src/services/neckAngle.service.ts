@@ -9,7 +9,7 @@ import { logger } from '../utils/logger';
 import { INeckAngleRecord } from '../models/NeckAngleRecord';
 import ResponseRate from '../models/ResponseRate';
 import { IAppUser } from '../models/AppUser';
-import { PushNotificationDriver } from './pushNotificationDriver';
+import { PushNotificationDriver } from './pushNotificationDriver.service';
 import { Utils } from '../helpers/utils';
 import { neckAngleRecordViewModel } from '../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../helpers/calculator';

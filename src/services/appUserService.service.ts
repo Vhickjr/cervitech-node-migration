@@ -9,7 +9,7 @@ import { NeckAngleRecordModel } from "../models/NeckAngleRecord";
 import { DateLibrary } from "../helpers/dateLibrary";
 import { Goal } from "../models/Goal";
 import { GoalCycleCompletionReport } from "../models/GoalCycleCompletionReport";
-import { PushNotificationDriver } from "./pushNotificationDriver";
+import { PushNotificationDriver } from "./pushNotificationDriver.service";
 import { PushNotificationModelDTO } from "../dtos/PushNotificationModelDTO";
 import { logger } from "../utils/logger";
 

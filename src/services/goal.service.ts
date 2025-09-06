@@ -5,7 +5,7 @@ import { GoalCycleReportViewModel } from '../dtos/GoalCycleReport.DTO';
 import { CustomException } from '../helpers/CustomException';
 import { DateLibrary } from '../helpers/dateLibrary';
 import { Utils } from '../helpers/utils';
-import { PushNotificationDriver } from './pushNotificationDriver';
+import { PushNotificationDriver } from './pushNotificationDriver.service';
 import { CronJob } from 'cron';
 import { logger } from '../utils/logger';
 import { AppUserService } from './appUserService.service';
