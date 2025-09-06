@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionService = void 0;
 const TransactionRecord_1 = __importDefault(require("../models/TransactionRecord"));
-const appUserService_service_1 = require("./appUserService.service");
+const appUserService_service_1 = require("./appUserServices/appUserService.service");
 const CustomException_1 = require("../helpers/CustomException");
 class TransactionService {
     // Define your service methods here

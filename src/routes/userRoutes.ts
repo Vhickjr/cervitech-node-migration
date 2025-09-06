@@ -1,6 +1,6 @@
 import express from "express";
 import {Router} from "express";
-import {UserController} from "../controllers/UserController";
+import {UserController} from "../controllers/user.controller";
 
 const router = Router();
 router.put("/updatepictureurl", UserController.updatePictureUrl);

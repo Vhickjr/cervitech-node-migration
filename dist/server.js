@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const newLogger_1 = require("./utils/newLogger");
 const logger_js_1 = require("./utils/logger.js");
 const auth_routes_js_1 = __importDefault(require("./routes/auth.routes.js"));
 // import userRoutes from './routes/userRoutes';
@@ -33,7 +34,7 @@ mongoose_1.default.connect(MONGODB_URI)
     .then(() => {
     console.log('✅ MongoDB connected');
     app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
+        newLogger_1.Logger.info(`Server running on port ${PORT}`);
     });
 })
     .catch((err) => {
