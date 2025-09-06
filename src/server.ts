@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json())
 const PORT = process.env.PORT || 4000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cervitech';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cervitechdb';
 console.log(MONGODB_URI);
 
 // Middleware

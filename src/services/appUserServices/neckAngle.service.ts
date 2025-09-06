@@ -46,12 +46,7 @@ export class NeckAngleService {
         await neckAngleRecord.save();
 
         if (appUser.prompt && counter % appUser.prompt === 0) {
-          const averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(record.appUserId);
-          const notificationPayload: SendAverageNeckAnglePushNotificationViewModel = {
-            userId: record.appUserId,
-            averageNeckAngle,
-          };
-          await this.sendPushNotificationMessageForAverageNeckAngle(notificationPayload);
+          await this.sendPushNotificationMessageForAverageNeckAngle();
         }
       }
 
@@ -87,54 +82,68 @@ export class NeckAngleService {
     return averageAngle;
   }
 
-  static async sendPushNotificationMessageForAverageNeckAngle(
-    notificationPayload: SendAverageNeckAnglePushNotificationViewModel
-  ): Promise<boolean> {
-    const appUsers = await AppUser.find();
+  static async sendPushNotificationMessageForAverageNeckAngle(): Promise<boolean> {
+    try {
+      const appUsers = await AppUser.find();
 
-    for (const appUser of appUsers) {
-      if (!appUser.fcmToken) continue;
+      for (const appUser of appUsers) {
+        if (!appUser.fcmToken) continue;
 
-      let averageNeckAngle: number;
-      try {
-        averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(appUser._id.toString());
-      } catch (error: any) {
-        logger.info(error.message);
-        continue;
+        let averageNeckAngle: number;
+        try {
+          averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(appUser._id.toString());
+        } catch (error: any) {
+          logger.info(error.message);
+          continue;
+        }
+
+        // Initialize notification count and prompt if null
+        if (appUser.notificationCount == null) appUser.notificationCount = 0;
+        if (appUser.prompt == null) appUser.prompt = this.defaultPrompt;
+
+        // Schedule job to reset notification count if it exceeds prompt
+        if (appUser.notificationCount > appUser.prompt) {
+          const { JobScheduler } = await import('../../services/JobScheduler');
+          JobScheduler.scheduleResetNotificationCount(appUser._id.toString());
+        }
+
+        // Create push notification model
+        const pushNotificationModel = {
+          to: appUser.fcmToken,
+          title: '',
+          body: ''
+        };
+
+        // Get title and body from utils
+        const [title, body] = await Utils.compareAverageNeckAngle(averageNeckAngle);
+        pushNotificationModel.title = title;
+        pushNotificationModel.body = body;
+
+        // Send push notification
+        const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
+        if (sent) {
+          appUser.notificationCount++;
+
+          // Create response rate record
+          const responseRate = new ResponseRate({
+            appUserId: appUser._id,
+            dateCreated: new Date(),
+            prompt: 1,
+            response: 0,
+          });
+
+          await responseRate.save();
+        }
+
+        // Save user changes
+        await appUser.save();
       }
 
-      appUser.notificationCount ??= 0;
-      appUser.prompt ??= this.defaultPrompt;
-
-      if (appUser.notificationCount > appUser.prompt) {
-        NeckAngleService.scheduleResetNotificationCount(appUser._id.toString());
-      }
-
-      const [title, body] = await Utils.compareAverageNeckAngle(averageNeckAngle);
-      const pushNotificationModel = {
-        to: appUser.fcmToken,
-        title,
-        body,
-      };
-
-      const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
-      if (sent) {
-        appUser.notificationCount++;
-
-        const responseRate = new ResponseRate({
-          appUserId: appUser._id,
-          dateCreated: new Date(),
-          prompt: 1,
-          response: 0,
-        });
-
-        await responseRate.save();
-      }
-
-      await appUser.save();
+      return true;
+    } catch (error: any) {
+      logger.error(error.message);
+      throw error;
     }
-
-    return true;
   }
 
   static async postRandomBatchNeckAngleRecordForTestAsync(
@@ -172,8 +181,10 @@ export class NeckAngleService {
 
   // Optional: Define defaultPrompt if needed
   static defaultPrompt = 5;
-  static scheduleResetNotificationCount(userId: string): void {
-  throw new Error('Function not implemented.');
+  
+  static async scheduleResetNotificationCount(userId: string): Promise<void> {
+    const { JobScheduler } = await import('../../services/JobScheduler');
+    JobScheduler.scheduleResetNotificationCount(userId);
   }
 
 }

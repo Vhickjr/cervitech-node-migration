@@ -49,4 +49,37 @@ export class Utils {
       ];
     }
   }
+
+  static currentDayAverageNeckAngleTextReport(neckAngle: number): string {
+    try {
+      // Handle NaN values
+      if (isNaN(neckAngle)) {
+        neckAngle = 0;
+      }
+
+      if (neckAngle >= 50) {
+        return "Your Neck Angle is Great! 😃👍 " +
+               "You have maintained an outstanding average neck angle position of " + neckAngle + "°." + 
+               " Great work! Well done. 🙌🏅";
+      } else if (neckAngle >= 40) {
+        return "Your Neck Angle is Good! 🙂👏 " +
+               "You have maintained an average neck angle position of " + neckAngle + "°." + 
+               " Keep it up! You're almost there. ☺️🧨";
+      } else if (neckAngle >= 30) {
+        return "Your Neck Angle is Fair! 😓👌 " +
+               "You have maintained an average neck angle position of " + neckAngle + "°." + 
+               " Let's work on this, you're almost there. 😉💪";
+      } else if (neckAngle >= 15) {
+        return "Your Neck Angle is Poor! 😟👎 " +
+               "You have maintained an average neck angle position of " + neckAngle + "°." + 
+               " Please see our recommended various exercises.";
+      } else {
+        return "Your Neck Angle is Very Poor! 😞👎 " +
+               "You have maintained an average neck angle position of " + neckAngle + "°." + 
+               " Please see our recommended various exercises.";
+      }
+    } catch (error: any) {
+      throw new Error(`Error generating neck angle text report: ${error.message}`);
+    }
+  }
 }
