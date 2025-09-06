@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const UserController_1 = require("../controllers/UserController");
+const user_controller_1 = require("../controllers/user.controller");
 const router = (0, express_1.Router)();
-router.put("/updatepictureurl", UserController_1.UserController.updatePictureUrl);
-router.put("/updatesubscription/:id", UserController_1.UserController.updateSubscription);
-router.get("get-response-rate/:id", UserController_1.UserController.getResponseRate);
+router.put("/updatepictureurl", user_controller_1.UserController.updatePictureUrl);
+router.put("/updatesubscription/:id", user_controller_1.UserController.updateSubscription);
+router.get("get-response-rate/:id", user_controller_1.UserController.getResponseRate);
 exports.default = router;

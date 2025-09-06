@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { Logger } from './utils/newLogger';
 import { loggerStream } from './utils/logger.js';
 import authRoutes from './routes/auth.routes.js';
 // import userRoutes from './routes/userRoutes';
@@ -34,7 +35,7 @@ mongoose.connect(MONGODB_URI)
     console.log('✅ MongoDB connected');
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      Logger.info(`Server running on port ${PORT}`);
     });
   })
   .catch((err: unknown) => {

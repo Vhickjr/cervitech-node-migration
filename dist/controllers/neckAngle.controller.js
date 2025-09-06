@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NeckAngleController = void 0;
 const apiResponse_1 = require("../utils/apiResponse");
-const neckAngle_service_1 = require("../services/neckAngle.service");
+const neckAngle_service_1 = require("../services/appUserServices/neckAngle.service");
 const logger_1 = require("../utils/logger");
 class NeckAngleController {
     static async postBatchNeckAngleRecords(req, res) {
