@@ -41,6 +41,8 @@ exports.UserSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     telephone: { type: String, required: false },
     password: { type: String, required: true },
+    hash: { type: String, required: true },
+    salt: { type: String, required: true },
     pictureUrl: { type: String, required: false },
     dateRegistered: { type: Date, required: true, default: Date.now },
 });
