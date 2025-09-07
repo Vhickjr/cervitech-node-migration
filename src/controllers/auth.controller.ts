@@ -27,15 +27,18 @@ export const AuthController = {
       res.status(400).json({error: err.message});
     }
   },
+
   async login(req: Request, res: Response) {
     try {
-      const { email, password } = req.body;
-      const result = await AuthService.login(email, password);
-      res.status(200).json(result);
+      const model = req.body;
+      const authenticatedResult = await AuthService.authenticate(model);
+      res.status(200).json(authenticatedResult);
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }
   },
+
+  
 
   async logout(req: Request, res: Response) {
     try {
