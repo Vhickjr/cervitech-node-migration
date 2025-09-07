@@ -4,10 +4,31 @@ export interface LoginResponse {
   id: string;
   username: string;
   email: string;
-  token: string;
+  firstName: string;
+  lastName: string;
+  hasPaid: boolean;
+  pictureUrl: string;
+  fcmToken: string;
+  isGoalOn: boolean;
+  allowPushNotifications: boolean;
+  mobileChannel: number;
+  currentTargetedAverageNeckAngle: number;
+  dateRegistered: string;
+  responseRate: number;
+  lastLoginDateTime: Date;
+  prompt: string;
+  notificationCount: number;
+  token: string; 
 }
+
 
 export interface MininmalUser {
   _id: string;
   email: string;
+}
+
+export interface LoginRequest{
+  emailOrUsername: string;
+  password: string;
+  mobileChannel: number;
 }
