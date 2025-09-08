@@ -1,16 +1,16 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
-import { Logger } from '../utils/newLogger.js';
+import { logger } from '../utils/logger.js';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const result = await AuthService.signup(req.body);
-      Logger.info('User signed up successfully', { email: req.body.email });
+      logger.info('User signed up successfully', { email: req.body.email });
       res.status(201).json(result);
     } catch (err: any) {
-      Logger.error('User signup failed', { email: req.body.email, error: err.message });
+      logger.error('User signup failed', { email: req.body.email, error: err.message });
       res.status(400).json({ error: err.message });
     }
     },
@@ -25,10 +25,10 @@ export const AuthController = {
   async resetPassword(req: Request, res: Response){
     try{
       const result = await AuthService.resetPassword(req.body);
-      Logger.info('Password reset successfully', { email: req.body.email });
+      logger.info('Password reset successfully', { email: req.body.email });
       res.status(200).json(result);
     } catch(err: any){
-      Logger.error('Password reset failed', { email: req.body.email, error: err.message });
+      logger.error('Password reset failed', { email: req.body.email, error: err.message });
       res.status(400).json({error: err.message});
     }
   },

@@ -2,16 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const auth_service_js_1 = require("../services/auth.service.js");
-const newLogger_js_1 = require("../utils/newLogger.js");
+const logger_js_1 = require("../utils/logger.js");
 exports.AuthController = {
     async signup(req, res) {
         try {
             const result = await auth_service_js_1.AuthService.signup(req.body);
-            newLogger_js_1.Logger.info('User signed up successfully', { email: req.body.email });
+            logger_js_1.logger.info('User signed up successfully', { email: req.body.email });
             res.status(201).json(result);
         }
         catch (err) {
-            newLogger_js_1.Logger.error('User signup failed', { email: req.body.email, error: err.message });
+            logger_js_1.logger.error('User signup failed', { email: req.body.email, error: err.message });
             res.status(400).json({ error: err.message });
         }
     },
@@ -27,11 +27,11 @@ exports.AuthController = {
     async resetPassword(req, res) {
         try {
             const result = await auth_service_js_1.AuthService.resetPassword(req.body);
-            newLogger_js_1.Logger.info('Password reset successfully', { email: req.body.email });
+            logger_js_1.logger.info('Password reset successfully', { email: req.body.email });
             res.status(200).json(result);
         }
         catch (err) {
-            newLogger_js_1.Logger.error('Password reset failed', { email: req.body.email, error: err.message });
+            logger_js_1.logger.error('Password reset failed', { email: req.body.email, error: err.message });
             res.status(400).json({ error: err.message });
         }
     },

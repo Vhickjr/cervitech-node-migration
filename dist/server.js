@@ -8,10 +8,9 @@ const express_session_1 = __importDefault(require("express-session"));
 const morgan_1 = __importDefault(require("morgan"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const newLogger_1 = require("./utils/newLogger");
+const logger_1 = require("./utils/logger");
 const body_parser_1 = __importDefault(require("body-parser"));
 const backOfficeUser_routes_1 = __importDefault(require("./routes/backOfficeUser.routes"));
-const logger_js_1 = require("./utils/logger.js");
 const auth_routes_js_1 = __importDefault(require("./routes/auth.routes.js"));
 // import userRoutes from './routes/userRoutes';
 const neckAngle_routes_1 = __importDefault(require("./routes/neckAngle.routes"));
@@ -33,7 +32,9 @@ app.use((0, express_session_1.default)({
     saveUninitialized: true,
     cookie: { secure: false } // ⚠️ set secure: true if using HTTPS
 }));
-app.use((0, morgan_1.default)('dev', { stream: logger_js_1.loggerStream }));
+app.use((0, morgan_1.default)(':method :url :status :response-time ms - :res[content-length]', {
+    stream: logger_1.logger.stream
+}));
 // Routes
 app.use('/api/v1/auth', auth_routes_js_1.default);
 app.use('/api/neck-angle', neckAngle_routes_1.default);
@@ -47,7 +48,7 @@ mongoose_1.default.connect(MONGODB_URI, {
     .then(() => {
     console.log('✅ MongoDB connected');
     app.listen(PORT, () => {
-        newLogger_1.Logger.info(`Server running on port ${PORT}`);
+        logger_1.logger.info(`Server running on port ${PORT}`);
     });
 })
     .catch((err) => {
