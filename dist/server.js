@@ -46,7 +46,7 @@ mongoose_1.default.connect(MONGODB_URI, {
     dbName: "cervitechdb", // 👈 force your app to use "cervitech" database
 })
     .then(() => {
-    console.log('✅ MongoDB connected');
+    logger_1.logger.info('✅ MongoDB connected');
     app.listen(PORT, () => {
         logger_1.logger.info(`Server running on port ${PORT}`);
     });

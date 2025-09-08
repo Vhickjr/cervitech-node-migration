@@ -49,14 +49,14 @@ mongoose.connect(MONGODB_URI , {
 })
 
   .then(() => {
-    logger.info('✅ MongoDB connected');
+    logger.info('MongoDB connected');
 
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
   })
   .catch((err: unknown) => {
-    console.error('❌ MongoDB connection error:', err);
+    logger.error('MongoDB connection error:');
   });
 
 export default app;
