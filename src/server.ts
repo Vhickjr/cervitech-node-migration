@@ -3,6 +3,9 @@ import session from 'express-session';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { Logger } from './utils/newLogger';
+import bodyParser from 'body-parser';
+import backOfficeUser from "./routes/backOfficeUser.routes"
 import { loggerStream } from './utils/logger.js';
 import authRoutes from './routes/auth.routes.js';
 // import userRoutes from './routes/userRoutes';
