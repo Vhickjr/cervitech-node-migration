@@ -96,6 +96,52 @@ export class UserController {
     return
   }
 
+    static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
+    const id = req.params.id;
+    console.log("ToggleAllowPushNotifications input ID:", id);
+
+    const responses = GetApiResponseMessages();
+    let dataResult: DataResult;
+
+    try {
+      if (!id) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null
+        };
+        res.status(dataResult.statusCode).json(dataResult);
+        return;
+      }
+
+      try {
+        const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message || ApiResponseStatus.Failed,
+          data: null
+        };
+      }
+    } catch (error: any) {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    res.status(dataResult.statusCode).json(dataResult);
+    return;
+  }
+
   static async getResponseRate(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
 
