@@ -3,6 +3,7 @@ import ResponseRate from "../../viewmodels/ResponseRateViewModel";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
+import { MailService } from "../MailService";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../helpers/CustomException";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
@@ -67,6 +68,58 @@ export class AppUserService {
 
     return true;
   }
+
+  static async deleteByIdAsync(id: string): Promise<boolean> {
+  try {
+    const user = await AppUser.findById(id);
+
+    if (!user) {
+      throw new CustomException("User does not exist");
+    }
+
+    await user.deleteOne();
+
+    // await new MailService().sendAccountDeletionMail(
+    //   user.email.trim().toLowerCase(),
+    //   user.username
+    // );
+
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while deleting by ID", { error: ex });
+    }
+    throw ex;
+  }
+}
+
+static async deleteByEmailAsync(email: string): Promise<boolean> {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await AppUser.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      throw new CustomException("User does not exist");
+    }
+
+    await user.deleteOne();
+
+    // await new MailService().sendAccountDeletionMail(normalizedEmail, user.username, deletionToken)
+
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while deleting by email", { error: ex });
+    }
+    throw ex;
+  }
+}
+
 
   static async getResponseRateAsync(userId: string, day: Date): Promise<ResponseRateViewModel> {
     try {
