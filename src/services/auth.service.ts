@@ -13,7 +13,10 @@ export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
     console.log("Data", data)
     const existing = await User.findOne({ email: data.email });
-    if (existing) throw new Error('Email already in use');
+
+    if (existing) {
+      throw new Error('Email already in use');
+    }
 
     const hashedPassword = await HashUtil.hash(data.password);
     const newUser = await User.create({
@@ -22,6 +25,8 @@ export class AuthService {
       email: data.email,
       password: hashedPassword,
     });
+
+    delete newUser.password;
 
     return {
       message: 'Signup successful',
