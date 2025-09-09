@@ -1,13 +1,10 @@
 // fcm.controller.ts
 import { Request, Response } from 'express';
-
-
-
 import {FCMTokenUpdateViewModel} from "../viewmodels/FCMTokenUpdateViewModel";
-
 import { AppUserService } from '../services/appUserServices/appUserService.service';
 import { GetApiResponseMessages, ApiResponseStatus } from '../helpers/ApiResponse';
 import {logger} from '../utils/logger';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 /* // Update FCMToken
 interface FCMTokenUpdateViewModel {
@@ -67,54 +64,25 @@ export const updateFCMToken = async (req: Request, res: Response): Promise<void>
 };
  */
 
-export const updateFCMToken = async (req: Request, res: Response): Promise<void> => {
-  const updateViewModel: FCMTokenUpdateViewModel = req.body;
-  logger.info(`Received FCMTokenUpdate request: ${JSON.stringify(updateViewModel)}`);
-
-  const responses = GetApiResponseMessages();
-  let dataResult;
-
-  try {
-    if (!updateViewModel || !updateViewModel.userId || !updateViewModel.fcmToken) {
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: ApiResponseStatus.BadRequest,
-        data: null,
-      };
-      res.status(dataResult.statusCode).json(dataResult);
-      return;
-    }
-
+export class FCMController{
+  static async updateFCMToken(req: AuthenticatedRequest, res: Response) {
     try {
-      const data = await AppUserService.updateFCMToken(updateViewModel);
+      const userId = req.userId;
+      const { fcmToken } = req.body;
 
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
-        data,
-      };
-      res.status(dataResult.statusCode).json(dataResult);
-    } catch (ex: unknown) {
-      const error = ex instanceof Error ? ex : new Error("Custom error occurred");
-      logger.error(`FCMToken update failed: ${error.message}`);
+      if (!fcmToken) {
+        return res.status(400).json({ error: 'fcmToken is required' });
+      }
 
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: error.message,
-        data: null,
-      };
-      res.status(dataResult.statusCode).json(dataResult);
+      const updatedUser = await AppUserService.updateFCMToken(userId!, fcmToken);
+
+      res.status(200).json({
+        message: 'FCM token updated successfully',
+        data: updatedUser,
+      });
+    } catch (err: any) {
+      logger.error(`FCMToken update failed: ${err.message}`);
+      res.status(500).json({ error: err.message || 'FCMToken update failed' });
     }
-  } catch (ex: unknown) {
-    const error = ex instanceof Error ? ex : new Error("Unexpected error occurred");
-    logger.error(`Unexpected error in FCMToken update: ${error.message}`);
-
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.UnknownError],
-      message: ApiResponseStatus.UnknownError,
-      exceptionErrorMessage: error.message,
-      data: null,
-    };
-    res.status(500).json(dataResult);
   }
-};
+}
