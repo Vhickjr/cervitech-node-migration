@@ -8,5 +8,6 @@ router.post('/request-reset', AuthController.sendPasswordToken);
 router.post('/reset-password', AuthController.resetPassword);
 /* router.post('/login', AuthController.login); */
 router.post('/login', AuthController.authenticate);
+router.post('/logout', AuthController.logout);
 
 export default router;

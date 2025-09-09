@@ -47,13 +47,32 @@ export const AuthController = {
     }
   },
 
-  async logout(req: Request, res: Response) {
+/*   async logout(req: Request, res: Response) {
     try {
       // Send back logout confirmation
       res.status(200).json({ message: 'Logged out successfully' });
     } catch (err: any) {
       res.status(500).json({ error: 'Logout failed' });
     }
-  },
+  }, */
+
+  async logout(req: Request, res: Response) {
+    try {
+      const userId = Number(req.query.userid);
+      if (!userId || isNaN(userId) || userId < 1) {
+        return res.status(400).json({ error: "UserId is not provided" });
+      }
+
+      const result = await AuthService.logoutAsync(userId);
+
+      res.status(200).json({
+        message: "Logged out successfully",
+        data: result,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Logout failed" });
+    }
+  }
+
 
 };
