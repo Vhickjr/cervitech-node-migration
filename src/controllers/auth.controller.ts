@@ -1,6 +1,8 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
+
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
@@ -56,14 +58,12 @@ export const AuthController = {
     }
   }, */
 
-  async logout(req: Request, res: Response) {
+  async logout(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = Number(req.query.userid);
-      if (!userId || isNaN(userId) || userId < 1) {
-        return res.status(400).json({ error: "UserId is not provided" });
-      }
+      const userId = req.userId;
+      const token = req.headers.authorization?.split(' ')[1];
 
-      const result = await AuthService.logoutAsync(userId);
+      const result = await AuthService.logout(userId!, token!);
 
       res.status(200).json({
         message: "Logged out successfully",
@@ -73,6 +73,8 @@ export const AuthController = {
       res.status(500).json({ error: err.message || "Logout failed" });
     }
   }
+
+
 
 
 };

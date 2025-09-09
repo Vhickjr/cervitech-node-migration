@@ -11,6 +11,7 @@ import User from '../models/User';
 import {CustomException} from "../helpers/CustomException";
 import {Goal} from "../models/Goal";
 import { logger } from '../utils/logger';
+import TokenBlacklist from '../models/TokenBlacklist';
 
 
 export class AuthService {
@@ -126,27 +127,27 @@ export class AuthService {
     };
   }
 
-  static async logoutAsync(userId: number): Promise<boolean> {
+  static async logout(userId: string, token: string): Promise<boolean> {
+    if (!userId) throw new CustomException("UserId is not provided");
+    if (!token) throw new CustomException("Token is missing");
+
+    const user = await User.findById(userId);
+    if (!user) throw new CustomException("User not found");
+
     try {
-      if (!userId || userId < 1) {
-        throw new CustomException("UserId is not provided");
-      }
+      
+      await TokenBlacklist.create({
+        token,
+        expiresAt: new Date(Date.now() + 3600 * 1000),
+      });
 
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new CustomException(
-          "This user cannot be retrieved at the moment, please contact support."
-        );
-      }
-
-      user.fcmToken = "";
-
+      //user.fcmToken = "";
       await user.save();
 
       return true;
     } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error("Unknown error");
-      logger.error(err.message);
+      logger.error(`Logout failed: ${err.message}`);
       throw err;
     }
   }
