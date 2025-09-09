@@ -1,9 +1,13 @@
 // fcm.controller.ts
 import { Request, Response } from 'express';
-const { getApiResponseMessages, ApiResponseStatus } = require('../utils/apiResponse');
-const AppUserService = require('../services/appUserService');
-const logger = require('../utils/logger');
+
+
+
 import {FCMTokenUpdateViewModel} from "../viewmodels/FCMTokenUpdateViewModel";
+
+import { AppUserService } from '../services/appUserServices/appUserService.service';
+import { GetApiResponseMessages, ApiResponseStatus } from '../helpers/ApiResponse';
+import {logger} from '../utils/logger';
 
 /* // Update FCMToken
 interface FCMTokenUpdateViewModel {
@@ -67,7 +71,7 @@ export const updateFCMToken = async (req: Request, res: Response): Promise<void>
   const updateViewModel: FCMTokenUpdateViewModel = req.body;
   logger.info(`Received FCMTokenUpdate request: ${JSON.stringify(updateViewModel)}`);
 
-  const responses = getApiResponseMessages();
+  const responses = GetApiResponseMessages();
   let dataResult;
 
   try {

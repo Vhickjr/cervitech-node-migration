@@ -199,12 +199,12 @@ export class AppUserService {
     }
   }
 
-    static async updateUser(update: UpdateUserRequest): Promise<AppUserViewModel>{
-    if (!update || !update._id) {
-      throw new CustomException("User Id is not provided.");
+    static async updateUser(userId: string, update: UpdateUserRequest): Promise<AppUserViewModel>{
+    if (!userId) {
+      throw new CustomException("User Id is missing from request.");
     }
 
-    const user = await User.findById(update._id);
+    const user = await User.findById(userId);
     if (!user) {
       throw new CustomException(
         "This user cannot be retrieved at the moment, please contact support."

@@ -5,6 +5,7 @@ import { AppUserService } from "../services/appUserServices/appUserService.servi
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
 import {UpdateUserRequest} from "../dtos/user.entity";
+import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
@@ -146,53 +147,19 @@ export class UserController {
     return res.status(dataResult.statusCode).json(dataResult);
   };
 
-  static async updateUser(req: Request, res: Response): Promise<void> {
-    const responses = GetApiResponseMessages();
-    const updateRequest: UpdateUserRequest = req.body;
-
-    console.log("UpdateUser input:", updateRequest);
-
-    let dataResult: DataResult;
-
+  static async updateUser(req: AuthenticatedRequest, res: Response) {
     try {
-      if (!updateRequest || !updateRequest._id) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null,
-        };
-        res.status(dataResult.statusCode).json(dataResult);
-        return;
-      }
+      const userId = req.userId;
+      const updateRequest = req.body;
 
-      try {
-        const result = await AppUserService.updateUser(updateRequest);
+      const updatedUser = await AppUserService.updateUser(userId!, updateRequest);
 
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Successful],
-          message: ApiResponseStatus.Successful,
-          data: result, 
-        };
-      } catch (customError: any) {
-        console.error("CustomException:", customError.message);
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: customError.message,
-          data: null,
-        };
-      }
-    } catch (error: any) {
-      console.error("Unhandled Exception:", error.message);
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.UnknownError],
-        message: ApiResponseStatus.UnknownError,
-        exceptionErrorMessage: error.message,
-        data: null,
-      };
+      res.status(200).json(updatedUser);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
+  };
 
-    res.status(dataResult.statusCode).json(dataResult);
-}
 
 
 }
