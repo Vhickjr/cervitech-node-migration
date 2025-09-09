@@ -4,6 +4,7 @@ import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewMod
 import { AppUserService } from "../services/appUserServices/appUserService.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
+import {UpdateUserRequest} from "../dtos/user.entity";
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
@@ -144,5 +145,54 @@ export class UserController {
 
     return res.status(dataResult.statusCode).json(dataResult);
   };
+
+  static async updateUser(req: Request, res: Response): Promise<void> {
+    const responses = GetApiResponseMessages();
+    const updateRequest: UpdateUserRequest = req.body;
+
+    console.log("UpdateUser input:", updateRequest);
+
+    let dataResult: DataResult;
+
+    try {
+      if (!updateRequest || !updateRequest._id) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null,
+        };
+        res.status(dataResult.statusCode).json(dataResult);
+        return;
+      }
+
+      try {
+        const result = await AppUserService.updateUser(updateRequest);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result, 
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null,
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null,
+      };
+    }
+
+    res.status(dataResult.statusCode).json(dataResult);
+}
+
 
 }

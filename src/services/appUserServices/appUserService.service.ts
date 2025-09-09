@@ -12,6 +12,9 @@ import { GoalCycleCompletionReport } from "../../models/GoalCycleCompletionRepor
 import { PushNotificationDriver } from "../pushNotificationDriver";
 import { PushNotificationModelDTO } from "../../dtos/PushNotificationModelDTO";
 import { logger } from "../../utils/logger";
+import {UpdateUserRequest} from "../../dtos/user.entity";
+import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
+import User from "../../models/User";
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -192,5 +195,48 @@ export class AppUserService {
       logger.error(error instanceof CustomException ? error.message : String(error));
       throw error;
     }
+  }
+
+    static async updateUser(update: UpdateUserRequest): Promise<AppUserViewModel>{
+    if (!update || !update._id) {
+      throw new CustomException("User Id is not provided.");
+    }
+
+    const user = await User.findById(update._id);
+    if (!user) {
+      throw new CustomException(
+        "This user cannot be retrieved at the moment, please contact support."
+      );
+    }
+    user.email = update.email ?? user.email;
+    user.firstName = update.firstName ?? user.firstName;
+    user.lastName = update.lastName ?? user.lastName;
+    user.username = update.username ?? user.username;
+    user.telephone = update.telephone ?? user.telephone;
+
+    await user.save();
+
+      return {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        pictureUrl: user.pictureUrl,
+        fcmToken: user.fcmToken,
+        hash: user.hash,
+        salt: user.salt,
+        currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle ?? 0,
+        isGoalOn: user.isGoalOn ?? false,
+        hasPaid: user.hasPaid ?? false,
+        allowPushNotifications: user.allowPushNotifications ?? true,
+        mobileChannel: user.mobileChannel ?? 1,
+        dateRegistered: user.dateRegistered?.toISOString() ?? new Date().toISOString(),
+        responseRate: user.responseRate ?? 0,
+        lastLoginDateTime: user.lastLoginDateTime ?? new Date(),
+        neckAngleRecords: user.neckAngleRecords ?? [], 
+        notificationCount: user.notificationCount ?? 0,
+        prompt: user.prompt ?? 0,
+      };
   }
 }
