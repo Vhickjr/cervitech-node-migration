@@ -15,6 +15,8 @@ import { logger } from "../../utils/logger";
 import {UpdateUserRequest} from "../../dtos/user.entity";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
+import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -239,4 +241,45 @@ export class AppUserService {
         prompt: user.prompt ?? 0,
       };
   }
+
+
+    static async updateFCMToken(update: FCMTokenUpdateViewModel): Promise<AppUserViewModel>{
+        if (!update || !update.userId) { 
+        throw new CustomException("UserId is not provided");
+        }
+
+        const user = await User.findById(update.userId);
+        if (!user) {
+        throw new CustomException("This user cannot be retrieved at the moment, please contact support.");
+        }
+
+        user.fcmToken = update.fcmToken ?? user.fcmToken;
+
+        await user.save();
+
+        
+        return {
+          id: user._id.toString(),
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          pictureUrl: user.pictureUrl,
+          fcmToken: user.fcmToken,
+          hash: user.hash,
+          salt: user.salt,
+          currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle ?? 0,
+          isGoalOn: user.isGoalOn ?? false,
+          hasPaid: user.hasPaid ?? false,
+          allowPushNotifications: user.allowPushNotifications ?? true,
+          mobileChannel: user.mobileChannel ?? 1,
+          dateRegistered: user.dateRegistered?.toISOString() ?? new Date().toISOString(),
+          responseRate: user.responseRate ?? 0,
+          lastLoginDateTime: user.lastLoginDateTime ?? new Date(),
+          neckAngleRecords: user.neckAngleRecords ?? [], 
+          notificationCount: user.notificationCount ?? 0,
+          prompt: user.prompt ?? 0
+        };
+  }
 }
+
