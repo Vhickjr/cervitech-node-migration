@@ -10,6 +10,8 @@ import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
 import {CustomException} from "../helpers/CustomException";
 import {Goal} from "../models/Goal";
+import { logger } from '../utils/logger';
+
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
@@ -124,5 +126,28 @@ export class AuthService {
     };
   }
 
+  static async logoutAsync(userId: number): Promise<boolean> {
+    try {
+      if (!userId || userId < 1) {
+        throw new CustomException("UserId is not provided");
+      }
 
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new CustomException(
+          "This user cannot be retrieved at the moment, please contact support."
+        );
+      }
+
+      user.fcmToken = "";
+
+      await user.save();
+
+      return true;
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error("Unknown error");
+      logger.error(err.message);
+      throw err;
+    }
+  }
 }
