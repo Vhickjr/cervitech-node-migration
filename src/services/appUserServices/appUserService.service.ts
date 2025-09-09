@@ -243,17 +243,17 @@ export class AppUserService {
   }
 
 
-    static async updateFCMToken(update: FCMTokenUpdateViewModel): Promise<AppUserViewModel>{
-        if (!update || !update.userId) { 
+    static async updateFCMToken(userId: string, fcmToken:string): Promise<AppUserViewModel>{
+        if (!userId) { 
         throw new CustomException("UserId is not provided");
         }
 
-        const user = await User.findById(update.userId);
+        const user = await User.findById(userId);
         if (!user) {
         throw new CustomException("This user cannot be retrieved at the moment, please contact support.");
         }
 
-        user.fcmToken = update.fcmToken ?? user.fcmToken;
+        user.fcmToken = fcmToken ?? user.fcmToken;
 
         await user.save();
 
