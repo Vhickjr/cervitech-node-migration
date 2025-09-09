@@ -97,39 +97,40 @@ export class UserController {
   }
 
     static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
-    const id = req.params.id;
-    console.log("ToggleAllowPushNotifications input ID:", id);
+  const id = req.params.id;
+  console.log("ToggleAllowPushNotifications input ID:", id);
 
-    const responses = GetApiResponseMessages();
-    let dataResult: DataResult;
+  const responses = GetApiResponseMessages();
+  let dataResult: DataResult;
 
-    try {
-      if (!id) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null
-        };
-        res.status(dataResult.statusCode).json(dataResult);
-        return;
-      }
+  try {
+    if (!id) {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: ApiResponseStatus.BadRequest,
+        data: null
+      };
+      res.status(dataResult.statusCode).json(dataResult);
+      return;
+    }
 
-      try {
-        const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
+    const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
 
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Successful],
-          message: ApiResponseStatus.Successful,
-          data: result
-        };
-      } catch (customError: any) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: customError.message || ApiResponseStatus.Failed,
-          data: null
-        };
-      }
-    } catch (error: any) {
+    dataResult = {
+      statusCode: responses[ApiResponseStatus.Successful],
+      message: ApiResponseStatus.Successful,
+      data: result
+    };
+  } catch (error: any) {
+    // If it's a known error (CustomException, validation, etc.)
+    if (error.name === "CustomException") {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: error.message || ApiResponseStatus.Failed,
+        data: null
+      };
+    } else {
+      // Unexpected errors
       dataResult = {
         statusCode: responses[ApiResponseStatus.UnknownError],
         message: ApiResponseStatus.UnknownError,
@@ -137,10 +138,11 @@ export class UserController {
         data: null
       };
     }
-
-    res.status(dataResult.statusCode).json(dataResult);
-    return;
   }
+
+  res.status(dataResult.statusCode).json(dataResult);
+}
+
 
   static async getResponseRate(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
