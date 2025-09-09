@@ -7,6 +7,8 @@ import bodyParser from 'body-parser';
 import backOfficeUser from "./routes/backOfficeUser.routes"
 import { loggerStream } from './utils/logger.js';
 import authRoutes from './routes/auth.routes.js';
+import fcmRoutes from './routes/fcm.routes.js'
+import userRoutes from './routes/user.routes.js'
 // import userRoutes from './routes/userRoutes';
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transactionRoutes';
@@ -37,6 +39,8 @@ app.use(morgan('dev', { stream: loggerStream }));
 // Routes
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/fcm', fcmRoutes);
+app.use('/api/v1/user', userRoutes);
 app.use('/api/neck-angle', neckAngleRoutes);
 app.use("/api/backoffice-users", backOfficeUser);
 app.use('/api/v1/transactions', transactionRoutes);
