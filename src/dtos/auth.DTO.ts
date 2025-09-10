@@ -17,7 +17,7 @@ export interface LoginViewModel {
 }
 
 export interface AppUserViewModel {
-  id: number;
+  id: string;
   username: string;
   email: string;
   firstName: string;

@@ -10,5 +10,6 @@ router.get("/getByEmail", UserController.getByEmail);
 router.get("/getAllowPushNotificationStatus", UserController.getAllowPushNotificationStatus);
 router.get("/getFCMToken", UserController.getFCMTokenByUsername);
 router.get("/authenticate", UserController.authenticate);
+router.post("/updateFCMToken", UserController.updateFCMToken);
 
 export default router;
