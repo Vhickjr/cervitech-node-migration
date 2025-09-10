@@ -3,7 +3,7 @@
   "name": "cervitech-node-migration",
   "version": "1.0.0",
   "description": "Nodejs backend version for CerviTech App",
-  "main": "index.js", 
+  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
@@ -42,7 +42,7 @@
     "express-session": "^1.18.2",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.0",
+    "mongoose": "^8.18.0",
     "morgan": "^1.10.0",
     "nodemailer": "^7.0.5",
     "reflect-metadata": "^0.2.2",

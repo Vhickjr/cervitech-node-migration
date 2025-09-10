@@ -8,6 +8,7 @@ export interface IAppUser extends IUser {
   email: string;
   firstName: string;
   lastName: string;
+  password: string;
   pictureUrl: string;
   fcmToken: string;
   username: string;
@@ -29,6 +30,13 @@ export interface IAppUser extends IUser {
 }
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  hash: { type: String, required: false },
+  salt: { type: String, required: false },
+  pictureUrl: { type: String, required: false },
   fcmToken: { type: String },
   username: { type: String, required: true, unique: true },
   lastLoginDateTime: { type: Date, default: Date.now },

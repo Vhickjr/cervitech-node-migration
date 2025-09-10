@@ -1,6 +1,6 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service.js';
+import { AuthService } from '../services/auth.service';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
