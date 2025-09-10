@@ -1,18 +1,18 @@
 // services/appUserService.ts
 import AppUser from '../../models/AppUser';
-import { appUserViewModel } from '../../viewmodels/AppUserViewModel';
-import { FCMTokenUpdateViewModel } from '../../viewmodels/FCMTokenUpdateViewModel';
+import { AppUserViewModel } from '../../dtos/auth.DTO';
+import { FCMTokenUpdateViewModel } from '../../dtos/fcmToken.DTO';
 import { CustomException } from '../../helpers/CustomException';
 import { logger } from '../../utils/logger';
 
 export class FCMTokenService {
-  public async updateFCMToken(update: FCMTokenUpdateViewModel): Promise<appUserViewModel> {
+  static async updateFCMToken(update: FCMTokenUpdateViewModel): Promise<AppUserViewModel> {
     try {
-      if (!update || typeof update.userId !== 'number' || update.userId < 1) {
+      if (!update || typeof update._id !== 'string') {
         throw new CustomException('UserId is not provided');
       }
 
-      const user = await AppUser.findOne({ id: update.userId }).exec();
+      const user = await AppUser.findOne({ _id: update._id }).exec();
       if (!user) {
         throw new CustomException(
           'This user cannot be retrieved at the moment, please contact support.'
@@ -31,8 +31,6 @@ export class FCMTokenService {
         pictureUrl: user.pictureUrl,
         fcmToken: user.fcmToken,
         prompt: user.prompt,
-        hash: user.hash,
-        salt: user.salt,
         currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle,
         isGoalOn: user.isGoalOn,
         hasPaid: user.hasPaid,
@@ -40,10 +38,8 @@ export class FCMTokenService {
         responseRate: user.responseRate,
         dateRegistered: user.dateRegistered?.toISOString() ?? '',
         lastLoginDateTime: user.lastLoginDateTime,
-        neckAngleRecords: user.neckAngleRecords,
         mobileChannel: user.mobileChannel,
         notificationCount: user.notificationCount,
-        notificationResponse: user.notificationResponse,
       };
     } catch (ex: unknown) {
       const error = ex instanceof Error ? ex : new Error('Unhandled exception');

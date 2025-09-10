@@ -8,7 +8,7 @@ import { GetByEmailService } from "../services/appUserServices/getByEmail.servic
 import { GetAllowPushNotificationService } from "../services/appUserServices/getAllowPushNotification.service";
 import { getFCMTokenByUsernameService } from "../services/appUserServices/getFCMTokenByUsername.service";
 import { AuthService } from "../services/appUserServices/authenticate.service";
-
+import { FCMTokenService } from '../services/appUserServices/fcmToken.service';
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
     const responses = GetApiResponseMessages();
@@ -241,4 +241,29 @@ export class UserController {
     }
   }
 
+  static async updateFCMToken(req: Request, res: Response): Promise<void> {
+  try {
+    const { fcmToken, _id } = req.body;
+
+    if (
+      !fcmToken ||
+      typeof fcmToken !== 'string' ||
+      typeof _id !== 'string'
+    ) {
+      res.status(400).json({
+        message: 'Invalid request. Please provide a valid fcmToken (string) and userId (string).'
+      });
+      return;
+    }
+
+      const result = await FCMTokenService.updateFCMToken({ fcmToken, _id });
+      res.status(200).json(result);
+    } catch (error: any) {
+      if (error instanceof CustomException) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  }
 }
