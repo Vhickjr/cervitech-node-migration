@@ -4,10 +4,7 @@ import { AppUserService } from "../services/appUserServices/appUserService.servi
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
 import { CustomException } from "../helpers/CustomException";
-import { GetByEmailService } from "../services/appUserServices/getByEmail.service";
-import { GetAllowPushNotificationService } from "../services/appUserServices/getAllowPushNotification.service";
-import { getFCMTokenByUsernameService } from "../services/appUserServices/getFCMTokenByUsername.service";
-import { AuthService } from "../services/appUserServices/authenticate.service";
+import { GetUserDataService } from "../services/appUserServices/getUserData";
 import { FCMTokenService } from '../services/appUserServices/fcmToken.service';
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
@@ -158,7 +155,7 @@ export class UserController {
         return;
       }
 
-      const user = await GetByEmailService.getByEmail(email);
+      const user = await GetUserDataService.getByEmail(email);
       res.status(200).json(user);
     } 
     catch (error: any) {
@@ -179,7 +176,7 @@ export class UserController {
         return;
       }
 
-      const allowPush = await GetAllowPushNotificationService.getAllowPushNotificationStatus(id);
+      const allowPush = await GetUserDataService.getAllowPushNotificationStatus(id);
       res.status(200).json({ allowPushNotifications: allowPush });
     } catch (error: any) {
       if (error instanceof CustomException) {
@@ -199,42 +196,13 @@ export class UserController {
         return;
       }
 
-      const service = new getFCMTokenByUsernameService();
+      const service = new GetUserDataService();
       const token = await service.getFCMTokenByUsername(username);
 
       res.status(200).json({ fcmToken: token });
     } catch (error: any) {
       if (error instanceof CustomException) {
         res.status(404).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: 'Internal server error' });
-      }
-    }
-  }
-
-  static async authenticate(req: Request, res: Response): Promise<void> {
-    try {
-      const { emailOrUsername, password, mobileChannel } = req.body;
-
-      if (
-        !emailOrUsername ||
-        typeof emailOrUsername !== 'string' ||
-        !password ||
-        typeof password !== 'string' ||
-        !['ANDROID', 'IOS', 'OTHER'].includes(mobileChannel)
-      ) {
-        res.status(400).json({
-          message:
-            'Invalid login request. Please provide emailOrUsername, password, and a valid mobileChannel (1 or 2).'
-        });
-        return;
-      }
-
-      const user = await AuthService.authenticate({ emailOrUsername, password, mobileChannel });
-      res.status(200).json(user);
-    } catch (error: any) {
-      if (error instanceof CustomException) {
-        res.status(401).json({ message: error.message });
       } else {
         res.status(500).json({ message: 'Internal server error' });
       }

@@ -3,7 +3,8 @@ import { logger } from '../../utils/logger';
 import AppUser from '../../models/AppUser';
 import { AppUserViewModel } from '../../dtos/getByEmail.DTO';
 
-export class GetByEmailService {
+export class GetUserDataService {
+    
   static async getByEmail(email: string): Promise<AppUserViewModel> {
     try {
       const user = await AppUser.findOne({ email: email }).exec();
@@ -41,9 +42,50 @@ export class GetByEmailService {
         logger.error(error.message);
         throw error;
       }
-
       logger.error('Unexpected error while retrieving user by email:', error);
       throw new Error('Internal server error');
+    }
+  }
+
+  public async getFCMTokenByUsername(username: string): Promise<string> {
+      try {
+        const user = await AppUser.findOne({ username }).exec();
+  
+        if (!user) {
+          throw new CustomException('We cannot retrieve the user at the moment. Please try again later.');
+        }
+  
+        if (!user.fcmToken || user.fcmToken.trim() === '') {
+          throw new CustomException('This user does not have an FCM token.');
+        }
+  
+        return user.fcmToken;
+      } catch (error) {
+        if (error instanceof CustomException) {
+          logger.error(error.message);
+          throw error;
+        }
+  
+        logger.error('Unexpected error while retrieving FCM token:', error);
+        throw new Error('Internal server error');
+      }
+    }
+
+    static async getAllowPushNotificationStatus(id: string): Promise<boolean> {
+    try {
+      const user = await AppUser.findOne({ _id: id }).exec();
+
+      if (!user) {
+        throw new CustomException('User does not exist in our system');
+      }
+
+      return user.allowPushNotifications;
+    } catch (error) {
+      if (error instanceof CustomException) {
+        logger.error(error.message);
+        throw error;
+      }
+      throw new Error('Unexpected error occurred');
     }
   }
 }
