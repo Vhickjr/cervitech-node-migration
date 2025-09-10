@@ -1,9 +1,27 @@
 // src/viewmodels/auth.viewmodel.ts
 export interface SignupRequest {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
+  lastName: string;
+  firstName: string;
+  fcmToken: string;
+  pictureUrl: string;
+  hash: string;
+  username: string;
+  lastLoginDateTime: Date;
+  salt: string;
+  hasPaid: boolean;
+  allowPushNotifications: boolean;
+  responseRate: number;
+  isGoalOn: boolean;
+  goals: [];
+  neckAngleRecords: [];
+  prompt: number;
+  mobileChannel: string;
+  currentTargetedAverageNeckAngle: number;
+  dateRegistered: Date;
+  notificationResponse?: number;
+  notificationCount?: number;
 }
 
 export interface SignupResponse {
