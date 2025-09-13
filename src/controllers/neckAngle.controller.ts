@@ -46,6 +46,23 @@ export class NeckAngleController {
     }
   }
 
+  static async getWeeklyNeckAngleAverages(req: Request, res: Response) {
+    try {
+      const records = req.body.records.map((r: { dateTimeRecorded: string; [key: string]: any }) => ({
+  ...r,
+  dateTimeRecorded: new Date(r.dateTimeRecorded)
+}));
+      if (!Array.isArray(records)) {
+        return res.status(400).json({ error: "records must be an array" });
+      }
+      console.log("records received:", records);
+      const result = await NeckAngleService.getEachWeekOfTheMonthAverageNeckAngle(records);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   static async postRandomTestBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {
     const model: AutomatePostNeckAngleRecordsViewModel = req.body;
     logger.info(`AutomatePostNeckAngleRecordsViewModel: ${JSON.stringify(model)}`);
