@@ -172,6 +172,57 @@ export class UserController {
         data: result
       };
     } catch (error: any) {
+       if (error.name === "CustomException") {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: error.message || ApiResponseStatus.Failed,
+        data: null
+      };
+    } else {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    } 
+    }
+    static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
+  const id = req.params.id;
+  console.log("ToggleAllowPushNotifications input ID:", id);
+
+  const responses = GetApiResponseMessages();
+  let dataResult: DataResult;
+
+  try {
+    if (!id) {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: ApiResponseStatus.BadRequest,
+        data: null
+      };
+      res.status(dataResult.statusCode).json(dataResult);
+      return;
+    }
+
+    const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
+
+    dataResult = {
+      statusCode: responses[ApiResponseStatus.Successful],
+      message: ApiResponseStatus.Successful,
+      data: result
+    };
+    
+    res.status(dataResult.statusCode).json(dataResult);
+  } catch (error: any) {
+    // If it's a known error (CustomException, validation, etc.)
+    if (error.name === "CustomException") {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: error.message || ApiResponseStatus.Failed,
+        data: null
+      };
+    } else {
       dataResult = {
         statusCode: responses[ApiResponseStatus.UnknownError],
         message: ApiResponseStatus.UnknownError,
@@ -180,8 +231,9 @@ export class UserController {
       };
     }
 
-    res.status(dataResult.statusCode).json(dataResult);
-    return;
+  }
+
+ 
 }
 
   static async getResponseRate(req: Request, res: Response) {
@@ -233,4 +285,6 @@ export class UserController {
     return res.status(dataResult.statusCode).json(dataResult);
   };
 
+}
+}
 }
