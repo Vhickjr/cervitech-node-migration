@@ -4,6 +4,8 @@ import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewMod
 import { AppUserService } from "../services/appUserServices/appUserService.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
+import { CustomException } from "../helpers/CustomException";
+import { logger } from "../utils/logger";
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
@@ -96,6 +98,95 @@ export class UserController {
     return
   }
 
+  static async deleteAccountbyId(req: Request, res: Response) {
+    const responses = GetApiResponseMessages();
+    const id = req.params.id;
+
+    let dataResult: DataResult;
+
+    try {
+      if (!id) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null
+        };
+        res.status(dataResult.statusCode).json(dataResult);
+        return;
+      }
+
+      try {
+        const result = await AppUserService.deleteByIdAsync(id);
+
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (error: any) {
+        if (error instanceof CustomException) {
+          logger.error(error.message);
+          dataResult = {
+            statusCode: responses[ApiResponseStatus.Failed],
+            message: error.message,
+            data: null
+          };
+        } else {
+          throw error; 
+        }
+      }
+    } catch (error: any) {
+      logger.error(error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    res.status(dataResult.statusCode).json(dataResult);
+    return;
+  }
+
+  static async deleteAccountbyEmail(req: Request, res:Response){
+    const responses = GetApiResponseMessages();
+    const email = req.body.email as string;
+
+    let dataResult: DataResult;
+    try{
+      if (!email) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null
+        };
+        res.status(dataResult.statusCode).json(dataResult);
+        return;
+      }
+
+      const result = await AppUserService.deleteByEmailAsync(email);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: ApiResponseStatus.Successful,
+        data: result
+      };
+    } catch (error: any) {
+       if (error.name === "CustomException") {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: error.message || ApiResponseStatus.Failed,
+        data: null
+      };
+    } else {
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    } 
+    }
     static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
   const id = req.params.id;
   console.log("ToggleAllowPushNotifications input ID:", id);
@@ -121,6 +212,8 @@ export class UserController {
       message: ApiResponseStatus.Successful,
       data: result
     };
+    
+    res.status(dataResult.statusCode).json(dataResult);
   } catch (error: any) {
     // If it's a known error (CustomException, validation, etc.)
     if (error.name === "CustomException") {
@@ -130,7 +223,6 @@ export class UserController {
         data: null
       };
     } else {
-      // Unexpected errors
       dataResult = {
         statusCode: responses[ApiResponseStatus.UnknownError],
         message: ApiResponseStatus.UnknownError,
@@ -138,11 +230,11 @@ export class UserController {
         data: null
       };
     }
+
   }
 
-  res.status(dataResult.statusCode).json(dataResult);
+ 
 }
-
 
   static async getResponseRate(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
@@ -193,4 +285,6 @@ export class UserController {
     return res.status(dataResult.statusCode).json(dataResult);
   };
 
+}
+}
 }
