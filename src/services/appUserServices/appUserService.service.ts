@@ -119,7 +119,26 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
     throw ex;
   }
 }
+  static async toggleAllowPushNotificationsAsync(userId: string): Promise<boolean> {
+    try {
+      if (!userId || userId.trim() === "") {
+        throw new Error("UserId not provided");
+      }
 
+      const user = await AppUser.findById(userId);
+      if (!user) {
+        throw new Error("User not found.");
+      }
+
+      user.allowPushNotifications = !user.allowPushNotifications;
+      await user.save();
+
+      return user.allowPushNotifications;
+    } catch (error) {
+      logger.error("Error in toggleAllowPushNotificationsAsync:", error);
+      throw new CustomException("Error toggling push notifications.");
+    }
+  }
 
   static async getResponseRateAsync(userId: string, day: Date): Promise<ResponseRateViewModel> {
     try {
