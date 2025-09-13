@@ -7,7 +7,6 @@ import bodyParser from 'body-parser';
 import backOfficeUser from "./routes/backOfficeUser.routes"
 import { loggerStream } from './utils/logger.js';
 import authRoutes from './routes/auth.routes.js';
-// import userRoutes from './routes/userRoutes';
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transactionRoutes';
 import 'reflect-metadata'; // 👈 ADD THIS AS THE FIRST LINE
@@ -41,6 +40,7 @@ app.use('/api/neck-angle', neckAngleRoutes);
 app.use("/api/backoffice-users", backOfficeUser);
 app.use('/api/v1/transactions', transactionRoutes);
 app.use('/api/goals', goalsroutes);
+
 
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI , {
