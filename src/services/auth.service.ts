@@ -13,25 +13,27 @@ import TokenBlacklist from '../models/TokenBlacklist';
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
     console.log("Data", data)
-    const existing = await User.findOne({ email: data.email });
+    const existing = await User.findOne({ email: data.email }).lean();
 
     if (existing) {
       throw new Error('Email already in use');
     }
 
     const hashedPassword = await HashUtil.hash(data.password);
-    const newUser = await User.create({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
+
+    const createdUser = await User.create({
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+      email: data.email.toLowerCase().trim(),
       password: hashedPassword,
     });
 
-    delete newUser.password;
+    const userObj = createdUser.toObject();
+    delete userObj.password;
 
     return {
       message: 'Signup successful',
-      data: newUser,
+      data: userObj,
     };
   }
   static async sendPasswordResetToken({ email }: passwordResetRequest) {
@@ -54,23 +56,6 @@ export class AuthService {
     await User.findByIdAndUpdate(userId, { password: hashed });
     return { message: 'Password reset successfully' };
   }
-
-/*   static async login(email: string, password: string): Promise<LoginResponse> {
-    const user = await User.findOne({ email: email });
-    if (!user) throw new Error('User not found');
-
-    const isValidPassword = await HashUtil.compare(password, user.password);
-    if (!isValidPassword) throw new Error('Invalid password');
-
-    const token: string = generateToken(user);
-
-    return {
-      id: user._id.toString(),
-      username: user.name,
-      email: user.email,
-      token
-    };
-  }, */
 
   static async authenticate(model: LoginRequest): Promise<LoginResponse>{
     const { emailOrUsername, password, mobileChannel } = model;
