@@ -48,7 +48,7 @@ export class AppUserService {
         lastLoginDateTime: user.lastLoginDateTime
       };
     } catch (error) {
-      logger.error("Error in updateSubscriptionAsync:", error);
+      logger.error("Error in updateSubscriptionAsync:");
       throw new CustomException("Error updating subscription.");
     }
   }
@@ -182,7 +182,7 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
         activity
       };
     } catch (error) {
-      logger.error("Error in getResponseRateAsync:", error);
+      logger.error("Error in getResponseRateAsync:");
       throw new CustomException("Error retrieving response rate.");
     }
   }

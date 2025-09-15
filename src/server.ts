@@ -3,9 +3,9 @@ import session from 'express-session';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { logger } from './utils/logger';
 import bodyParser from 'body-parser';
 import backOfficeUser from "./routes/backOfficeUser.routes"
-import { loggerStream } from './utils/logger.js';
 import authRoutes from './routes/auth.routes.js';
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transactionRoutes';
@@ -30,8 +30,9 @@ app.use(
     cookie: { secure: false } // ⚠️ set secure: true if using HTTPS
   })
 );
-app.use(morgan('dev', { stream: loggerStream }));
-
+app.use(morgan(':method :url :status :response-time ms - :res[content-length]', {
+  stream: logger.stream
+}));
 
 // Routes
 
@@ -48,14 +49,14 @@ mongoose.connect(MONGODB_URI , {
 })
 
   .then(() => {
-    console.log('✅ MongoDB connected');
+    logger.info('MongoDB connected');
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      logger.info(`Server running on port ${PORT}`);
     });
   })
   .catch((err: unknown) => {
-    console.error('❌ MongoDB connection error:', err);
+    logger.error('MongoDB connection error:');
   });
 
 export default app;
