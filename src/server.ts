@@ -10,8 +10,7 @@ import authRoutes from './routes/auth.routes.js';
 import fcmRoutes from './routes/fcm.routes.js'
 import userRoutes from './routes/user.routes.js'
 import neckAngleRoutes from './routes/neckAngle.routes';
-import transactionRoutes from './routes/transactionRoutes';
-import 'reflect-metadata'; // 👈 ADD THIS AS THE FIRST LINE
+import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
 // Load environment variables
 dotenv.config();
