@@ -1,7 +1,7 @@
 import { CustomException } from '../../helpers/CustomException';
 import { logger } from '../../utils/logger';
 import AppUser from '../../models/AppUser';
-import { AppUserViewModel } from '../../dtos/getByEmail.DTO';
+import { AppUserViewModel } from '../../dtos/auth.DTO';
 
 export class GetUserDataService {
     
@@ -33,8 +33,7 @@ export class GetUserDataService {
         lastLoginDateTime: user.lastLoginDateTime,
         prompt: user.prompt,
         notificationCount: user.notificationCount,
-        salt: user.salt,
-        hash: user.hash
+        currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle,
       }
     } 
     catch (error) {

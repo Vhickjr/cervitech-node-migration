@@ -1,7 +1,7 @@
 import type { INeckAngleRecord } from './NeckAngleRecord';
 
 export interface NeckAngleModel {
-  appUserId: number;
+  appUserId: string;
   angles: number;
   neckAngleRecords: INeckAngleRecord[];
 }
