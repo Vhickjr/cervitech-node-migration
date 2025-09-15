@@ -3,7 +3,7 @@
   "name": "cervitech-node-migration",
   "version": "1.0.0",
   "description": "Nodejs backend version for CerviTech App",
-  "main": "index.js", 
+  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
