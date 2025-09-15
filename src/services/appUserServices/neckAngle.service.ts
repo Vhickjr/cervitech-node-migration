@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { NeckAngleModel } from '../../models/neckAngle';
+import { NeckAngleModel } from '../../models/NeckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
