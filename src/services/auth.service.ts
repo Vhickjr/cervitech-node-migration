@@ -152,6 +152,7 @@ export class AuthService {
           id: user._id,
           username: user.username,
           email: user.email,
+          password: user.password,
           firstName: user.firstName,
           lastName: user.lastName,
           hasPaid: user.hasPaid,
