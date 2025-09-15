@@ -5,6 +5,7 @@ import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse'
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
 import { NeckAngleModel } from '../models/NeckAngle';
+import { JobScheduler } from '../services/JobScheduler';
 
 export class NeckAngleController {
   static async postBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {
@@ -84,28 +85,28 @@ export class NeckAngleController {
     }
   }
 
-  static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
+  // static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
+  //   const responses = getApiResponseMessages();
 
-    try {
-      // Circle back to this later
-      const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
-      res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
-        data,
-      });
-    } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error('Custom error');
-      logger.error(err.message);
+  //   try {
+  //     // Circle back to this later
+  //     const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
+  //     res.status(200).json({
+  //       statusCode: responses[ApiResponseStatus.Successful],
+  //       message: ApiResponseStatus.Successful,
+  //       data,
+  //     });
+  //   } catch (error: unknown) {
+  //     const err = error instanceof Error ? error : new Error('Custom error');
+  //     logger.error(err.message);
 
-      res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: err.message,
-        data: null,
-      });
-    }
-  }
+  //     res.status(500).json({
+  //       statusCode: responses[ApiResponseStatus.Failed],
+  //       message: err.message,
+  //       data: null,
+  //     });
+  //   }
+  // }
 
   static async resetNotificationCount(req: Request, res: Response): Promise<void> {
     const responses = getApiResponseMessages();
@@ -121,7 +122,6 @@ export class NeckAngleController {
     }
 
     try {
-      const { JobScheduler } = await import('../services/jobScheduler');
       await JobScheduler.resetNotificationCount(userId);
       res.status(200).json({
         statusCode: responses[ApiResponseStatus.Successful],
