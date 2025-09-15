@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApplicationConstant } from '../utils/applicationConstants';
-import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
-import { FCMPushNotificationDTO } from '../dtos/FCMPushNotificationDTO';
+import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
+import { FCMPushNotificationDTO } from '../types/FCMPushNotification.types';
 import AppUser from '../models/AppUser';
 import { logger } from '../utils/logger';
 

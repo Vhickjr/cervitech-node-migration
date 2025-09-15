@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { GoalService } from '../services/goal.service';
-import { SetGoalViewModel, TurnOnGoalViewModel } from '../dtos/goal.DTO';
+import { SetGoalViewModel, TurnOnGoalViewModel } from '../types/goal.types';
 import { logger } from '../utils/logger';
 
 export class GoalController {

@@ -1,4 +1,4 @@
-import { User } from '../dtos/user.entity';
+import { User } from './user.types';
 
 /* export interface LoginResponse {
   id: string;

@@ -5,15 +5,15 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 import { MailService } from "../MailService";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/CustomException";
+import { CustomException } from "../../helpers/customException";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { Goal } from "../../models/Goal";
 import { GoalCycleCompletionReport } from "../../models/GoalCycleCompletionReport";
 import { PushNotificationDriver } from "../pushNotificationDriver";
-import { PushNotificationModelDTO } from "../../dtos/PushNotificationModelDTO";
+import { PushNotificationModelDTO } from "../../types/pushNotificationModel.types";
 import { logger } from "../../utils/logger";
-import {UpdateUserRequest} from "../../dtos/user.entity";
+import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
 import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";

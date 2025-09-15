@@ -2,11 +2,11 @@
 import { Request, Response } from "express";
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
 import { AppUserService } from "../services/appUserServices/appUserService.service";
-import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
-import { DataResult } from "../helpers/DataResult";
-import { UpdateUserRequest } from "../dtos/user.entity";
+import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/apiResponse";
+import { DataResult } from "../helpers/dataResult";
+import { UpdateUserRequest } from "../types/user.types";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
-import { CustomException } from "../helpers/CustomException";
+import { CustomException } from "../helpers/customException";
 import { logger } from "../utils/logger";
 
 export class UserController {
