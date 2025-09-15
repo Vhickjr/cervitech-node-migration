@@ -20,6 +20,7 @@ export interface AppUserViewModel {
   id: string;
   username: string;
   email: string;
+  password: string;
   firstName: string;
   lastName: string;
   hasPaid: boolean;
