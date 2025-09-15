@@ -1,5 +1,5 @@
 import { GOAL_FREQUENCY } from '../enums/goalFrequency';
-import { GoalCycleReportViewModel } from './GoalCycleReport.DTO';
+import { GoalCycleReportViewModel } from './goalCycleReport.types';
 
 export interface TurnOnGoalViewModel {
   appUserId: string;

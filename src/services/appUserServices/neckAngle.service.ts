@@ -1,10 +1,10 @@
-// services/appUserService.ts
-import { NeckAngleModel } from '../../models/neckAngle';
+import { Types } from 'mongoose';
+import { NeckAngleModel } from '../../models/NeckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
 import  AppUser  from '../../models/AppUser';
-import { CustomException } from '../../helpers/CustomException';
+import { CustomException } from '../../helpers/customException';
 import { logger } from '../../utils/logger';
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecordViewModel";
@@ -17,7 +17,10 @@ import { Utils } from '../../helpers/utils';
 import { neckAngleRecordViewModel } from '../../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../../helpers/calculator';
 import { AutomatePostNeckAngleRecordsViewModel } from '../../viewmodels/AutomatePostNeckAngleRecords';
-import { Types } from 'mongoose';
+import { DateLibrary } from '../../utils/dateLibrary';
+import { Goal } from '../../models/Goal';
+import { GoalCycleCompletionReport } from '../../models/GoalCycleCompletionReport';
+import { GOAL_FREQUENCY } from '../../enums/goalFrequency';
 
 
 
@@ -259,5 +262,80 @@ export class NeckAngleService {
   throw new Error('Function not implemented.');
   }
 
+  // static async calculateAverageOfLastWeekOrDay(
+  //   userId: string,
+  //   frequency: GOAL_FREQUENCY,
+  //   dateCreated: Date,
+  //   goalId: string
+  // ): Promise<boolean> {
+  //   try {
+  //     let average = 0;
+  
+  //     let startDate: Date;
+  //     let endDate: Date = DateLibrary.getCurrentDateTime();
+  
+  //     if (frequency === GOAL_FREQUENCY.DAILY) {
+  //       startDate = DateLibrary.getYesterdayDateTime();
+  //     } else if (frequency === GOAL_FREQUENCY.WEEKLY) {
+  //       startDate = DateLibrary.getLastWeekDateTime();
+  //     } else {
+  //       throw new Error("Invalid Goal Frequency");
+  //     }
+  
+  //     const records = await NeckAngleRecordModel.find({
+  //       appUserId: new Types.ObjectId(userId),
+  //       dateTimeRecorded: {
+  //         $gte: startDate,
+  //         $lte: endDate,
+  //       },
+  //     }).lean();
+  
+  //     if (records.length > 0) {
+  //       average = records.reduce((sum, r) => sum + r.angle, 0) / records.length;
+  //     }
+  
+  //     const goal = await Goal.findById(goalId);
+  //     if (!goal) return false;
+  
+  //     let complianceInPercentage =
+  //       average >= goal.targetedAverageNeckAngle
+  //         ? 100
+  //         : Math.round((average / goal.targetedAverageNeckAngle) * 100 * 10) / 10;
+  
+  //     complianceInPercentage = complianceInPercentage > 100 ? 100 : complianceInPercentage;
+  
+  //     if (isNaN(complianceInPercentage)) complianceInPercentage = 0;
+  
+  //     const report = new GoalCycleCompletionReport({
+  //       actualAverageNeckAngle: isNaN(average)
+  //         ? 0
+  //         : Math.round(average * 10) / 10,
+  //       complianceInPercentage,
+  //       dateOfConcludedCycle: DateLibrary.getCurrentDateTime(),
+  //       goalId: new Types.ObjectId(goalId),
+  //     });
+  
+  //     await report.save();
+  
+  //     const userFCMToken = await getFCMTokenById(userId); // implement separately
+  
+  //     if (userFCMToken && userFCMToken.trim() !== "") {
+  //       const pushNotificationModel = {
+  //         to: userFCMToken,
+  //         title: "Your set goal",
+  //         body: `Hi, you scored ${Math.round(report.complianceInPercentage * 10) / 10}/100`,
+  //       };
+  
+  //       await PushNotificationDriver.sendPushNotification(pushNotificationModel); // implement separately
+  //     } else {
+  //       throw new Error("User does not have an FCM Token");
+  //     }
+  
+  //     return true;
+  //   } catch (err) {
+  //     console.error("Error in calculateAverageOfLastWeekOrDay:", err);
+  //     throw err;
+  //   }
+  // }
 }
 

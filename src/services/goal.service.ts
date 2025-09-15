@@ -1,15 +1,15 @@
 import AppUser from '../models/AppUser';
 import { Goal } from '../models/Goal';
-import { SetGoalViewModel, TurnOnGoalViewModel } from '../dtos/goal.DTO';
-import { GoalCycleReportViewModel } from '../dtos/GoalCycleReport.DTO';
-import { CustomException } from '../helpers/CustomException';
+import { SetGoalViewModel, TurnOnGoalViewModel } from '../types/goal.types';
+import { GoalCycleReportViewModel } from '../types/goalCycleReport.types';
+import { CustomException } from '../helpers/customException';
 import { DateLibrary } from '../helpers/dateLibrary';
 import { Utils } from '../helpers/utils';
 import { PushNotificationDriver } from './pushNotificationDriver';
 import { CronJob } from 'cron';
 import { logger } from '../utils/logger';
 import { AppUserService } from './appUserServices/appUserService.service';
-import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
+import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
 import { GoalCycleCompletionReport } from '../models/GoalCycleCompletionReport';
 
 
