@@ -1,14 +1,10 @@
-// MAIN BUSINESS LOGIC
-// src/services/auth.service.ts
-// import { UserRepository } from '../infrastructure/repositories/user.repository';
 import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
-import { LoginResponse, LoginRequest } from '../dtos/auth.entity';
-// import jwt from 'jsonwebtoken';
+import { LoginResponse, LoginRequest } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
-import {CustomException} from "../helpers/CustomException";
+import {CustomException} from "../helpers/customException";
 import {Goal} from "../models/Goal";
 import { logger } from '../utils/logger';
 import TokenBlacklist from '../models/TokenBlacklist';

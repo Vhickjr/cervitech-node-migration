@@ -38,7 +38,7 @@ export class logger {
     }
 
     // Error
-    static error(message: string, meta: Record<string, any> = {}): void {
+    static error(message: string, meta?: unknown): void {
         logger.logger.error(message, meta);
     }
 
