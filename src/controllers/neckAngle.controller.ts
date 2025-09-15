@@ -5,7 +5,7 @@ import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse'
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
 import { NeckAngleModel } from '../models/NeckAngle';
-import { JobScheduler } from '../services/JobScheduler';
+import { JobScheduler } from '../services/jobScheduler';
 
 export class NeckAngleController {
   static async postBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {
