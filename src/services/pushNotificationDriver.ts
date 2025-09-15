@@ -1,36 +1,18 @@
 import axios from 'axios';
-import { Logger } from 'winston';
-import { CerviTechDbContext } from '../config/CerviTechDbContext';
 import { ApplicationConstant } from '../utils/applicationConstants';
 import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
 import { FCMPushNotificationDTO } from '../dtos/FCMPushNotificationDTO';
-import { DataSource } from 'typeorm';
 import AppUser from '../models/AppUser';
+import { logger } from '../utils/logger';
 
 export class PushNotificationDriver {
-  private config: NodeJS.ProcessEnv;
-  private logger: Logger;
-  private db: DataSource = CerviTechDbContext;
-  private FCMApiUrl: string;
-  private FCMServerKey: string;
-  static sendPushNotification: any;
+  private static FCMApiUrl: string = ApplicationConstant.ENV_FCM_API_URL;
+  private static FCMServerKey: string = ApplicationConstant.ENV_FCM_SERVER_KEY;
 
-  constructor(
-    logger: Logger,
-    configuration: NodeJS.ProcessEnv,
-    cerviTechDbContext: DataSource = CerviTechDbContext,
-  ) {
-    this.logger = logger;
-    this.config = configuration;
-    this.FCMApiUrl = ApplicationConstant.ENV_FCM_API_URL;
-    this.FCMServerKey = ApplicationConstant.ENV_FCM_SERVER_KEY;
-    this.db = cerviTechDbContext;
-  }
-
-  public async sendPushNotification(model: PushNotificationModelDTO): Promise<boolean> {
+  public static async sendPushNotification(model: PushNotificationModelDTO): Promise<boolean> {
     try {
-      const appUserRepo = CerviTechDbContext.getRepository(AppUser);
-      const user = await appUserRepo.findOne({ where: { fcmToken: model.to } });
+      // Check if user allows push notifications using Mongoose
+      const user = await AppUser.findOne({ fcmToken: model.to });
 
       if (user && !user.allowPushNotifications) {
         return true;
@@ -64,7 +46,7 @@ export class PushNotificationDriver {
 
       return true;
     } catch (error: any) {
-      this.logger.error(error.message);
+      logger.error(error.message);
       throw error;
     }
   }
