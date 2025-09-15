@@ -4,10 +4,15 @@
 import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
-import { LoginResponse } from '../dtos/auth.entity';
+import { LoginResponse, LoginRequest } from '../dtos/auth.entity';
 // import jwt from 'jsonwebtoken';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
+import {CustomException} from "../helpers/CustomException";
+import {Goal} from "../models/Goal";
+import { logger } from '../utils/logger';
+import TokenBlacklist from '../models/TokenBlacklist';
+
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
@@ -46,13 +51,15 @@ export class AuthService {
 
 
   }
+
   static async resetPassword({ token, newPassword }: passwordResetResponse) {
     const { userId } = TokenUtil.verifyResetToken(token);
     const hashed = await HashUtil.hash(newPassword);
     await User.findByIdAndUpdate(userId, { password: hashed });
     return { message: 'Password reset successfully' };
   }
-  static async login(email: string, password: string): Promise<LoginResponse> {
+
+/*   static async login(email: string, password: string): Promise<LoginResponse> {
     const user = await User.findOne({ email: email });
     if (!user) throw new Error('User not found');
 
@@ -67,5 +74,86 @@ export class AuthService {
       email: user.email,
       token
     };
+  }, */
+
+  static async authenticate(model: LoginRequest): Promise<LoginResponse>{
+    const { emailOrUsername, password, mobileChannel } = model;
+    if(mobileChannel !== 1 && mobileChannel !== 2){
+        throw new CustomException("Please make sure you pass a valid MobileChannel value for this user");
+    }
+    if(!emailOrUsername){
+      throw new CustomException("Please provide an email or username");
+    }
+
+    const user = await User.findOne({
+      $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
+    });
+
+    if(!user){
+      throw new CustomException("This account does not exist. Please check the email or username provided.")
+    }
+
+    const isValidPassword = await HashUtil.compare(password, user.password);
+    if (!isValidPassword) {
+      throw new CustomException("An incorrect password provided. Please check password and try again.");
+    }
+
+    user.lastLoginDateTime = new Date();
+    user.mobileChannel = mobileChannel;
+    await user.save();
+
+    const token = generateToken(user);
+
+    let currentTargetedAverageNeckAngle = 0;
+    const lastSetGoal = await Goal.findOne({ appUserId: user._id });
+    if (lastSetGoal) {
+      currentTargetedAverageNeckAngle = lastSetGoal.targetedAverageNeckAngle;
+    }
+
+    return {
+      id: user._id.toString(),
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      hasPaid: user.hasPaid,
+      pictureUrl: user.pictureUrl,
+      fcmToken: user.fcmToken,
+      isGoalOn: user.isGoalOn,
+      allowPushNotifications: user.allowPushNotifications,
+      mobileChannel: user.mobileChannel,
+      currentTargetedAverageNeckAngle,
+      dateRegistered: user.dateRegistered?.toISOString(),
+      responseRate: user.responseRate,
+      lastLoginDateTime: user.lastLoginDateTime || new Date(),
+      prompt: user.prompt,
+      notificationCount: user.notificationCount,
+      token,
+    };
+  }
+
+  static async logout(userId: string, token: string): Promise<boolean> {
+    if (!userId) throw new CustomException("UserId is not provided");
+    if (!token) throw new CustomException("Token is missing");
+
+    const user = await User.findById(userId);
+    if (!user) throw new CustomException("User not found");
+
+    try {
+      
+      await TokenBlacklist.create({
+        token,
+        expiresAt: new Date(Date.now() + 3600 * 1000),
+      });
+
+      //user.fcmToken = "";
+      await user.save();
+
+      return true;
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error("Unknown error");
+      logger.error(`Logout failed: ${err.message}`);
+      throw err;
+    }
   }
 }

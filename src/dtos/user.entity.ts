@@ -9,5 +9,14 @@ export interface User {
   updatedAt?: Date;
 }
 
+export interface UpdateUserRequest {
+  _id?: string; 
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  telephone?: string;
+}
+
 
 

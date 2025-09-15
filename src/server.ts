@@ -7,6 +7,8 @@ import { logger } from './utils/logger';
 import bodyParser from 'body-parser';
 import backOfficeUser from "./routes/backOfficeUser.routes"
 import authRoutes from './routes/auth.routes.js';
+import fcmRoutes from './routes/fcm.routes.js'
+import userRoutes from './routes/user.routes.js'
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transactionRoutes';
 import 'reflect-metadata'; // 👈 ADD THIS AS THE FIRST LINE
@@ -37,6 +39,8 @@ app.use(morgan(':method :url :status :response-time ms - :res[content-length]', 
 // Routes
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/fcm', fcmRoutes);
+app.use('/api/v1/user', userRoutes);
 app.use('/api/neck-angle', neckAngleRoutes);
 app.use("/api/backoffice-users", backOfficeUser);
 app.use('/api/v1/transactions', transactionRoutes);

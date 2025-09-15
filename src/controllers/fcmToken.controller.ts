@@ -1,10 +1,12 @@
 // fcm.controller.ts
 import { Request, Response } from 'express';
-const { getApiResponseMessages, ApiResponseStatus } = require('../utils/apiResponse');
-const appUserService = require('../services/appUserService');
-const logger = require('../utils/logger');
+import {FCMTokenUpdateViewModel} from "../viewmodels/FCMTokenUpdateViewModel";
+import { AppUserService } from '../services/appUserServices/appUserService.service';
+import { GetApiResponseMessages, ApiResponseStatus } from '../helpers/ApiResponse';
+import {logger} from '../utils/logger';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
-// Update FCMToken
+/* // Update FCMToken
 interface FCMTokenUpdateViewModel {
   userId: number;
   fcmToken: string;
@@ -60,3 +62,27 @@ export const updateFCMToken = async (req: Request, res: Response): Promise<void>
     });
   }
 };
+ */
+
+export class FCMController{
+  static async updateFCMToken(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.userId;
+      const { fcmToken } = req.body;
+
+      if (!fcmToken) {
+        return res.status(400).json({ error: 'fcmToken is required' });
+      }
+
+      const updatedUser = await AppUserService.updateFCMToken(userId!, fcmToken);
+
+      res.status(200).json({
+        message: 'FCM token updated successfully',
+        data: updatedUser,
+      });
+    } catch (err: any) {
+      logger.error(`FCMToken update failed: ${err.message}`);
+      res.status(500).json({ error: err.message || 'FCMToken update failed' });
+    }
+  }
+}

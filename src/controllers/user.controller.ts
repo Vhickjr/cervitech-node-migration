@@ -4,6 +4,8 @@ import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewMod
 import { AppUserService } from "../services/appUserServices/appUserService.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
+import {UpdateUserRequest} from "../dtos/user.entity";
+import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../helpers/CustomException";
 import { logger } from "../utils/logger";
 
@@ -285,6 +287,20 @@ export class UserController {
     return res.status(dataResult.statusCode).json(dataResult);
   };
 
-}
+  static async updateUser(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.userId;
+      const updateRequest = req.body;
+
+      const updatedUser = await AppUserService.updateUser(userId!, updateRequest);
+
+      res.status(200).json(updatedUser);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+
+
+
 }
 }
