@@ -4,7 +4,7 @@ import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewMod
 import { AppUserService } from "../services/appUserServices/appUserService.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
-import {UpdateUserRequest} from "../dtos/user.entity";
+import { UpdateUserRequest } from "../dtos/user.entity";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../helpers/CustomException";
 import { logger } from "../utils/logger";
@@ -134,7 +134,7 @@ export class UserController {
             data: null
           };
         } else {
-          throw error; 
+          throw error;
         }
       }
     } catch (error: any) {
@@ -151,12 +151,12 @@ export class UserController {
     return;
   }
 
-  static async deleteAccountbyEmail(req: Request, res:Response){
+  static async deleteAccountbyEmail(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
     const email = req.body.email as string;
 
     let dataResult: DataResult;
-    try{
+    try {
       if (!email) {
         dataResult = {
           statusCode: responses[ApiResponseStatus.BadRequest],
@@ -174,69 +174,71 @@ export class UserController {
         data: result
       };
     } catch (error: any) {
-       if (error.name === "CustomException") {
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: error.message || ApiResponseStatus.Failed,
-        data: null
-      };
-    } else {
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.UnknownError],
-        message: ApiResponseStatus.UnknownError,
-        exceptionErrorMessage: error.message,
-        data: null
-      };
-    } 
+      if (error.name === "CustomException") {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: error.message || ApiResponseStatus.Failed,
+          data: null
+        };
+      } else {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.UnknownError],
+          message: ApiResponseStatus.UnknownError,
+          exceptionErrorMessage: error.message,
+          data: null
+        };
+      }
     }
-    static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
-  const id = req.params.id;
-  console.log("ToggleAllowPushNotifications input ID:", id);
-
-  const responses = GetApiResponseMessages();
-  let dataResult: DataResult;
-
-  try {
-    if (!id) {
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: ApiResponseStatus.BadRequest,
-        data: null
-      };
-      res.status(dataResult.statusCode).json(dataResult);
-      return;
-    }
-
-    const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
-
-    dataResult = {
-      statusCode: responses[ApiResponseStatus.Successful],
-      message: ApiResponseStatus.Successful,
-      data: result
-    };
-    
-    res.status(dataResult.statusCode).json(dataResult);
-  } catch (error: any) {
-    // If it's a known error (CustomException, validation, etc.)
-    if (error.name === "CustomException") {
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: error.message || ApiResponseStatus.Failed,
-        data: null
-      };
-    } else {
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.UnknownError],
-        message: ApiResponseStatus.UnknownError,
-        exceptionErrorMessage: error.message,
-        data: null
-      };
-    }
-
   }
 
- 
-}
+  static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
+    const id = req.params.id;
+    console.log("ToggleAllowPushNotifications input ID:", id);
+
+    const responses = GetApiResponseMessages();
+    let dataResult: DataResult;
+
+    try {
+      if (!id) {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: ApiResponseStatus.BadRequest,
+          data: null
+        };
+        res.status(dataResult.statusCode).json(dataResult);
+        return;
+      }
+
+      const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
+
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: ApiResponseStatus.Successful,
+        data: result
+      };
+
+      res.status(dataResult.statusCode).json(dataResult);
+    } catch (error: any) {
+      // If it's a known error (CustomException, validation, etc.)
+      if (error.name === "CustomException") {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: error.message || ApiResponseStatus.Failed,
+          data: null
+        };
+      } else {
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.UnknownError],
+          message: ApiResponseStatus.UnknownError,
+          exceptionErrorMessage: error.message,
+          data: null
+        };
+      }
+
+    }
+
+
+  }
 
   static async getResponseRate(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
@@ -302,5 +304,4 @@ export class UserController {
 
 
 
-}
 }
