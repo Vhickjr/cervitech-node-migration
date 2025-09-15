@@ -4,7 +4,7 @@ import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePos
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
-import { NeckAngleModel } from '../models/NeckAngle';
+import { NeckAngleModel } from '../models/neckAngle';
 
 export class NeckAngleController {
   static async postBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {
@@ -121,7 +121,7 @@ export class NeckAngleController {
     }
 
     try {
-      const { JobScheduler } = await import('../services/jobScheduler');
+      const { JobScheduler } = await import('../services/JobScheduler');
       await JobScheduler.resetNotificationCount(userId);
       res.status(200).json({
         statusCode: responses[ApiResponseStatus.Successful],

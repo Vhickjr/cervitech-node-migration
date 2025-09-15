@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { NeckAngleModel } from '../../models/NeckAngle';
+import { NeckAngleModel } from '../../models/neckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
@@ -17,7 +17,6 @@ import { Utils } from '../../helpers/utils';
 import { neckAngleRecordViewModel } from '../../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../../helpers/calculator';
 import { AutomatePostNeckAngleRecordsViewModel } from '../../viewmodels/AutomatePostNeckAngleRecords';
-import { DateLibrary } from '../../utils/dateLibrary';
 import { Goal } from '../../models/Goal';
 import { GoalCycleCompletionReport } from '../../models/GoalCycleCompletionReport';
 import { GOAL_FREQUENCY } from '../../enums/goalFrequency';
