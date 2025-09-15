@@ -179,84 +179,80 @@ export class NeckAngleService {
   throw new Error('Function not implemented.');
   }
 
-  static async calculateAverageOfLastWeekOrDay(
-    userId: string,
-    frequency: GOAL_FREQUENCY,
-    dateCreated: Date,
-    goalId: string
-  ): Promise<boolean> {
-    try {
-      let average = 0;
+  // static async calculateAverageOfLastWeekOrDay(
+  //   userId: string,
+  //   frequency: GOAL_FREQUENCY,
+  //   dateCreated: Date,
+  //   goalId: string
+  // ): Promise<boolean> {
+  //   try {
+  //     let average = 0;
   
-      let startDate: Date;
-      let endDate: Date = DateLibrary.getCurrentDateTime();
+  //     let startDate: Date;
+  //     let endDate: Date = DateLibrary.getCurrentDateTime();
   
-      if (frequency === GOAL_FREQUENCY.DAILY) {
-        startDate = DateLibrary.getYesterdayDateTime();
-      } else if (frequency === GOAL_FREQUENCY.WEEKLY) {
-        startDate = DateLibrary.getLastWeekDateTime();
-      } else {
-        throw new Error("Invalid Goal Frequency");
-      }
+  //     if (frequency === GOAL_FREQUENCY.DAILY) {
+  //       startDate = DateLibrary.getYesterdayDateTime();
+  //     } else if (frequency === GOAL_FREQUENCY.WEEKLY) {
+  //       startDate = DateLibrary.getLastWeekDateTime();
+  //     } else {
+  //       throw new Error("Invalid Goal Frequency");
+  //     }
   
-      const records = await NeckAngleRecordModel.find({
-        appUserId: new Types.ObjectId(userId),
-        dateTimeRecorded: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-      }).lean();
+  //     const records = await NeckAngleRecordModel.find({
+  //       appUserId: new Types.ObjectId(userId),
+  //       dateTimeRecorded: {
+  //         $gte: startDate,
+  //         $lte: endDate,
+  //       },
+  //     }).lean();
   
-      if (records.length > 0) {
-        average = records.reduce((sum, r) => sum + r.angle, 0) / records.length;
-      }
+  //     if (records.length > 0) {
+  //       average = records.reduce((sum, r) => sum + r.angle, 0) / records.length;
+  //     }
   
-      // 3️⃣ Find goal
-      const goal = await Goal.findById(goalId);
-      if (!goal) return false;
+  //     const goal = await Goal.findById(goalId);
+  //     if (!goal) return false;
   
-      // 4️⃣ Compute compliance %
-      let complianceInPercentage =
-        average >= goal.targetedAverageNeckAngle
-          ? 100
-          : Math.round((average / goal.targetedAverageNeckAngle) * 100 * 10) / 10;
+  //     let complianceInPercentage =
+  //       average >= goal.targetedAverageNeckAngle
+  //         ? 100
+  //         : Math.round((average / goal.targetedAverageNeckAngle) * 100 * 10) / 10;
   
-      complianceInPercentage = complianceInPercentage > 100 ? 100 : complianceInPercentage;
+  //     complianceInPercentage = complianceInPercentage > 100 ? 100 : complianceInPercentage;
   
-      if (isNaN(complianceInPercentage)) complianceInPercentage = 0;
+  //     if (isNaN(complianceInPercentage)) complianceInPercentage = 0;
   
-      // 5️⃣ Build and save completion report
-      const report = new GoalCycleCompletionReport({
-        actualAverageNeckAngle: isNaN(average)
-          ? 0
-          : Math.round(average * 10) / 10,
-        complianceInPercentage,
-        dateOfConcludedCycle: DateLibrary.getCurrentDateTime(),
-        goalId: new Types.ObjectId(goalId),
-      });
+  //     const report = new GoalCycleCompletionReport({
+  //       actualAverageNeckAngle: isNaN(average)
+  //         ? 0
+  //         : Math.round(average * 10) / 10,
+  //       complianceInPercentage,
+  //       dateOfConcludedCycle: DateLibrary.getCurrentDateTime(),
+  //       goalId: new Types.ObjectId(goalId),
+  //     });
   
-      await report.save();
+  //     await report.save();
   
-      // 6️⃣ Get user FCM token
-      const userFCMToken = await getFCMTokenById(userId); // implement separately
+  //     const userFCMToken = await getFCMTokenById(userId); // implement separately
   
-      if (userFCMToken && userFCMToken.trim() !== "") {
-        const pushNotificationModel = {
-          to: userFCMToken,
-          title: "Your set goal",
-          body: `Hi, you scored ${Math.round(report.complianceInPercentage * 10) / 10}/100`,
-        };
+  //     if (userFCMToken && userFCMToken.trim() !== "") {
+  //       const pushNotificationModel = {
+  //         to: userFCMToken,
+  //         title: "Your set goal",
+  //         body: `Hi, you scored ${Math.round(report.complianceInPercentage * 10) / 10}/100`,
+  //       };
   
-        await PushNotificationDriver.sendPushNotification(pushNotificationModel); // implement separately
-      } else {
-        throw new Error("User does not have an FCM Token");
-      }
+  //       await PushNotificationDriver.sendPushNotification(pushNotificationModel); // implement separately
+  //     } else {
+  //       throw new Error("User does not have an FCM Token");
+  //     }
   
-      return true;
-    } catch (err) {
-      console.error("Error in calculateAverageOfLastWeekOrDay:", err);
-      throw err;
-    }
-  }
+  //     return true;
+  //   } catch (err) {
+  //     console.error("Error in calculateAverageOfLastWeekOrDay:", err);
+  //     throw err;
+  //   }
+  // }
 }
 

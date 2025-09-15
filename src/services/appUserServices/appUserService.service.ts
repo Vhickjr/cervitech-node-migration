@@ -3,7 +3,7 @@ import ResponseRate from "../../viewmodels/ResponseRateViewModel";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
-import { MailService } from "../MailService";
+// import { MailService } from "../mailService";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../helpers/customException";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";

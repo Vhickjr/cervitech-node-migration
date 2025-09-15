@@ -88,7 +88,8 @@ export class NeckAngleController {
     const responses = getApiResponseMessages();
 
     try {
-      const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle();
+      // Circle back to this later
+      const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
       res.status(200).json({
         statusCode: responses[ApiResponseStatus.Successful],
         message: ApiResponseStatus.Successful,
@@ -120,7 +121,7 @@ export class NeckAngleController {
     }
 
     try {
-      const { JobScheduler } = await import('../services/JobScheduler');
+      const { JobScheduler } = await import('../services/jobScheduler');
       await JobScheduler.resetNotificationCount(userId);
       res.status(200).json({
         statusCode: responses[ApiResponseStatus.Successful],

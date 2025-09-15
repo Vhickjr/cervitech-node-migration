@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { MininmalUser } from '../types/auth.entity';
+import { MininmalUser } from '../types/auth.types';
 
 const generateToken = (user: MininmalUser): string =>  {
   const token = jwt.sign(
