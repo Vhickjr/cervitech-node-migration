@@ -1,14 +1,10 @@
-// MAIN BUSINESS LOGIC
-// src/services/auth.service.ts
-// import { UserRepository } from '../infrastructure/repositories/user.repository';
 import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
-import { LoginResponse, LoginRequest } from '../dtos/auth.entity';
-// import jwt from 'jsonwebtoken';
+import { LoginResponse, LoginRequest } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
-import {CustomException} from "../helpers/CustomException";
+import {CustomException} from "../helpers/customException";
 import {Goal} from "../models/Goal";
 import { logger } from '../utils/logger';
 import TokenBlacklist from '../models/TokenBlacklist';
@@ -17,20 +13,27 @@ import TokenBlacklist from '../models/TokenBlacklist';
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
     console.log("Data", data)
-    const existing = await User.findOne({ email: data.email });
-    if (existing) throw new Error('Email already in use');
+    const existing = await User.findOne({ email: data.email }).lean();
+
+    if (existing) {
+      throw new Error('Email already in use');
+    }
 
     const hashedPassword = await HashUtil.hash(data.password);
-    const newUser = await User.create({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
+
+    const createdUser = await User.create({
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
+      email: data.email.toLowerCase().trim(),
       password: hashedPassword,
     });
 
+    const userObj = createdUser.toObject();
+    delete userObj.password;
+
     return {
       message: 'Signup successful',
-      data: newUser,
+      data: userObj,
     };
   }
   static async sendPasswordResetToken({ email }: passwordResetRequest) {
@@ -53,23 +56,6 @@ export class AuthService {
     await User.findByIdAndUpdate(userId, { password: hashed });
     return { message: 'Password reset successfully' };
   }
-
-/*   static async login(email: string, password: string): Promise<LoginResponse> {
-    const user = await User.findOne({ email: email });
-    if (!user) throw new Error('User not found');
-
-    const isValidPassword = await HashUtil.compare(password, user.password);
-    if (!isValidPassword) throw new Error('Invalid password');
-
-    const token: string = generateToken(user);
-
-    return {
-      id: user._id.toString(),
-      username: user.name,
-      email: user.email,
-      token
-    };
-  }, */
 
   static async authenticate(model: LoginRequest): Promise<LoginResponse>{
     const { emailOrUsername, password, mobileChannel } = model;

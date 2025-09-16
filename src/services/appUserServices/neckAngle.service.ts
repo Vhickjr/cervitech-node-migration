@@ -1,11 +1,14 @@
-// services/appUserService.ts
-import { NeckAngleModel } from '../../models/neckAngle';
+import { Types } from 'mongoose';
+import { NeckAngleModel } from '../../models/NeckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
 import  AppUser  from '../../models/AppUser';
-import { CustomException } from '../../helpers/CustomException';
+import { CustomException } from '../../helpers/customException';
 import { logger } from '../../utils/logger';
+import { DateLibrary } from "../../helpers/dateLibrary";
+import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecordViewModel";
+import { WeeklyAngleDataViewModel } from "../../viewmodels/WeeklyAngleDataViewModel";
 import { INeckAngleRecord } from '../../models/NeckAngleRecord';
 import ResponseRate from '../../models/ResponseRate';
 import { IAppUser } from '../../models/AppUser';
@@ -14,7 +17,9 @@ import { Utils } from '../../helpers/utils';
 import { neckAngleRecordViewModel } from '../../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../../helpers/calculator';
 import { AutomatePostNeckAngleRecordsViewModel } from '../../viewmodels/AutomatePostNeckAngleRecords';
-import { Types } from 'mongoose';
+import { Goal } from '../../models/Goal';
+import { GoalCycleCompletionReport } from '../../models/GoalCycleCompletionReport';
+import { GOAL_FREQUENCY } from '../../enums/goalFrequency';
 
 
 
@@ -63,6 +68,86 @@ export class NeckAngleService {
   }
 
   static readonly numberOfRecordPostBeforeSendingAverageNeckAngle: number = parseInt(process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0', 10);
+
+  static async getEachWeekOfTheMonthAverageNeckAngle(aMonthAngleRecords: AbbreviatedNeckAngleRecordViewModel[]): Promise<WeeklyAngleDataViewModel[]> {
+    try {
+      let weekOneRecords = 0,
+        weekTwoRecords = 0,
+        weekThreeRecords = 0,
+        weekFourRecords = 0,
+        weekFiveRecords = 0;
+
+      let weekOneCount = 0,
+        weekTwoCount = 0,
+        weekThreeCount = 0,
+        weekFourCount = 0,
+        weekFiveCount = 0;
+
+      for (const record of aMonthAngleRecords) {
+        const weekNum = DateLibrary.getWeekNumberOfMonth(record.dateTimeRecorded);
+
+        switch (weekNum) {
+          case 1:
+            weekOneRecords += record.angle;
+            weekOneCount++;
+            break;
+          case 2:
+            weekTwoRecords += record.angle;
+            weekTwoCount++;
+            break;
+          case 3:
+            weekThreeRecords += record.angle;
+            weekThreeCount++;
+            break;
+          case 4:
+            weekFourRecords += record.angle;
+            weekFourCount++;
+            break;
+          case 5:
+            weekFiveRecords += record.angle;
+            weekFiveCount++;
+            break;
+          default:
+            break;
+        }
+      }
+
+      const averageNeckAngleForEachWeekOfTheMonthWeek: WeeklyAngleDataViewModel[] = [
+        {
+          week: 1,
+          averageNeckAngle: weekOneCount < 1 ? 0 : weekOneRecords / weekOneCount,
+        },
+        {
+          week: 2,
+          averageNeckAngle: weekTwoCount < 1 ? 0 : weekTwoRecords / weekTwoCount,
+        },
+        {
+          week: 3,
+          averageNeckAngle:
+            weekThreeCount < 1 ? 0 : weekThreeRecords / weekThreeCount,
+        },
+        {
+          week: 4,
+          averageNeckAngle:
+            weekFourCount < 1 ? 0 : weekFourRecords / weekFourCount,
+        },
+        {
+          week: 5,
+          averageNeckAngle:
+            weekFiveCount < 1 ? 0 : weekFiveRecords / weekFiveCount,
+        },
+      ];
+
+      return averageNeckAngleForEachWeekOfTheMonthWeek;
+    } catch (error: any) {
+      logger.error(
+        "Error in getEachWeekOfTheMonthAverageNeckAngle:",
+        error.message
+      );
+      throw new CustomException("Error calculating weekly averages.");
+    }
+}
+
 
   static async calculateAverageOfLastSetNeckAngles(userId: string): Promise<number> {
     const records = await NeckAngleRecordModel.find({ appUserId: userId })
@@ -176,5 +261,80 @@ export class NeckAngleService {
   throw new Error('Function not implemented.');
   }
 
+  // static async calculateAverageOfLastWeekOrDay(
+  //   userId: string,
+  //   frequency: GOAL_FREQUENCY,
+  //   dateCreated: Date,
+  //   goalId: string
+  // ): Promise<boolean> {
+  //   try {
+  //     let average = 0;
+  
+  //     let startDate: Date;
+  //     let endDate: Date = DateLibrary.getCurrentDateTime();
+  
+  //     if (frequency === GOAL_FREQUENCY.DAILY) {
+  //       startDate = DateLibrary.getYesterdayDateTime();
+  //     } else if (frequency === GOAL_FREQUENCY.WEEKLY) {
+  //       startDate = DateLibrary.getLastWeekDateTime();
+  //     } else {
+  //       throw new Error("Invalid Goal Frequency");
+  //     }
+  
+  //     const records = await NeckAngleRecordModel.find({
+  //       appUserId: new Types.ObjectId(userId),
+  //       dateTimeRecorded: {
+  //         $gte: startDate,
+  //         $lte: endDate,
+  //       },
+  //     }).lean();
+  
+  //     if (records.length > 0) {
+  //       average = records.reduce((sum, r) => sum + r.angle, 0) / records.length;
+  //     }
+  
+  //     const goal = await Goal.findById(goalId);
+  //     if (!goal) return false;
+  
+  //     let complianceInPercentage =
+  //       average >= goal.targetedAverageNeckAngle
+  //         ? 100
+  //         : Math.round((average / goal.targetedAverageNeckAngle) * 100 * 10) / 10;
+  
+  //     complianceInPercentage = complianceInPercentage > 100 ? 100 : complianceInPercentage;
+  
+  //     if (isNaN(complianceInPercentage)) complianceInPercentage = 0;
+  
+  //     const report = new GoalCycleCompletionReport({
+  //       actualAverageNeckAngle: isNaN(average)
+  //         ? 0
+  //         : Math.round(average * 10) / 10,
+  //       complianceInPercentage,
+  //       dateOfConcludedCycle: DateLibrary.getCurrentDateTime(),
+  //       goalId: new Types.ObjectId(goalId),
+  //     });
+  
+  //     await report.save();
+  
+  //     const userFCMToken = await getFCMTokenById(userId); // implement separately
+  
+  //     if (userFCMToken && userFCMToken.trim() !== "") {
+  //       const pushNotificationModel = {
+  //         to: userFCMToken,
+  //         title: "Your set goal",
+  //         body: `Hi, you scored ${Math.round(report.complianceInPercentage * 10) / 10}/100`,
+  //       };
+  
+  //       await PushNotificationDriver.sendPushNotification(pushNotificationModel); // implement separately
+  //     } else {
+  //       throw new Error("User does not have an FCM Token");
+  //     }
+  
+  //     return true;
+  //   } catch (err) {
+  //     console.error("Error in calculateAverageOfLastWeekOrDay:", err);
+  //     throw err;
+  //   }
+  // }
 }
 
