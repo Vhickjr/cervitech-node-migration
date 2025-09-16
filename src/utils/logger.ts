@@ -42,6 +42,7 @@ export class logger {
         logger.logger.error(message, meta);
     }
 
+    
     // Warn
     static warn(message: string, meta: Record<string, any> = {}): void {
         logger.logger.warn(message, meta);
@@ -54,8 +55,25 @@ export class logger {
 
     // Stream (for morgan / HTTP logging)
     static stream = {
-        write: (message: string) => {
-            logger.logger.info(message.trim());
+    write: (message: string) => {
+        const trimmed = message.trim();
+
+        const match = trimmed.match(/\s(\d{3})\s/);
+        const statusCode = match ? parseInt(match[1], 10) : null;
+
+        if (statusCode) {
+            if (statusCode >= 500) {
+                logger.logger.error(trimmed);
+            } else if (statusCode >= 400) {
+                logger.logger.warn(trimmed);
+            } else if (statusCode >= 300) {
+                logger.logger.warn(trimmed); 
+            } else {
+                logger.logger.info(trimmed);
+            }
+        } else {
+            logger.logger.info(trimmed);
         }
-    };
+    }
+};
 }

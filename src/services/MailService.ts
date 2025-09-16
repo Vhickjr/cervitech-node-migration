@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-interface IEmailTemplates {
+export interface IEmailTemplates {
   getSignUpEmail(): string;
   getPasswordResetEmail(): string;
   getAccountDeletionRequestEmail(): string;
@@ -12,15 +12,15 @@ interface IEmailTemplates {
   getAccountDeletionEmail(): string;
 }
 interface IMailSender {
-  sendEmail(to: string, subject: string, message: string): Promise<void>;
+  sendEmail(to: string, subject: string, message: string): Promise<string>;
 }
 
 interface ISendGridEmailSender {
-  sendEmailAsync(email: string, name: string): Promise<void>;
+  sendEmailAsync(email: string, subject: string, message: string): Promise<void>;
 }
 
-interface ILogger {
-  logError(message: string): void;
+export interface ILogger {
+  error(message: string): void;
 }
 
 export class MailService {
@@ -39,8 +39,8 @@ export class MailService {
   ) {
     this.logger = logger;
     this.emailTemplates = emailTemplates;
-    this.fromMail = process.env.CERVITECH_EMAIL || '';
-    this.password = process.env.CERVITECH_EMAIL_PASSWORD || '';
+    this.fromMail = process.env.CERVITECH_EMAIL || 'mabdurrahman.balogun@gmail.com';
+    this.password = process.env.CERVITECH_EMAIL_PASSWORD || 'brmw fong ijat uxmq';
     this.port = parseInt(process.env.EMAIL_SERVER_PORT || '465');
     this.baseUrl = process.env.BASE_URL || '';
   }
@@ -52,7 +52,7 @@ export class MailService {
       body = body.replace('[NAME]', toName).replace('[EMAILHOLDER]', toMail);
       return await this.sendMail(toMail, subject, body);
     } catch (error: any) {
-      this.logger.logError(`${error.message} ---From sendSignUpMail`);
+      this.logger.error(`${error.message} ---From sendSignUpMail`);
       return error.message;
     }
   }
@@ -64,7 +64,7 @@ export class MailService {
       body = body.replace('[Username]', username).replace('[Token]', token);
       return await this.sendMail(toMail, subject, body);
     } catch (error: any) {
-      this.logger.logError(error.message);
+      this.logger.error(error.message);
       return error.message;
     }
   }
@@ -78,9 +78,10 @@ export class MailService {
         .replace('[Token]', token)
         .replace('[ConfirmationLink]', `${this.baseUrl}/api/user/confirmdeletemyaccount`)
         .replace('[email]', toMail);
+      console.log("Email sent to:", toMail);
       return await this.sendMail(toMail, subject, body);
     } catch (error: any) {
-      this.logger.logError(error.message);
+      this.logger.error(error.message);
       return error.message;
     }
   }
@@ -106,7 +107,7 @@ export class MailService {
 
       return 'success';
     } catch (error: any) {
-      this.logger.logError(`${error.message} ---From sendMail`);
+      this.logger.error(`${error.message} ---From sendMail`);
       throw error;
     }
   }
@@ -118,7 +119,7 @@ export class MailService {
       await this.sendMail(toMail, subject, body);
       return true;
     } catch (error: any) {
-      this.logger.logError(`Could not send last login mail to ${toMail}: ${error.message}`);
+      this.logger.error(`Could not send last login mail to ${toMail}: ${error.message}`);
       return false;
     }
   }
@@ -130,19 +131,19 @@ export class MailService {
       await this.mailSender.sendEmail(toMail, subject, message);
       return true;
     } catch (error: any) {
-      this.logger.logError(error.message);
+      this.logger.error(error.message);
       return false;
     }
   }
 
-  async sendGridTestMail(toMail: string, toName: string): Promise<boolean> {
+  async sendGridTestMail(toMail: string, toName: string, toMessage: string): Promise<boolean> {
     try {
       let body = this.emailTemplates.getSignUpEmail();
       body = body.replace('[NAME]', toName).replace('[EMAILHOLDER]', toMail);
-      await this.sendGridMailSender.sendEmailAsync(toMail, toName);
+      await this.sendGridMailSender.sendEmailAsync(toMail, toName, toMessage);
       return true;
     } catch (error: any) {
-      this.logger.logError(error.message);
+      this.logger.error(error.message);
       return false;
     }
   }
@@ -154,7 +155,7 @@ export class MailService {
       body = body.replace('[Username]', username);
       return await this.sendMail(toMail, subject, body);
     } catch (error: any) {
-      this.logger.logError(error.message);
+      this.logger.error(error.message);
       return error.message;
     }
   }

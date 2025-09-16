@@ -1,10 +1,10 @@
 import { Types } from 'mongoose';
-import { NeckAngleModel } from '../../models/NeckAngle';
+import { NeckAngleModel } from '../../models/neckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
 import  AppUser  from '../../models/AppUser';
-import { CustomException } from '../../helpers/customException';
+import { CustomException } from '../../helpers/CustomException';
 import { logger } from '../../utils/logger';
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecordViewModel";
