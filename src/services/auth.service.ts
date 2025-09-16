@@ -4,7 +4,7 @@ import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
-import {CustomException} from "../helpers/customException";
+import {CustomException} from  "../helpers/CustomException";
 import {Goal} from "../models/Goal";
 import { logger } from '../utils/logger';
 import TokenBlacklist from '../models/TokenBlacklist';

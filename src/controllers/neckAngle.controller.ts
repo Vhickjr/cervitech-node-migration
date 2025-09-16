@@ -203,8 +203,8 @@ export class NeckAngleController {
     }
   }
 
-  // GET /api/v1/users/neck-angle-stats
-  static async getAllUsersNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
+
+  static async getUserNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.userId;
       if (!userId) return res.status(401).json({ error: 'Unauthorized' });
