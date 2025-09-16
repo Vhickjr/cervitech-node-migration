@@ -1,7 +1,7 @@
 import TransactionRecord from "../models/TransactionRecord";
 import { TransactionViewModel, AppUserViewModel } from "../types/transaction.types";
 import { AppUserService } from "./appUserServices/appUserService.service";
-import { CustomException } from "../helpers/customException";
+import { CustomException } from "../helpers/CustomException";
 import { TRANSACTION_STATUS } from "../enums/transaction";
 
 export class TransactionService {

@@ -2,11 +2,12 @@
 import { Request, Response } from "express";
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
 import { AppUserService } from "../services/appUserServices/appUserService.service";
-import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/apiResponse";
-import { DataResult } from "../helpers/dataResult";
+import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
+import { DataResult } from "../helpers/DataResult";
+import { TokenUtil } from "../utils/token.util";
 import { UpdateUserRequest } from "../types/user.types";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
-import { CustomException } from "../helpers/customException";
+import { CustomException } from "../helpers/CustomException";
 import { logger } from "../utils/logger";
 
 export class UserController {
@@ -100,45 +101,32 @@ export class UserController {
     return
   }
 
-  static async deleteAccountbyId(req: Request, res: Response) {
+  static async deleteById(req: Request, res: Response): Promise<void> {
     const responses = GetApiResponseMessages();
     const id = req.params.id;
+
+    console.log("DeleteAccount by ID:", id);
 
     let dataResult: DataResult;
 
     try {
-      if (!id) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null
-        };
-        res.status(dataResult.statusCode).json(dataResult);
-        return;
-      }
-
       try {
         const result = await AppUserService.deleteByIdAsync(id);
-
         dataResult = {
           statusCode: responses[ApiResponseStatus.Successful],
           message: ApiResponseStatus.Successful,
           data: result
         };
-      } catch (error: any) {
-        if (error instanceof CustomException) {
-          logger.error(error.message);
-          dataResult = {
-            statusCode: responses[ApiResponseStatus.Failed],
-            message: error.message,
-            data: null
-          };
-        } else {
-          throw error;
-        }
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
       }
     } catch (error: any) {
-      logger.error(error.message);
+      console.error("Unhandled Exception:", error.message);
       dataResult = {
         statusCode: responses[ApiResponseStatus.UnknownError],
         message: ApiResponseStatus.UnknownError,
@@ -151,44 +139,117 @@ export class UserController {
     return;
   }
 
-  static async deleteAccountbyEmail(req: Request, res: Response) {
+  static async deleteMyAccount(req: Request, res: Response): Promise<void> {
     const responses = GetApiResponseMessages();
-    const email = req.body.email as string;
+    const email = req.query.email as string;
+
+    console.log("DeleteMyAccount input:", email);
 
     let dataResult: DataResult;
-    try {
-      if (!email) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null
-        };
-        res.status(dataResult.statusCode).json(dataResult);
-        return;
-      }
 
-      const result = await AppUserService.deleteByEmailAsync(email);
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
-        data: result
-      };
-    } catch (error: any) {
-      if (error.name === "CustomException") {
+    try {
+      try {
+        const result = await AppUserService.deleteAccountRequest(email);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
         dataResult = {
           statusCode: responses[ApiResponseStatus.Failed],
-          message: error.message || ApiResponseStatus.Failed,
-          data: null
-        };
-      } else {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.UnknownError],
-          message: ApiResponseStatus.UnknownError,
-          exceptionErrorMessage: error.message,
+          message: customError.message,
           data: null
         };
       }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
     }
+
+    res.status(dataResult.statusCode).json(dataResult);
+    return;
+  }
+
+  static async confirmDeleteMyAccount(req: Request, res: Response): Promise<void> {
+    const responses = GetApiResponseMessages();
+    const email = req.query.email as string;
+    const token = req.query.token as string;
+
+    console.log("ConfirmDeleteMyAccount input:", { email, token });
+
+    let dataResult: DataResult;
+
+    try {
+      try {
+        const result = await AppUserService.deleteByEmailAsync(email);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: false
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: false
+      };
+    }
+    res.redirect(`/home/deletemyaccount?success=${dataResult.data}`);
+    return;
+  }
+
+  static async deleteAll(req: Request, res: Response): Promise<void> {
+    const responses = GetApiResponseMessages();
+
+    console.log("DeleteAll Accounts triggered");
+
+    let dataResult: DataResult;
+
+    try {
+      try {
+        const result = await AppUserService.deleteAllAsync();
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Successful],
+          message: ApiResponseStatus.Successful,
+          data: result
+        };
+      } catch (customError: any) {
+        console.error("CustomException:", customError.message);
+        dataResult = {
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: customError.message,
+          data: null
+        };
+      }
+    } catch (error: any) {
+      console.error("Unhandled Exception:", error.message);
+      dataResult = {
+        statusCode: responses[ApiResponseStatus.UnknownError],
+        message: ApiResponseStatus.UnknownError,
+        exceptionErrorMessage: error.message,
+        data: null
+      };
+    }
+
+    res.status(dataResult.statusCode).json(dataResult);
+    return;
   }
 
   static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {

@@ -4,8 +4,8 @@ import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePos
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
-import { NeckAngleModel } from '../models/NeckAngle';
-import { JobScheduler } from '../services/jobScheduler';
+import { NeckAngleModel } from '../models/neckAngle';
+import { JobScheduler } from '../services/JobScheduler';
 
 export class NeckAngleController {
   static async postBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {

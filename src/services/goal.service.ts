@@ -2,7 +2,7 @@ import AppUser from '../models/AppUser';
 import { Goal } from '../models/Goal';
 import { SetGoalViewModel, TurnOnGoalViewModel } from '../types/goal.types';
 import { GoalCycleReportViewModel } from '../types/goalCycleReport.types';
-import { CustomException } from '../helpers/customException';
+import { CustomException } from '../helpers/CustomException';
 import { DateLibrary } from '../helpers/dateLibrary';
 import { Utils } from '../helpers/utils';
 import { PushNotificationDriver } from './pushNotificationDriver';

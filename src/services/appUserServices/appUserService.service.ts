@@ -3,9 +3,12 @@ import ResponseRate from "../../viewmodels/ResponseRateViewModel";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
-// import { MailService } from "../mailService";
+import { MailService } from "../MailService";
+import { MailSender } from "../MailSender";
+import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/customException";
+import { CustomException } from "../../helpers/CustomException";
+import { EmailTemplates } from "../EmailTemplates";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { Goal } from "../../models/Goal";
@@ -16,7 +19,13 @@ import { logger } from "../../utils/logger";
 import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
+import { TokenUtil } from "../../utils/token.util";
 import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+const emailTemplates = new EmailTemplates(logger);
+const mailSender = new MailSender(logger);
+const sendGridSender = new SendGridEmailSender(emailTemplates);
+const mailService = new MailService(logger, emailTemplates, mailSender, sendGridSender);
+
 
 
 export class AppUserService {
@@ -84,10 +93,10 @@ export class AppUserService {
 
     await user.deleteOne();
 
-    // await new MailService().sendAccountDeletionMail(
-    //   user.email.trim().toLowerCase(),
-    //   user.username
-    // );
+    await mailService.sendAccountDeletionConfirmationMail(
+      user.email.trim().toLowerCase(),
+      user.username
+    );
 
     return true;
   } catch (ex: any) {
@@ -103,7 +112,6 @@ export class AppUserService {
 static async deleteByEmailAsync(email: string): Promise<boolean> {
   try {
     const normalizedEmail = email.trim().toLowerCase();
-
     const user = await AppUser.findOne({ email: normalizedEmail });
 
     if (!user) {
@@ -112,7 +120,10 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
 
     await user.deleteOne();
 
-    // await new MailService().sendAccountDeletionMail(normalizedEmail, user.username, deletionToken)
+    await mailService.sendAccountDeletionConfirmationMail(
+      normalizedEmail,
+      user.username
+    );
 
     return true;
   } catch (ex: any) {
@@ -124,6 +135,53 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
     throw ex;
   }
 }
+
+static async deleteAccountRequest(email: string): Promise<boolean> {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await AppUser.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      throw new CustomException("User does not exist");
+    }
+
+    const token = await TokenUtil.generateResetToken(user._id.toString());
+    console.log("Generated token:", token);
+
+    await mailService.sendAccountDeletionMail(
+      normalizedEmail,
+      user.username,
+      token
+    );
+
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while requesting account deletion", {
+        error: ex,
+      });
+    }
+    throw ex;
+  }
+}
+
+static async deleteAllAsync(): Promise<boolean> {
+  try {
+    await AppUser.deleteMany({});
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while deleting all users", { error: ex });
+    }
+    throw ex;
+  }
+}
+
+
   static async toggleAllowPushNotificationsAsync(userId: string): Promise<boolean> {
     try {
       if (!userId || userId.trim() === "") {
@@ -353,5 +411,14 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
           prompt: user.prompt ?? 0
         };
   }
+
+  static async emailAlreadyExistsAsync(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const exists = await AppUser.exists({ email: normalizedEmail });
+
+  return !!exists; // convert result to true/false
+}
+
 }
 
