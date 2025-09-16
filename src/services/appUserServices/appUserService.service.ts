@@ -3,16 +3,17 @@ import ResponseRate from "../../viewmodels/ResponseRateViewModel";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
+// import { MailService } from "../mailService";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/CustomException";
+import { CustomException } from "../../helpers/customException";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { Goal } from "../../models/Goal";
 import { GoalCycleCompletionReport } from "../../models/GoalCycleCompletionReport";
 import { PushNotificationDriver } from "../pushNotificationDriver";
-import { PushNotificationModelDTO } from "../../dtos/PushNotificationModelDTO";
+import { PushNotificationModelDTO } from "../../types/pushNotificationModel.types";
 import { logger } from "../../utils/logger";
-import {UpdateUserRequest} from "../../dtos/user.entity";
+import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
 import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
@@ -56,7 +57,7 @@ export class AppUserService {
         lastLoginDateTime: user.lastLoginDateTime
       };
     } catch (error) {
-      logger.error("Error in updateSubscriptionAsync:", error);
+      logger.error("Error in updateSubscriptionAsync:");
       throw new CustomException("Error updating subscription.");
     }
   }
@@ -75,6 +76,77 @@ export class AppUserService {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     return true;
+  }
+
+  static async deleteByIdAsync(id: string): Promise<boolean> {
+  try {
+    const user = await AppUser.findById(id);
+
+    if (!user) {
+      throw new CustomException("User does not exist");
+    }
+
+    await user.deleteOne();
+
+    // await new MailService().sendAccountDeletionMail(
+    //   user.email.trim().toLowerCase(),
+    //   user.username
+    // );
+
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while deleting by ID", { error: ex });
+    }
+    throw ex;
+  }
+}
+
+static async deleteByEmailAsync(email: string): Promise<boolean> {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await AppUser.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      throw new CustomException("User does not exist");
+    }
+
+    await user.deleteOne();
+
+    // await new MailService().sendAccountDeletionMail(normalizedEmail, user.username, deletionToken)
+
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while deleting by email", { error: ex });
+    }
+    throw ex;
+  }
+}
+  static async toggleAllowPushNotificationsAsync(userId: string): Promise<boolean> {
+    try {
+      if (!userId || userId.trim() === "") {
+        throw new Error("UserId not provided");
+      }
+
+      const user = await AppUser.findById(userId);
+      if (!user) {
+        throw new Error("User not found.");
+      }
+
+      user.allowPushNotifications = !user.allowPushNotifications;
+      await user.save();
+
+      return user.allowPushNotifications;
+    } catch (error) {
+      logger.error("Error in toggleAllowPushNotificationsAsync:", error);
+      throw new CustomException("Error toggling push notifications.");
+    }
   }
 
   static async getResponseRateAsync(userId: string, day: Date): Promise<ResponseRateViewModel> {
@@ -119,7 +191,7 @@ export class AppUserService {
         activity
       };
     } catch (error) {
-      logger.error("Error in getResponseRateAsync:", error);
+      logger.error("Error in getResponseRateAsync:");
       throw new CustomException("Error retrieving response rate.");
     }
   }

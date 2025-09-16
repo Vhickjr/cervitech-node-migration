@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { TransactionService } from "../services/TransactionService";
-import { TransactionViewModel } from '../dtos/transaction.DTO';
+import { TransactionViewModel } from '../types/transaction.types';
 
 export class TransactionController {
   static async createTransactionRecord(req: Request, res: Response): Promise<void> {

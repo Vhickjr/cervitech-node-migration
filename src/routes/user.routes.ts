@@ -4,9 +4,13 @@ import { authenticateJWT } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.put("/update-picture-url", UserController.updatePictureUrl);
-router.put("/update-subscription/:id", UserController.updateSubscription);
-router.get("/response-rate", UserController.getResponseRate);
-router.put("/update-user", authenticateJWT, UserController.updateUser);
+
+router.put("/updatepictureurl", UserController.updatePictureUrl);
+router.put("/updatesubscription/:id", UserController.updateSubscription);
+router.get("/responserate", UserController.getResponseRate);
+router.delete("/deleteaccountbyid/:id", UserController.deleteAccountbyId);
+router.delete("/deleteaccountbyemail/:email", UserController.deleteAccountbyEmail);
+router.post("/toggleallowpushnotifications/:id", UserController.toggleAllowPushNotifications);
+
 
 export default router;
