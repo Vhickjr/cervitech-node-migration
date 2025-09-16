@@ -5,6 +5,9 @@ import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse'
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
 import { NeckAngleModel } from '../models/neckAngle';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { AppUserService } from '../services/appUserServices/appUserService.service';
+
 
 export class NeckAngleController {
   static async postBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {
@@ -83,6 +86,20 @@ export class NeckAngleController {
       });
     }
   }
+
+  // GET /api/v1/users/neck-angle-stats
+static async getAllUsersNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const data = await AppUserService.computeNeckAngleParametersAsync(userId);
+    return res.status(200).json({ message: 'Successful', data });
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message });
+  }
+}
+
 }
 
 
