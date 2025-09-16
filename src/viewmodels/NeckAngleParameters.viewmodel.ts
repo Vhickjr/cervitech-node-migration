@@ -16,5 +16,5 @@ export interface NeckAngleParametersViewModel {
   bestWeekDayAverageNeckAngle?: DailyAngleDataViewModel | null;
   badWeekDayAverageNeckAngle?: DailyAngleDataViewModel | null;
   averageNeckAngleForEachDayOfTheCurrentWeek: DailyAngleDataViewModel[];
-  //averageNeckAngleForEachWeekOfTheCurrentMonth: { weekNumber: number; averageNeckAngle: number }[];
+  averageNeckAngleForEachWeekOfTheCurrentMonth: { weekNumber: number; averageNeckAngle: number }[];
 }
