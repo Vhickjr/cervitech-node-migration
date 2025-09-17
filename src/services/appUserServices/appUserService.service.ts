@@ -35,7 +35,7 @@ export class AppUserService {
       await user.save();
 
       return {
-        id: user._id as string,
+        id: user._id,
         username: user.username,
         email: user.email,
         FCMToken: user.fcmToken,

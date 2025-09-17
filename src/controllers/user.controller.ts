@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
 import { AppUserService } from "../services/appUserServices/appUserService.service";
@@ -284,7 +283,7 @@ export class UserController {
         exceptionErrorMessage: error.message,
         data: null
       };
-    }
+    } 
 
     return res.status(dataResult.statusCode).json(dataResult);
   };
@@ -304,4 +303,93 @@ export class UserController {
 
 
 
+}
+  static async getByEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      if (!email || typeof email !== 'string') {
+        res.status(400).json({ message: 'Email is required and must be a string.' });
+        return;
+      }
+
+      const user = await GetUserDataService.getByEmail(email);
+      res.status(200).json(user);
+    } 
+    catch (error: any) {
+      if (error instanceof CustomException) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  }
+
+  static async getAllowPushNotificationStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.body;
+
+      if (typeof id !== 'string' || id.trim() === '') {
+        res.status(400).json({ message: 'A valid user ID is required.' });
+        return;
+      }
+
+      const allowPush = await GetUserDataService.getAllowPushNotificationStatus(id);
+      res.status(200).json({ allowPushNotifications: allowPush });
+    } catch (error: any) {
+      if (error instanceof CustomException) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  }
+
+  static async getFCMTokenByUsername(req: Request, res: Response): Promise<void> {
+    try {
+      const { username } = req.body;
+
+      if (!username || typeof username !== 'string') {
+        res.status(400).json({ message: 'Username is required and must be a string.' });
+        return;
+      }
+
+      const service = new GetUserDataService();
+      const token = await service.getFCMTokenByUsername(username);
+
+      res.status(200).json({ fcmToken: token });
+    } catch (error: any) {
+      if (error instanceof CustomException) {
+        res.status(404).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  }
+
+  static async updateFCMToken(req: Request, res: Response): Promise<void> {
+  try {
+    const { fcmToken, _id } = req.body;
+
+    if (
+      !fcmToken ||
+      typeof fcmToken !== 'string' ||
+      typeof _id !== 'string'
+    ) {
+      res.status(400).json({
+        message: 'Invalid request. Please provide a valid fcmToken (string) and userId (string).'
+      });
+      return;
+    }
+
+      const result = await FCMTokenService.updateFCMToken({ fcmToken, _id });
+      res.status(200).json(result);
+    } catch (error: any) {
+      if (error instanceof CustomException) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  }
 }

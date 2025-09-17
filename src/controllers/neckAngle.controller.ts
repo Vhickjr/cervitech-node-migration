@@ -16,7 +16,7 @@ export class NeckAngleController {
 
     if (
       !model ||
-      typeof model.appUserId !== 'number' ||
+      typeof model.appUserId !== 'string' ||
       !Array.isArray(model.neckAngleRecords) ||
       model.neckAngleRecords.length === 0
     ) {
