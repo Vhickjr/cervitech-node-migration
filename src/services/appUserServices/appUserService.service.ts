@@ -19,13 +19,7 @@ import { logger } from "../../utils/logger";
 import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
-import { TokenUtil } from "../../utils/token.util";
 import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
-const emailTemplates = new EmailTemplates(logger);
-const mailSender = new MailSender(logger);
-const sendGridSender = new SendGridEmailSender(emailTemplates);
-const mailService = new MailService(logger, emailTemplates, mailSender, sendGridSender);
-
 
 
 export class AppUserService {
@@ -44,7 +38,7 @@ export class AppUserService {
       await user.save();
 
       return {
-        id: user._id as string,
+        id: user._id,
         username: user.username,
         email: user.email,
         FCMToken: user.fcmToken,

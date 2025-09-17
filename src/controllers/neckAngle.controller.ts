@@ -4,7 +4,7 @@ import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePos
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
-import { NeckAngleModel } from '../models/neckAngle';
+import { NeckAngleModel } from '../models/NeckAngle';
 import { JobScheduler } from '../services/JobScheduler';
 
 export class NeckAngleController {
@@ -16,7 +16,7 @@ export class NeckAngleController {
 
     if (
       !model ||
-      typeof model.appUserId !== 'number' ||
+      typeof model.appUserId !== 'string' ||
       !Array.isArray(model.neckAngleRecords) ||
       model.neckAngleRecords.length === 0
     ) {
