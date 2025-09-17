@@ -1,11 +1,10 @@
 // fcm.controller.ts
 import { Request, Response } from 'express';
-import {FCMTokenUpdateViewModel} from "../viewmodels/FCMTokenUpdateViewModel";
+// import {FCMTokenUpdateViewModel} from "../viewmodels/FCMTokenUpdateViewModel";
 import { AppUserService } from '../services/appUserServices/appUserService.service';
-import { GetApiResponseMessages, ApiResponseStatus } from '../helpers/ApiResponse';
+import { GetApiResponseMessages, ApiResponseStatus } from '../helpers/apiResponse';
 import {logger} from '../utils/logger';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
-
 /* // Update FCMToken
 interface FCMTokenUpdateViewModel {
   userId: number;

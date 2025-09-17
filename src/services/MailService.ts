@@ -39,7 +39,7 @@ export class MailService {
   ) {
     this.logger = logger;
     this.emailTemplates = emailTemplates;
-    this.fromMail = process.env.CERVITECH_EMAIL || 'default mail';
+    this.fromMail = process.env.CERVITECH_EMAIL || 'default email';
     this.password = process.env.CERVITECH_EMAIL_PASSWORD || 'default password';
     this.port = parseInt(process.env.EMAIL_SERVER_PORT || '465');
     this.baseUrl = process.env.BASE_URL || '';
