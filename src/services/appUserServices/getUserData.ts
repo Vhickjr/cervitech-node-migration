@@ -1,7 +1,7 @@
-import { CustomException } from '../../helpers/CustomException';
+import { CustomException } from '../../helpers/customException';
 import { logger } from '../../utils/logger';
 import AppUser from '../../models/AppUser';
-import { AppUserViewModel } from '../../dtos/auth.DTO';
+import { AppUserViewModel } from '../../types/auth.types';
 
 export class GetUserDataService {
     

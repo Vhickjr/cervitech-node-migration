@@ -8,7 +8,7 @@ import User from '../models/User';
 import TokenBlacklist from '../models/TokenBlacklist';
 
 import AppUser from '../models/AppUser';
-import { LoginViewModel, AppUserViewModel } from '../dtos/auth.types';
+import { LoginViewModel, AppUserViewModel } from '../types/auth.types';
 import { CustomException } from '../helpers/customException';
 import { Goal } from '../models/Goal';
 import { logger } from '../utils/logger';
@@ -73,7 +73,7 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  static async authenticate(model: LoginRequest): Promise<LoginResponse>{
+  static async authenticatev1(model: LoginRequest): Promise<LoginResponse>{
     const { emailOrUsername, password, mobileChannel } = model;
     if(mobileChannel !== 1 && mobileChannel !== 2){
         throw new CustomException("Please make sure you pass a valid MobileChannel value for this user");
@@ -154,7 +154,7 @@ export class AuthService {
     }
   }
 
-  static async logout(userId: string): Promise<boolean> {
+  static async logoutv2(userId: string): Promise<boolean> {
     try {
         if (userId === "") {
             throw new Error("UserId is not provided");

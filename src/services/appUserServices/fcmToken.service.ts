@@ -1,8 +1,8 @@
 // services/appUserService.ts
 import AppUser from '../../models/AppUser';
-import { AppUserViewModel } from '../../dtos/auth.DTO';
-import { FCMTokenUpdateViewModel } from '../../dtos/fcmToken.DTO';
-import { CustomException } from '../../helpers/CustomException';
+import { AppUserViewModel } from '../../types/auth.types';
+import { FCMTokenUpdateViewModel } from '../../types/fcmToken.types';
+import { CustomException } from '../../helpers/customException';
 import { logger } from '../../utils/logger';
 
 export class FCMTokenService {

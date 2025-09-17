@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
 import { AppUserService } from "../services/appUserServices/appUserService.service";
+import { GetUserDataService } from "../services/appUserServices/getUserData";
+import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/apiResponse";
 import { DataResult } from "../helpers/dataResult";
 import { UpdateUserRequest } from "../types/user.types";
@@ -301,9 +303,6 @@ export class UserController {
     }
   };
 
-
-
-}
   static async getByEmail(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;
@@ -315,8 +314,7 @@ export class UserController {
 
       const user = await GetUserDataService.getByEmail(email);
       res.status(200).json(user);
-    } 
-    catch (error: any) {
+    } catch (error: any) {
       if (error instanceof CustomException) {
         res.status(404).json({ message: error.message });
       } else {

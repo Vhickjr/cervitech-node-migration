@@ -1,7 +1,7 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { CustomException } from '../helpers/CustomException';
+// import { CustomException } from '../helpers/CustomException';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
 
 import { logger } from '../utils/logger.js';
