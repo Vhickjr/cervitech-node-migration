@@ -7,7 +7,7 @@ import { MailService } from "../MailService";
 import { MailSender } from "../MailSender";
 import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/CustomException";
+import { CustomException } from "../../helpers/customException";
 import { EmailTemplates } from "../EmailTemplates";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
@@ -19,7 +19,13 @@ import { logger } from "../../utils/logger";
 import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
-import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+// import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+import { TokenUtil } from "../../utils/token.util";
+
+const mailSender = new MailSender(logger);
+const emailTemplates = new EmailTemplates(logger);
+const sendGridEmailSender = new SendGridEmailSender(emailTemplates);
+const mailService = new MailService(logger, emailTemplates, mailSender, sendGridEmailSender);
 
 
 export class AppUserService {

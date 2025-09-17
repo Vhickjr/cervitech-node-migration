@@ -1,46 +1,57 @@
-// src/helpers/EmailTemplates.ts
-import fs from "fs";
-import path from "path";
+// src/helpers/emailTemplate.ts
 import { IEmailTemplates } from "./MailService"; 
 import { ILogger } from "./MailService";
+import { emailTemplate } from "../helpers/emailTemplate";
 
 export class EmailTemplates implements IEmailTemplates {
-  private rootPath: string;
   private logger: ILogger;
 
   constructor(logger: ILogger) {
-    this.rootPath = process.cwd(); 
     this.logger = logger;
   }
- 
-  private loadTemplate(fileName: string): string {
+
+  getSignUpEmail(): string {
     try {
-      const filePath = path.join(this.rootPath, "src", "EmailTemplates", fileName);
-      const html = fs.readFileSync(filePath, "utf-8");
-      return html;
+      return emailTemplate.signUp;
     } catch (error: any) {
       this.logger.error(error.message);
       throw error;
     }
   }
 
-  getSignUpEmail(): string {
-    return this.loadTemplate("signup.html");
-  }
-
   getReminderEmail(): string {
-    return this.loadTemplate("reminder.html");
+    try {
+      return emailTemplate.reminder;
+    } catch (error: any) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   getPasswordResetEmail(): string {
-    return this.loadTemplate("passwordreset.html");
+    try {
+      return emailTemplate.passwordReset;
+    } catch (error: any) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   getAccountDeletionEmail(): string {
-    return this.loadTemplate("accountdeletion.html");
+    try {
+      return emailTemplate.accountDeletion;
+    } catch (error: any) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   getAccountDeletionRequestEmail(): string {
-    return this.loadTemplate("accountdeletionrequest.html");
+    try {
+      return emailTemplate.accountDeletionRequest;
+    } catch (error: any) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 }
