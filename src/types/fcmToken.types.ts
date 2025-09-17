@@ -1,6 +1,6 @@
 // viewModels/FCMTokenUpdateViewModel.ts
 
 export interface FCMTokenUpdateViewModel {
-  userId: number;
+  _id: string;
   fcmToken: string;
 }
