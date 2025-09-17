@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TransactionService } from "../services/TransactionService";
+import { TransactionService } from "../services/transaction.service";
 import { TransactionViewModel } from '../types/transaction.types';
 
 export class TransactionController {

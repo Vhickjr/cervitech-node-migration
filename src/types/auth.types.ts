@@ -38,3 +38,30 @@ export interface LoginResponse {
   notificationCount: number;
   token: string; 
 }
+
+export interface LoginViewModel {
+  emailOrUsername: string;
+  password: string;
+  mobileChannel: string;
+}
+
+export interface AppUserViewModel {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  hasPaid: boolean;
+  pictureUrl?: string;
+  fcmToken?: string;
+  isGoalOn: boolean;
+  allowPushNotifications: boolean;
+  mobileChannel: number;
+  currentTargetedAverageNeckAngle: number;
+  dateRegistered: string;
+  responseRate?: number;
+  lastLoginDateTime?: Date;
+  prompt?: string;
+  notificationCount?: number;
+}
