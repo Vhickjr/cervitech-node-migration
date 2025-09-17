@@ -19,7 +19,7 @@ import { logger } from "../../utils/logger";
 import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
-// import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
 import { TokenUtil } from "../../utils/token.util";
 
 const mailSender = new MailSender(logger);
