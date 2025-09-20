@@ -1,11 +1,9 @@
 import { GOAL_FREQUENCY } from '../enums/goalFrequency';
-import { GoalCycleReportViewModel } from './GoalCycleReport.DTO';
 
 export interface TurnOnGoalViewModel {
   appUserId: string;
   targetedAverageNeckAngle: number;
 }
-
 
 export interface SetGoalViewModel {
   appUserId: string;
@@ -13,3 +11,16 @@ export interface SetGoalViewModel {
   frequency: GOAL_FREQUENCY;
   goalCycleCompletionReports: GoalCycleReportViewModel[];
 }
+
+export interface GoalCycleReportViewModel {
+  id: number;
+  appUserId: string;
+  frequency: string;
+  targetedAverageNeckAngle?: number;
+  actualAverageNeckAngle?: number;
+  complianceInPercentage?: number;
+  colorTag: string;
+  dateOfConcludedCycle?: Date;
+  dayOfConcludedCycle: string;
+}
+

@@ -1,7 +1,7 @@
 import AppUser from '../models/AppUser';
 import { Goal } from '../models/Goal';
 import { SetGoalViewModel, TurnOnGoalViewModel } from '../dtos/goal.DTO';
-import { GoalCycleReportViewModel } from '../dtos/GoalCycleReport.DTO';
+import { GoalCycleReportViewModel } from '../dtos/goal.DTO';
 import { CustomException } from '../helpers/CustomException';
 import { DateLibrary } from '../helpers/dateLibrary';
 import { Utils } from '../helpers/utils';

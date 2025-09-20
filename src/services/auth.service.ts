@@ -178,5 +178,29 @@ export class AuthService {
         throw new Error('Internal server error');
       }
     }
-  
+
+  static async usernameAlreadyExists(username: string): Promise<boolean> {
+    const normalizedUsername = username.toLowerCase().trim();
+
+    const exists = await AppUser.exists({
+      username: { $regex: new RegExp(`^${normalizedUsername}$`, 'i') }
+    });
+
+    return !!exists;
+  }
+
+  static async isValidEmail(email: string): Promise<boolean> {
+    const trimmedEmail = email.trim();
+
+    if (trimmedEmail.endsWith('.')) return false;
+
+    try {
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      return emailRegex.test(trimmedEmail);
+    } catch {
+      return false;
+    }
+  } 
 }

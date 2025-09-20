@@ -97,6 +97,16 @@ export class UserController {
     return
   }
 
+  static async postResponseRate(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId;
+      const success = await AppUserService.postResponseRateAsync(userId);
+      res.status(200).json({ success });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   static async getResponseRate(req: Request, res: Response) {
     const responses = GetApiResponseMessages();
 

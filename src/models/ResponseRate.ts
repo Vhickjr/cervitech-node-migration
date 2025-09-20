@@ -1,14 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IResponseRate extends Document {
-  appUserId: number;
+  appUserId: string;
   prompt: number;
   response: number;
   dateCreated: Date;
 }
 
 const ResponseRateSchema = new Schema<IResponseRate>({
-  appUserId: { type: Number, required: true },
+  appUserId: { type: String, required: true },
   prompt: { type: Number, required: true },
   response: { type: Number, required: true },
   dateCreated: { type: Date, default: Date.now },

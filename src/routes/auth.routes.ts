@@ -9,5 +9,7 @@ router.post('/reset-password', AuthController.resetPassword);
 router.post('/login', AuthController.login);
 router.post('/logout', AuthController.logout);
 router.get("/authenticate", AuthController.authenticate);
+router.get("/usernameAlreadyExists", AuthController.usernameAlreadyExists);
+router.get("/isValidEmail", AuthController.isValidEmail);
 
 export default router;

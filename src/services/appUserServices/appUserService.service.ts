@@ -1,9 +1,8 @@
 import AppUser from "../../viewmodels/AppUser";
-import ResponseRate from "../../viewmodels/ResponseRateViewModel";
+import ResponseRate from "../../models/ResponseRate";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
-import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
-import { Activity } from "../../viewmodels/Activity";
+import { ResponseRateViewModel, Activity } from "../../dtos/responseRate.DTO";
 import { CustomException } from "../../helpers/CustomException";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
@@ -14,7 +13,7 @@ import { PushNotificationModelDTO } from "../../dtos/PushNotificationModelDTO";
 import { logger } from "../../utils/logger";
 
 export class AppUserService {
-  static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
+  static async updateSubscriptionAsync(userId: string): Promise<SubscriptionUpdateViewModel> {
     try {
       if (!userId || userId.trim() === "") {
         throw new Error("UserId not provided");
@@ -29,22 +28,8 @@ export class AppUserService {
       await user.save();
 
       return {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        FCMToken: user.fcmToken,
-        hasPaid: user.hasPaid,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        pictureUrl: user.pictureUrl,
-        salt: user.salt,
-        hash: user.hash,
-        isGoalOn: user.isGoalOn,
-        allowPushNotifications: user.allowPushNotifications,
-        mobileChannel: user.mobileChannel,
-        dateRegistered: user.dateRegistered?.toString(),
-        responseRate: user.responseRate,
-        lastLoginDateTime: user.lastLoginDateTime
+        userId: user.id,
+        hasPaid: user.hasPaid
       };
     } catch (error) {
       logger.error("Error in updateSubscriptionAsync:", error);
@@ -67,6 +52,23 @@ export class AppUserService {
 
     return true;
   }
+
+  static async postResponseRateAsync(userId: string): Promise<boolean> {
+    try {
+      const responseRate = await ResponseRate.findOne({ userId });
+
+      if (responseRate) {
+        responseRate.response = 1;
+        await responseRate.save();
+      }
+
+      return true;
+    } catch (error: any) {
+      logger.error(error.message || 'Unhandled exception in postResponseRate');
+      throw error;
+    }
+  }
+
 
   static async getResponseRateAsync(userId: string, day: Date): Promise<ResponseRateViewModel> {
     try {

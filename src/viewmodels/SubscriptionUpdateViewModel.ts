@@ -1,4 +1,4 @@
 export interface SubscriptionUpdateViewModel{
-    userId:number;
+    userId: string;
     hasPaid: boolean;
 }

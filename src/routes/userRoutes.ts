@@ -5,7 +5,8 @@ const router = Router();
 
 router.put("/updatepictureurl", UserController.updatePictureUrl);
 router.put("/updatesubscription", UserController.updateSubscription);
-router.get("/responserate", UserController.getResponseRate);
+router.get("/getresponserate", UserController.getResponseRate);
+router.get("/postresponserate", UserController.postResponseRate);
 router.get("/getByEmail", UserController.getByEmail);
 router.get("/getAllowPushNotificationStatus", UserController.getAllowPushNotificationStatus);
 router.get("/getFCMToken", UserController.getFCMTokenByUsername);
