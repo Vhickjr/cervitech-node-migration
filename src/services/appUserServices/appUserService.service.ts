@@ -7,8 +7,7 @@ import { MailService } from "../MailService";
 import { MailSender } from "../MailSender";
 import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../utils/customException";
-import { EmailTemplates } from "../EmailTemplates";
+import { CustomException } from "../../helpers/customException";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../utils/dateLibrary";
 import { Goal } from "../../models/Goal";
@@ -20,12 +19,6 @@ import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
 // import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
-import { TokenUtil } from "../../utils/token.util";
-
-const mailSender = new MailSender(logger);
-const emailTemplates = new EmailTemplates(logger);
-const sendGridEmailSender = new SendGridEmailSender(emailTemplates);
-const mailService = new MailService(logger, emailTemplates, mailSender, sendGridEmailSender);
 
 
 export class AppUserService {
@@ -422,14 +415,5 @@ static async deleteAllAsync(): Promise<boolean> {
           deleted: user.deleted ?? false
         };
   }
-
-  static async emailAlreadyExistsAsync(email: string): Promise<boolean> {
-  const normalizedEmail = email.trim().toLowerCase();
-
-  const exists = await AppUser.exists({ email: normalizedEmail });
-
-  return !!exists; // convert result to true/false
-}
-
 }
 
