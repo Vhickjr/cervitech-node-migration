@@ -7,7 +7,7 @@ import  AppUser  from '../../models/AppUser';
 import { CustomException } from '../../utils/customException';
 import { logger } from '../../utils/logger';
 import { DateLibrary } from "../../helpers/dateLibrary";
-import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecordViewModel";
+import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecord.viewmodel";
 import { WeeklyAngleDataViewModel } from "../../viewmodels/WeeklyAngleDataViewModel";
 import { INeckAngleRecord } from '../../models/NeckAngleRecord';
 import ResponseRate from '../../models/ResponseRate';

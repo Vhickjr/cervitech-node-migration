@@ -4,6 +4,7 @@ import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
+import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import TokenBlacklist from '../models/TokenBlacklist';
 import AppUser from '../models/AppUser';
 import { LoginViewModel, AppUserViewModel } from '../types/auth.types';
