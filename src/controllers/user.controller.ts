@@ -4,10 +4,10 @@ import { AppUserService } from "../services/appUserServices/appUserService.servi
 import { GetUserDataService } from "../services/appUserServices/getUserData";
 import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/apiResponse";
-import { DataResult } from "../helpers/DataResult";
+import { DataResult } from "../helpers/dataResult";
 import { UpdateUserRequest } from "../types/user.types";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
-import { CustomException } from "../helpers/CustomException";
+import { CustomException } from "../helpers/customException";
 import { logger } from "../utils/logger";
 
 export class UserController {

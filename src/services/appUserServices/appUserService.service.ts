@@ -5,7 +5,7 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 // import { MailService } from "../mailService";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/CustomException"
+import { CustomException } from "../../helpers/customException"
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { Goal } from "../../models/Goal";
