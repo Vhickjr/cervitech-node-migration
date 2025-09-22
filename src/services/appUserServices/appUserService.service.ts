@@ -5,7 +5,7 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 // import { MailService } from "../mailService";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/customException";
+import { CustomException } from "../../helpers/CustomException"
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../helpers/dateLibrary";
 import { Goal } from "../../models/Goal";
@@ -17,7 +17,6 @@ import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
 // import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
-
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -353,5 +352,7 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
           prompt: user.prompt ?? 0
         };
   }
+  
+
 }
 

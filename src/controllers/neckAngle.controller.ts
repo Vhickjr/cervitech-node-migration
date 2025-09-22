@@ -4,6 +4,7 @@ import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePos
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import { NeckAngleModel } from '../models/NeckAngle';
 import { JobScheduler } from '../services/JobScheduler';
 
@@ -200,6 +201,20 @@ export class NeckAngleController {
       });
     }
   }
+
+
+  static async getUserNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
+    try {
+      const userId = req.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      const data = await NeckAngleService.computeNeckAngleParameters(userId);
+      return res.status(200).json({ message: 'Successful', data });
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
 }
+
 
 
