@@ -1,7 +1,7 @@
 // src/helpers/emailTemplate.ts
 import { IEmailTemplates } from "./MailService"; 
 import { ILogger } from "./MailService";
-import { emailTemplate } from "../helpers/emailTemplate";
+import { emailTemplate } from "../utils/emailTemplate";
 
 export class EmailTemplates implements IEmailTemplates {
   private logger: ILogger;

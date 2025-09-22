@@ -3,16 +3,16 @@ import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewMod
 import { AppUserService } from "../services/appUserServices/appUserService.service";
 import { GetUserDataService } from "../services/appUserServices/getUserData";
 import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
-import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/apiResponse";
-import { DataResult } from "../helpers/dataResult";
+import { getApiResponseMessages, ApiResponseStatus } from "../utils/apiResponse";
+import { DataResult } from "../utils/dataResult";
 import { UpdateUserRequest } from "../types/user.types";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
-import { CustomException } from "../helpers/customException";
+import { CustomException } from "../utils/customException";
 import { logger } from "../utils/logger";
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
-    const responses = GetApiResponseMessages();
+    const responses = getApiResponseMessages();
     const updateViewModel: PictureUrlUpdateViewModel = req.body;
 
     console.log("UpdatePictureUrl input:", updateViewModel);
@@ -60,7 +60,7 @@ export class UserController {
   }
 
   static async updateSubscription(req: Request, res: Response): Promise<void> {
-    const responses = GetApiResponseMessages();
+    const responses = getApiResponseMessages();
     // const id = parseInt(req.params.id);
     const id = req.params.id;
 
@@ -173,7 +173,7 @@ static async toggleAllowPushNotifications(req: Request, res: Response): Promise<
 
 
   static async getResponseRate(req: Request, res: Response) {
-    const responses = GetApiResponseMessages();
+    const responses = getApiResponseMessages();
 
     const id = req.query.id as string;
     const dateStr = req.query.date as string;

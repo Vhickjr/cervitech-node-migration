@@ -4,32 +4,31 @@ import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
-
+import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import TokenBlacklist from '../models/TokenBlacklist';
-
 import AppUser from '../models/AppUser';
 import { LoginViewModel, AppUserViewModel } from '../types/auth.types';
-import { CustomException } from '../helpers/customException';
+import { CustomException } from '../utils/customException';
 import { Goal } from '../models/Goal';
 import { logger } from '../utils/logger';
-import { DateLibrary } from '../helpers/dateLibrary';
+import { DateLibrary } from '../utils/dateLibrary';
 
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
-    console.log("Data", data)
+    console.log("Data", data);
     const existing = await AppUser.findOne({ email: data.email });
     if (existing) throw new Error('Email already in use');
 
     const hashedPassword = await HashUtil.hash(data.password);
 
-    const createdUser = await User.create({
+    const createdUser = await AppUser.create({
       firstName: data.firstName.trim(),
       lastName: data.lastName.trim(),
       email: data.email.toLowerCase().trim(),
       password: hashedPassword,
-      username: data.username, // assuming this is part of SignupRequest
-      pictureUrl: data.pictureUrl || '', // optional fallback
+      username: data.username,
+      pictureUrl: data.pictureUrl || '',
       fcmToken: data.fcmToken || '',
       lastLoginDateTime: new Date(),
       allowPushNotifications: true,
@@ -38,11 +37,12 @@ export class AuthService {
       responseRate: 0,
       neckAngleRecords: [],
       goals: [],
-      mobileChannel: data.mobileChannel || 'OTHER',
+      mobileChannel: data.mobileChannel || MOBILE_CHANNEL.WEB,
       prompt: 0,
       notificationCount: 0,
       currentTargetedAverageNeckAngle: 0,
       dateRegistered: new Date(),
+      deleted: false
     });
 
     const userObj = createdUser.toObject();
@@ -53,6 +53,7 @@ export class AuthService {
       data: userObj,
     };
   }
+
   static async sendPasswordResetToken({ email }: passwordResetRequest) {
     const user = await AppUser.findOne({ email });
     if (!user) throw new Error('User not found');
@@ -62,8 +63,7 @@ export class AuthService {
     return {
       message: 'Password link generated',
       resetLink: `http://localhost:4000/api/auth/reset-password?token=${token}`
-    }
-
+    };
   }
 
   static async resetPassword({ token, newPassword }: passwordResetResponse) {
@@ -73,21 +73,28 @@ export class AuthService {
     return { message: 'Password reset successfully' };
   }
 
-  static async authenticatev1(model: LoginRequest): Promise<LoginResponse>{
+  static async authenticatev1(model: LoginRequest): Promise<LoginResponse> {
     const { emailOrUsername, password, mobileChannel } = model;
-    if(mobileChannel !== 1 && mobileChannel !== 2){
-        throw new CustomException("Please make sure you pass a valid MobileChannel value for this user");
+    
+    // Validate mobile channel using enum values
+    if (!Object.values(MOBILE_CHANNEL).includes(mobileChannel)) {
+      throw new CustomException("Please make sure you pass a valid MobileChannel value for this user");
     }
-    if(!emailOrUsername){
+
+    if (!emailOrUsername) {
       throw new CustomException("Please provide an email or username");
     }
 
-    const user = await User.findOne({
+    const user = await AppUser.findOne({
       $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
     });
 
-    if(!user){
-      throw new CustomException("This account does not exist. Please check the email or username provided.")
+    if (!user) {
+      throw new CustomException("This account does not exist. Please check the email or username provided.");
+    }
+
+    if (user.deleted) {
+      throw new CustomException("This account has been deleted. Please contact support if you believe this is an error.");
     }
 
     const isValidPassword = await HashUtil.compare(password, user.password);
@@ -120,12 +127,13 @@ export class AuthService {
       allowPushNotifications: user.allowPushNotifications,
       mobileChannel: user.mobileChannel,
       currentTargetedAverageNeckAngle,
-      dateRegistered: user.dateRegistered?.toISOString(),
+      dateRegistered: user.dateRegistered.toISOString(),
       responseRate: user.responseRate,
-      lastLoginDateTime: user.lastLoginDateTime || new Date(),
+      lastLoginDateTime: user.lastLoginDateTime,
       prompt: user.prompt,
       notificationCount: user.notificationCount,
       token,
+      deleted: user.deleted,
     };
   }
 
@@ -133,17 +141,16 @@ export class AuthService {
     if (!userId) throw new CustomException("UserId is not provided");
     if (!token) throw new CustomException("Token is missing");
 
-    const user = await User.findById(userId);
+    const user = await AppUser.findById(userId);
     if (!user) throw new CustomException("User not found");
 
     try {
-      
       await TokenBlacklist.create({
         token,
         expiresAt: new Date(Date.now() + 3600 * 1000),
       });
 
-      //user.fcmToken = "";
+      user.fcmToken = "";
       await user.save();
 
       return true;
@@ -156,94 +163,94 @@ export class AuthService {
 
   static async logoutv2(userId: string): Promise<boolean> {
     try {
-        if (userId === "") {
-            throw new Error("UserId is not provided");
-        }
-        console.log("Attempting logout for userId:", userId);
+      if (userId === "") {
+        throw new Error("UserId is not provided");
+      }
+      console.log("Attempting logout for userId:", userId);
 
-        const user = await AppUser.findById(userId).exec();
-        if (!user) {
-            throw new CustomException("This user cannot be retrieved at the moment, please contact support.");
-        }
-        console.log("User found:", user.email);
-        user.fcmToken = "";
-        await user.save();
+      const user = await AppUser.findById(userId).exec();
+      if (!user) {
+        throw new CustomException("This user cannot be retrieved at the moment, please contact support.");
+      }
+      console.log("User found:", user.email);
+      user.fcmToken = "";
+      await user.save();
 
-        return true;
+      return true;
     } catch (error) {
-        if (error instanceof CustomException) {
-            logger.error(error.message);
-            throw error;
-        } else {
-            logger.error("Unexpected error during logout", error);
-            throw error;
-        }
-    }
-}
-
-  static async authenticate(model: LoginViewModel): Promise<AppUserViewModel> {
-      try {
-        if (!['ANDROID', 'IOS', 'OTHER'].includes(model.mobileChannel)) {
-          throw new Error('Please make sure you pass a valid MobileChannel value for this user');
-        }
-  
-        if (!model.emailOrUsername || model.emailOrUsername.trim() === '') {
-          throw new CustomException('Please provide an email or username');
-        }
-  
-        const identifier = model.emailOrUsername.trim();
-        logger.info(`Authenticating user with identifier: ${identifier}`);
-  
-        const user = await AppUser.findOne({
-      $or: [{ email: identifier }, { username: identifier }]
-    }).exec();
-  
-        if (!user) {
-          throw new CustomException('This account does not exist. Please check the email or username provided.');
-        }
-        
-        const isValidPassword = HashUtil.compare(model.password, user.password);
-  
-        if (!isValidPassword) {
-          throw new CustomException('An incorrect password provided. Please check password and try again.');
-        }
-  
-        user.lastLoginDateTime = DateLibrary.getCurrentDateTime();
-        await user.save();
-  
-        const lastSetGoal = await Goal.findOne({ appUserId: user._id }).exec();
-  
-        const currentTargetedAverageNeckAngle = lastSetGoal?.targetedAverageNeckAngle ?? 0;
-  
-        return {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          password: user.password,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          hasPaid: user.hasPaid,
-          pictureUrl: user.pictureUrl,
-          fcmToken: user.fcmToken,
-          isGoalOn: user.isGoalOn,
-          allowPushNotifications: user.allowPushNotifications,
-          mobileChannel: user.mobileChannel,
-          currentTargetedAverageNeckAngle,
-          dateRegistered: user.dateRegistered,
-          responseRate: user.responseRate,
-          lastLoginDateTime: user.lastLoginDateTime,
-          prompt: user.prompt,
-          notificationCount: user.notificationCount
-        };
-      } catch (error) {
-        if (error instanceof CustomException) {
-          logger.error(error.message);
-          throw error;
-        }
-  
-        logger.error('Unexpected error during authentication:', error);
-        throw new Error('Internal server error');
+      if (error instanceof CustomException) {
+        logger.error(error.message);
+        throw error;
+      } else {
+        logger.error("Unexpected error during logout", error);
+        throw error;
       }
     }
-  
+  }
+
+  static async authenticate(model: LoginViewModel): Promise<AppUserViewModel> {
+    try {
+      // Validate mobile channel using enum values
+      if (!Object.values(MOBILE_CHANNEL).includes(model.mobileChannel)) {
+        throw new Error('Please make sure you pass a valid MobileChannel value for this user');
+      }
+
+      if (!model.emailOrUsername || model.emailOrUsername.trim() === '') {
+        throw new CustomException('Please provide an email or username');
+      }
+
+      const identifier = model.emailOrUsername.trim();
+      logger.info(`Authenticating user with identifier: ${identifier}`);
+
+      const user = await AppUser.findOne({
+        $or: [{ email: identifier }, { username: identifier }]
+      }).exec();
+
+      if (!user) {
+        throw new CustomException('This account does not exist. Please check the email or username provided.');
+      }
+      
+      const isValidPassword = await HashUtil.compare(model.password, user.password);
+
+      if (!isValidPassword) {
+        throw new CustomException('An incorrect password provided. Please check password and try again.');
+      }
+
+      user.lastLoginDateTime = new Date();
+      await user.save();
+
+      const lastSetGoal = await Goal.findOne({ appUserId: user._id }).exec();
+      const currentTargetedAverageNeckAngle = lastSetGoal?.targetedAverageNeckAngle ?? 0;
+
+      return {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        password: user.password,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        hasPaid: user.hasPaid,
+        pictureUrl: user.pictureUrl,
+        fcmToken: user.fcmToken,
+        isGoalOn: user.isGoalOn,
+        allowPushNotifications: user.allowPushNotifications,
+        mobileChannel: user.mobileChannel,
+        currentTargetedAverageNeckAngle,
+        dateRegistered: user.dateRegistered.toISOString(),
+        responseRate: user.responseRate,
+        lastLoginDateTime: user.lastLoginDateTime,
+        prompt: user.prompt,
+        notificationCount: user.notificationCount,
+        deleted: user.deleted
+      };
+    } catch (error) {
+      if (error instanceof CustomException) {
+        logger.error(error.message);
+        throw error;
+      }
+
+      logger.error('Unexpected error during authentication:', error);
+      throw new Error('Internal server error');
+    }
+  }
 }
