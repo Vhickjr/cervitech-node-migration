@@ -21,6 +21,6 @@ export const UserSchema: Schema = new Schema<IUser>({
 });
 
 // Safe model creation - check if model already exists
-const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema, 'users');
 
 export default User;

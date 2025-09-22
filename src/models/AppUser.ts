@@ -5,10 +5,6 @@ import { NeckAngleRecordSchema, INeckAngleRecord } from './NeckAngleRecord';
 import { GoalSchema, IGoal } from './Goal';
 
 export interface IAppUser extends IUser {
-  email: string;
-  firstName: string;
-  lastName: string;
-  pictureUrl: string;
   fcmToken: string;
   username: string;
   hash: string;
@@ -24,11 +20,17 @@ export interface IAppUser extends IUser {
   prompt: number;
   notificationCount?: number;
   currentTargetedAverageNeckAngle: number;
-  dateRegistered: Date;
   notificationResponse?: number;
 }
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  hash: { type: String, required: false },
+  salt: { type: String, required: false },
+  pictureUrl: { type: String, required: false },
   fcmToken: { type: String },
   username: { type: String, required: true, unique: true },
   lastLoginDateTime: { type: Date, default: Date.now },

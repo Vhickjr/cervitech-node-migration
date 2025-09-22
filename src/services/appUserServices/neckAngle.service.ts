@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { NeckAngleModel } from "../../models/neckAngle"
+import { NeckAngleModel} from '../../models/NeckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../helpers/computations';
@@ -11,10 +11,8 @@ import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/Abbreviate
 import { WeeklyAngleDataViewModel } from "../../viewmodels/WeeklyAngleDataViewModel";
 import { INeckAngleRecord } from '../../models/NeckAngleRecord';
 import ResponseRate from '../../models/ResponseRate';
-import { IAppUser } from '../../models/AppUser';
 import { PushNotificationDriver } from '../pushNotificationDriver';
 import { Utils } from '../../helpers/utils';
-import { neckAngleRecordViewModel } from '../../viewmodels/neckAngleRecord.viewmodels';
 import { Calculator } from '../../helpers/calculator';
 import { AutomatePostNeckAngleRecordsViewModel } from '../../viewmodels/AutomatePostNeckAngleRecords';
 import { Goal } from '../../models/Goal';
@@ -33,14 +31,14 @@ export class NeckAngleService {
   static async postBatchNeckAngleRecordAsync(neckAngleModel: NeckAngleModel): Promise<boolean> {
     try {
       for (const record of neckAngleModel.neckAngleRecords) {
-        const appUser = await AppUser.findOne({ id: record.appUserId });
+        const appUser = await AppUser.findById({ _id: record.appUserId });
         if (!appUser) {
           logger.warn(`AppUser ${record.appUserId} not found, skipping.`);
           continue;
         }
 
         const lastRecord = await NeckAngleRecordModel
-          .findOne({ appUserId: record.appUserId })
+          .findOne({_id: record.appUserId })
           .sort({ counter: -1 });
 
         const counter = (lastRecord?.counter ?? 0) + 1;
@@ -55,6 +53,11 @@ export class NeckAngleService {
         });
 
         await neckAngleRecord.save();
+
+        await AppUser.updateOne(
+          { _id: record.appUserId },
+          { $push: { neckAngleRecords: neckAngleRecord } }
+        );
 
         if (appUser.prompt && counter % appUser.prompt === 0) {
           const averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(record.appUserId);
