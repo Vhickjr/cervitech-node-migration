@@ -178,7 +178,7 @@ export class NeckAngleController {
     }
 
     try {
-      const { Utils } = await import('../helpers/utils');
+      const { Utils } = await import('../utils/utils');
       const report = Utils.currentDayAverageNeckAngleTextReport(Number(neckAngle));
       
       res.status(200).json({

@@ -4,24 +4,10 @@ export interface SignupRequest {
   password: string;
   lastName: string;
   firstName: string;
-  fcmToken: string;
-  pictureUrl: string;
-  hash: string;
   username: string;
-  lastLoginDateTime: Date;
-  salt: string;
-  hasPaid: boolean;
-  allowPushNotifications: boolean;
-  responseRate: number;
-  isGoalOn: boolean;
-  goals: [];
-  neckAngleRecords: [];
-  prompt: number;
-  mobileChannel: string;
-  currentTargetedAverageNeckAngle: number;
-  dateRegistered: Date;
-  notificationResponse?: number;
-  notificationCount?: number;
+  mobileChannel: number;
+  fcmToken?: string;        
+  pictureUrl?: string;
 }
 
 export interface SignupResponse {

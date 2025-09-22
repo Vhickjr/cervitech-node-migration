@@ -1,4 +1,4 @@
-import { CustomException } from '../../helpers/customException';
+import { CustomException } from '../../utils/customException';
 import { logger } from '../../utils/logger';
 import AppUser from '../../models/AppUser';
 import { AppUserViewModel } from '../../types/auth.types';
@@ -34,6 +34,7 @@ export class GetUserDataService {
         prompt: user.prompt,
         notificationCount: user.notificationCount,
         currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle,
+        deleted: user.deleted,
       }
     } 
     catch (error) {

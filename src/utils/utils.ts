@@ -1,5 +1,5 @@
 // utils.ts
-import { ApplicationConstant } from '../utils/applicationConstants';
+import { ApplicationConstant } from './applicationConstants';
 export class Utils {
   static getColorTag(complianceInPercentage: number): string {
     try {
