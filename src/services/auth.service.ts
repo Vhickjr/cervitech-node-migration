@@ -4,7 +4,6 @@ import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
-
 import TokenBlacklist from '../models/TokenBlacklist';
 
 import AppUser from '../models/AppUser';

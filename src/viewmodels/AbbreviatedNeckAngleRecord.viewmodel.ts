@@ -1,5 +1,5 @@
 export interface AbbreviatedNeckAngleRecordViewModel {
   angle: number;
-  craniumVertebralAngle: number;
+  craniumVertebralAngle?: number;
   dateTimeRecorded: Date;
 }
