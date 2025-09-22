@@ -1,5 +1,5 @@
 import BackofficeUser, {IBackofficeUser} from "../models/BackOfficeUser";
-import { backOfficeUserModel } from "../types/backOfficeUserModel.entity";
+import { backOfficeUserModel } from "../types/backOfficeUserModel.types";
 import crypto from "crypto";
 import { validatePassword } from "../utils/passwordUtils";
 
