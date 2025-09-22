@@ -16,7 +16,7 @@ import { logger } from "../../utils/logger";
 import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
-import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+// import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -34,7 +34,7 @@ export class AppUserService {
       await user.save();
 
       return {
-        id: user._id as string,
+        id: user._id,
         username: user.username,
         email: user.email,
         FCMToken: user.fcmToken,
