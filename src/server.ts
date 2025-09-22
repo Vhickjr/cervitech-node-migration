@@ -39,10 +39,10 @@ app.use(morgan(':method :url :status :response-time ms - :res[content-length]', 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/fcm', fcmRoutes);
 app.use('/api/v1/user', userRoutes);
-app.use('/api/neck-angle', neckAngleRoutes);
-app.use("/api/backoffice-users", backOfficeUser);
+app.use('/api/v1/neck-angle', neckAngleRoutes);
+app.use("/api/v1/backoffice-users", backOfficeUser);
 app.use('/api/v1/transactions', transactionRoutes);
-app.use('/api/goals', goalsroutes);
+app.use('/api/v1/goals', goalsroutes);
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI , {
   dbName: "cervitechdb",   // 👈 force your app to use "cervitech" database
