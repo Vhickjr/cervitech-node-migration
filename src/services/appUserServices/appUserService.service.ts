@@ -3,11 +3,14 @@ import ResponseRate from "../../viewmodels/ResponseRateViewModel";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
-// import { MailService } from "../mailService";
+import { MailService } from "../MailService";
+import { MailSender } from "../MailSender";
+import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
-import { CustomException } from "../../helpers/customException"
+import { CustomException } from "../../utils/customException";
+import { EmailTemplates } from "../EmailTemplates";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
-import { DateLibrary } from "../../helpers/dateLibrary";
+import { DateLibrary } from "../../utils/dateLibrary";
 import { Goal } from "../../models/Goal";
 import { GoalCycleCompletionReport } from "../../models/GoalCycleCompletionReport";
 import { PushNotificationDriver } from "../pushNotificationDriver";
@@ -17,6 +20,12 @@ import {UpdateUserRequest} from "../../types/user.types";
 import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
 // import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
+import { TokenUtil } from "../../utils/token.util";
+
+const mailSender = new MailSender(logger);
+const emailTemplates = new EmailTemplates(logger);
+const sendGridEmailSender = new SendGridEmailSender(emailTemplates);
+const mailService = new MailService(logger, emailTemplates, mailSender, sendGridEmailSender);
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -81,12 +90,17 @@ export class AppUserService {
       throw new CustomException("User does not exist");
     }
 
-    await user.deleteOne();
+    user.deleted = true;
+    await user.save();
 
-    // await new MailService().sendAccountDeletionMail(
-    //   user.email.trim().toLowerCase(),
-    //   user.username
-    // );
+    try {
+      await mailService.sendAccountDeletionConfirmationMail(
+        user.email.trim().toLowerCase(),
+        user.username
+      );
+    } catch (emailError) {
+      logger.error("Failed to send deletion confirmation email:", emailError);
+    }
 
     return true;
   } catch (ex: any) {
@@ -102,16 +116,23 @@ export class AppUserService {
 static async deleteByEmailAsync(email: string): Promise<boolean> {
   try {
     const normalizedEmail = email.trim().toLowerCase();
-
     const user = await AppUser.findOne({ email: normalizedEmail });
 
     if (!user) {
       throw new CustomException("User does not exist");
     }
 
-    await user.deleteOne();
+    user.deleted = true;
+    await user.save();
 
-    // await new MailService().sendAccountDeletionMail(normalizedEmail, user.username, deletionToken)
+    try {
+      await mailService.sendAccountDeletionConfirmationMail(
+        normalizedEmail,
+        user.username
+      );
+    } catch (emailError) {
+      logger.error("Failed to send deletion confirmation email:", emailError);
+    }
 
     return true;
   } catch (ex: any) {
@@ -123,6 +144,52 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
     throw ex;
   }
 }
+
+static async deleteAccountRequest(email: string): Promise<boolean> {
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await AppUser.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      throw new CustomException("User does not exist");
+    }
+
+    const token = await TokenUtil.generateResetToken(user._id.toString());
+    console.log("Generated token:", token);
+
+    await mailService.sendAccountDeletionMail(
+      normalizedEmail,
+      user.username,
+      token
+    );
+
+    return true;
+  } catch (ex: any) {
+    if (ex instanceof CustomException) {
+      logger.error(ex.message);
+    } else {
+      logger.error("Unexpected error while requesting account deletion", {
+        error: ex,
+      });
+    }
+    throw ex;
+  }
+}
+
+static async deleteAllAsync(): Promise<boolean> {
+  try {
+    await AppUser.updateMany(
+      { deleted: { $ne: true } }, 
+      { $set: { deleted: true } }
+    );
+    return true;
+  } catch (ex: any) {
+    logger.error("Unexpected error while deleting all users", { error: ex });
+    throw ex;
+  }
+}
+
+
   static async toggleAllowPushNotificationsAsync(userId: string): Promise<boolean> {
     try {
       if (!userId || userId.trim() === "") {
@@ -310,6 +377,7 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
         neckAngleRecords: user.neckAngleRecords ?? [], 
         notificationCount: user.notificationCount ?? 0,
         prompt: user.prompt ?? 0,
+        deleted: user.deleted ?? false
       };
   }
 
@@ -349,10 +417,19 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
           lastLoginDateTime: user.lastLoginDateTime ?? new Date(),
           neckAngleRecords: user.neckAngleRecords ?? [], 
           notificationCount: user.notificationCount ?? 0,
-          prompt: user.prompt ?? 0
+          prompt: user.prompt ?? 0,
+          deleted: user.deleted ?? false
         };
   }
-  
+
+  static async emailAlreadyExistsAsync(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const exists = await AppUser.exists({ email: normalizedEmail });
+
+  return !!exists; // convert result to true/false
+}
+
 
 }
 

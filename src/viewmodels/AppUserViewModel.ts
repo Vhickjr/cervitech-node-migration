@@ -23,4 +23,5 @@ export interface AppUserViewModel {
   mobileChannel: MOBILE_CHANNEL;
   notificationCount?: number;
   notificationResponse?: number;
+  deleted: boolean;
 }

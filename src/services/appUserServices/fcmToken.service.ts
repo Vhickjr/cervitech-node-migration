@@ -2,7 +2,7 @@
 import AppUser from '../../models/AppUser';
 import { AppUserViewModel } from '../../types/auth.types';
 import { FCMTokenUpdateViewModel } from '../../types/fcmToken.types';
-import { CustomException } from '../../helpers/customException';
+import { CustomException } from '../../utils/customException';
 import { logger } from '../../utils/logger';
 
 export class FCMTokenService {
@@ -41,6 +41,7 @@ export class FCMTokenService {
         lastLoginDateTime: user.lastLoginDateTime,
         mobileChannel: user.mobileChannel,
         notificationCount: user.notificationCount,
+        deleted: user.deleted,
       };
     } catch (ex: unknown) {
       const error = ex instanceof Error ? ex : new Error('Unhandled exception');
