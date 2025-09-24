@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { CerviTechDbContext } from '../config/CerviTechDbContext';
 import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
-import { FCMPushNotificationDTO } from '../dtos/FCMPushNotificationDTO';
+import { FCMPushNotificationDTO } from '../dtos/fcmToken.DTO';
 import AppUser from '../models/AppUser';
 import { logger } from '../utils/logger';
 export class PushNotificationDriver {
