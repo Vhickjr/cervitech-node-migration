@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewModel";
-import { AppUserService } from "../services/appUserServices/appUserService.service";
+import { AppUserService } from "../services/appUserServices/appUser.service";
 import { GetApiResponseMessages, ApiResponseStatus } from "../helpers/ApiResponse";
 import { DataResult } from "../helpers/DataResult";
 import { CustomException } from "../helpers/CustomException";
-import { GetUserDataService } from "../services/appUserServices/getUserData";
+import { GetUserDataService } from "../services/appUserServices/getUserData.service";
 import { FCMTokenService } from '../services/appUserServices/fcmToken.service';
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
