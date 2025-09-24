@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/neckangle/postBatchNeckAngleRecords', NeckAngleController.postBatchNeckAngleRecords);
 router.post('/neckangle/postrandomneckanglerecords', NeckAngleController.postRandomTestBatchNeckAngleRecords);
 router.get('/neck-angle-stats', authenticateJWT, NeckAngleController.getUserNeckAngleStatistics);
-//router.post('/neckangle/sendPushNotificationMessageForAverageNeckAngle', NeckAngleController.sendPushNotificationMessageForAverageNeckAngle);   
+//// router.post('/neckangle/sendPushNotificationMessageForAverageNeckAngle', NeckAngleController.sendPushNotificationMessageForAverageNeckAngle);   
 // //the sendPushNotificationMessageForAverageNeckAngle was commented out in neck angle controller
 router.post('/neckangle/resetNotificationCount/:userId', NeckAngleController.resetNotificationCount);
 router.get('/neckangle/getUsersForTesting', NeckAngleController.getUsersForTesting);

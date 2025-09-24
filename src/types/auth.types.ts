@@ -1,3 +1,4 @@
+import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import { User } from './user.types';
 
 /* export interface LoginResponse {
@@ -11,11 +12,10 @@ export interface MininmalUser {
   _id: string;
   email: string;
 }
-
-export interface LoginRequest{
+export interface LoginRequest {
   emailOrUsername: string;
   password: string;
-  mobileChannel: number;
+  mobileChannel: MOBILE_CHANNEL; // Use the enum type
 }
 
 export interface LoginResponse {
@@ -29,20 +29,21 @@ export interface LoginResponse {
   fcmToken: string;
   isGoalOn: boolean;
   allowPushNotifications: boolean;
-  mobileChannel: number;
+  mobileChannel: MOBILE_CHANNEL; // Use the enum type
   currentTargetedAverageNeckAngle: number;
-  dateRegistered: string;
+  dateRegistered: string; // Convert to string in response
   responseRate: number;
   lastLoginDateTime: Date;
-  prompt: string;
+  prompt: number; // Keep as number
   notificationCount: number;
   token: string; 
+  deleted: boolean;
 }
 
 export interface LoginViewModel {
   emailOrUsername: string;
   password: string;
-  mobileChannel: string;
+  mobileChannel: MOBILE_CHANNEL; // Use the enum type
 }
 
 export interface AppUserViewModel {
@@ -57,11 +58,12 @@ export interface AppUserViewModel {
   fcmToken?: string;
   isGoalOn: boolean;
   allowPushNotifications: boolean;
-  mobileChannel: number;
+  mobileChannel: MOBILE_CHANNEL; // Use the enum type
   currentTargetedAverageNeckAngle: number;
-  dateRegistered: string;
+  dateRegistered: string; // Convert to string in view model
   responseRate?: number;
   lastLoginDateTime?: Date;
-  prompt?: string;
+  prompt?: number; // Keep as number
   notificationCount?: number;
+  deleted: boolean;
 }

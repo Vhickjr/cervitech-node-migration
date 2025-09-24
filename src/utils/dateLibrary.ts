@@ -1,78 +1,67 @@
 export class DateLibrary {
   static getCurrentDateTime(): Date {
-    const d = new Date();
-    d.setHours(d.getUTCHours() + 1);
-    return d;
+    const now = new Date();
+    now.setHours(now.getUTCHours() + 1);
+    return now;
   }
 
   static getDaySet(): string {
-    const daysMap: Record<string, string> = {
-      Monday: 'Mon',
-      Tuesday: 'Tue',
-      Wednesday: 'Wed',
-      Thursday: 'Thur',
-      Friday: 'Fri',
-      Saturday: 'Sat',
-      Sunday: 'Sun'
-    };
-    const dayName = new Date().toLocaleString('en-US', { weekday: 'long', timeZone: 'UTC' });
-    return daysMap[dayName] ?? 'Sun';
+    const day = new Date().getUTCDay(); // 0 = Sunday, 1 = Monday, ...
+    const daysMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
+    return daysMap[day];
   }
 
   static getYesterdayDateTime(): Date {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - 1);
-    return d;
+    const now = new Date();
+    now.setUTCDate(now.getUTCDate() - 1);
+    return now;
   }
 
   static getLastWeekDateTime(): Date {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - 7);
-    return d;
+    const now = new Date();
+    now.setUTCDate(now.getUTCDate() - 7);
+    return now;
   }
 
   static addMinutesToCurrentTime(minutes: number): Date {
-    const d = this.getCurrentDateTime();
-    d.setMinutes(d.getMinutes() + minutes);
-    return d;
+    const now = new Date();
+    now.setHours(now.getUTCHours() + 1);
+    now.setMinutes(now.getMinutes() + minutes);
+    return now;
   }
 
   static addDaysToCurrentTime(days: number): Date {
-    const d = this.getCurrentDateTime();
-    d.setDate(d.getDate() + days);
-    return d;
+    const now = new Date();
+    now.setUTCDate(now.getUTCDate() + days);
+    return now;
   }
 
   static addMonthsToCurrentTime(months: number): Date {
-    const d = this.getCurrentDateTime();
-    d.setMonth(d.getMonth() + months);
-    return d;
+    const now = new Date();
+    now.setUTCMonth(now.getUTCMonth() + months);
+    return now;
   }
 
   static addYearsToCurrentTime(years: number): Date {
-    const d = this.getCurrentDateTime();
-    d.setFullYear(d.getFullYear() + years);
-    return d;
+    const now = new Date();
+    now.setUTCFullYear(now.getUTCFullYear() + years);
+    return now;
   }
 
   static getWeekNumberOfMonth(date: Date): number {
-    // ensure no time portion
-    const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const firstMonday = new Date(firstDayOfMonth);
+    const dayOffset = (8 - firstDayOfMonth.getDay()) % 7;
+    firstMonday.setDate(firstDayOfMonth.getDate() + dayOffset);
 
-    let firstMonthDay = new Date(dt.getFullYear(), dt.getMonth(), 1);
-    // find first Monday of the month
-    let firstMonthMonday = new Date(firstMonthDay);
-    const offset = (1 + 7 - firstMonthDay.getDay()) % 7; // 1 = Monday
-    firstMonthMonday.setDate(firstMonthDay.getDate() + offset);
-
-    if (firstMonthMonday > dt) {
-      // go to previous month
-      firstMonthDay = new Date(dt.getFullYear(), dt.getMonth() - 1, 1);
-      firstMonthMonday = new Date(firstMonthDay);
-      const offsetPrev = (1 + 7 - firstMonthDay.getDay()) % 7;
-      firstMonthMonday.setDate(firstMonthDay.getDate() + offsetPrev);
+    if (firstMonday > date) {
+      const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+      const prevMonthMonday = new Date(prevMonth);
+      const offset = (8 - prevMonth.getDay()) % 7;
+      prevMonthMonday.setDate(prevMonth.getDate() + offset);
+      return Math.floor((date.getTime() - prevMonthMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
     }
 
-    return Math.floor((dt.getTime() - firstMonthMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+    return Math.floor((date.getTime() - firstMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
   }
 }
