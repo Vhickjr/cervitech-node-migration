@@ -187,5 +187,85 @@ export class NeckAngleService {
     JobScheduler.scheduleResetNotificationCount(userId);
   }
 
+  static async getAppUserNeckAngleRecordsByIdAsync(userId: string): Promise<neckAngleRecordViewModel[]> {
+    try {
+      // First check if the user exists
+      const appUser = await AppUser.findById(userId);
+      if (!appUser) {
+        throw new CustomException("User not found.");
+      }
+
+      // Get neck angle records for the user
+      const neckAngleRecords = await NeckAngleRecordModel.find({ appUserId: userId })
+        .sort({ dateTimeRecorded: -1 }) // Sort by most recent first
+        .lean();
+
+      if (!neckAngleRecords || neckAngleRecords.length === 0) {
+        throw new CustomException("You have no records of neck angle posture.");
+      }
+
+      // Map to the view model format
+      const records: neckAngleRecordViewModel[] = neckAngleRecords.map(record => ({
+        appUserId: parseInt(record.appUserId),
+        angle: record.angle,
+        craniumVertebralAngle: record.craniumVertebralAngle,
+        dateTimeRecorded: record.dateTimeRecorded
+      }));
+
+      return records;
+    } catch (error: any) {
+      logger.error(error.message);
+      if (error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException("Error retrieving neck angle records.");
+    }
+  }
+
+  static async getAppUserNeckAngleRecordsForaDateRangebyIdAsync(
+    userId: string, 
+    startDate: Date, 
+    endDate: Date
+  ): Promise<neckAngleRecordViewModel[]> {
+    try {
+      // First check if the user exists
+      const appUser = await AppUser.findById(userId);
+      if (!appUser) {
+        throw new CustomException("User not found.");
+      }
+
+      // Get neck angle records for the user within the date range
+      const neckAngleRecords = await NeckAngleRecordModel.find({ 
+        appUserId: userId,
+        dateTimeRecorded: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      })
+        .sort({ dateTimeRecorded: -1 }) // Sort by most recent first
+        .lean();
+
+      if (!neckAngleRecords || neckAngleRecords.length === 0) {
+        throw new CustomException("No records exist for the selected period.");
+      }
+
+      // Map to the view model format
+      const records: neckAngleRecordViewModel[] = neckAngleRecords.map(record => ({
+        appUserId: parseInt(record.appUserId),
+        angle: record.angle,
+        craniumVertebralAngle: record.craniumVertebralAngle,
+        dateTimeRecorded: record.dateTimeRecorded
+      }));
+
+      return records;
+    } catch (error: any) {
+      logger.error(error.message);
+      if (error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException("Error retrieving neck angle records for date range.");
+    }
+  }
+
 }
 

@@ -199,6 +199,136 @@ export class NeckAngleController {
       });
     }
   }
+
+  static async getAppUserNeckAngleRecordsById(req: Request, res: Response): Promise<void> {
+    const responses = getApiResponseMessages();
+    const { userId } = req.params;
+
+    // Check for missing userId (empty or undefined)
+    if (!userId || userId.trim() === '') {
+      res.status(400).json({
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: 'User ID is required',
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      const data = await NeckAngleService.getAppUserNeckAngleRecordsByIdAsync(userId);
+      
+      res.status(200).json({
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: 'Neck angle records retrieved successfully',
+        data: data,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
+
+      // Handle different types of errors with appropriate status codes
+      if (err.message === "User not found.") {
+        res.status(404).json({
+          statusCode: 404,
+          message: 'User not found',
+          data: null,
+        });
+      } else if (err.message === "You have no records of neck angle posture.") {
+        res.status(404).json({
+          statusCode: 404,
+          message: 'You have no records of neck angle posture',
+          data: null,
+        });
+      } else {
+        res.status(500).json({
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: err.message,
+          data: null,
+        });
+      }
+    }
+  }
+
+  static async getAppUserNeckAngleRecordsForaDateRangebyId(req: Request, res: Response): Promise<void> {
+    const responses = getApiResponseMessages();
+    const { userId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    // Check for missing userId (empty or undefined)
+    if (!userId || userId.trim() === '') {
+      res.status(400).json({
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: 'User ID is required',
+        data: null,
+      });
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      res.status(400).json({
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: 'Start date and end date are required',
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
+
+      // Validate dates
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        res.status(400).json({
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: 'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+          data: null,
+        });
+        return;                   
+      }
+
+      if (start > end) {
+        res.status(400).json({
+          statusCode: responses[ApiResponseStatus.BadRequest],
+          message: 'Start date must be before or equal to end date',
+          data: null,
+        });
+        return;
+      }
+
+      const data = await NeckAngleService.getAppUserNeckAngleRecordsForaDateRangebyIdAsync(userId, start, end);
+      
+      res.status(200).json({
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: 'Neck angle records for date range retrieved successfully',
+        data: data,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
+
+      // Handle different types of errors with appropriate status codes
+      if (err.message === "User not found.") {
+        res.status(404).json({
+          statusCode: 404,
+          message: 'User not found',
+          data: null,
+        });
+      } else if (err.message === "No records exist for the selected period.") {
+        res.status(404).json({
+          statusCode: 404,
+          message: 'No records exist for the selected period',
+          data: null,
+        });
+      } else {
+        res.status(500).json({
+          statusCode: responses[ApiResponseStatus.Failed],
+          message: err.message,
+          data: null,
+        });
+      }
+    }
+  }
 }
 
 

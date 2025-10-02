@@ -10,5 +10,7 @@ router.post('/neckangle/sendPushNotificationMessageForAverageNeckAngle', NeckAng
 router.post('/neckangle/resetNotificationCount/:userId', NeckAngleController.resetNotificationCount);
 router.get('/neckangle/getUsersForTesting', NeckAngleController.getUsersForTesting);
 router.get('/neckangle/getCurrentDayAverageNeckAngleTextReport', NeckAngleController.getCurrentDayAverageNeckAngleTextReport);
+router.get('/neckangle/records/:userId', NeckAngleController.getAppUserNeckAngleRecordsById);
+router.get('/neckangle/records/:userId/date-range', NeckAngleController.getAppUserNeckAngleRecordsForaDateRangebyId);
 
 export default router;
