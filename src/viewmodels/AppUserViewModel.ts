@@ -1,7 +1,7 @@
 import { neckAngleRecordViewModel } from './neckAngleRecord.viewmodels.js';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel.js';
 
-export interface appUserViewModel {
+export interface AppUserViewModel {
   id: number;
   username: string;
   email: string;
@@ -23,4 +23,5 @@ export interface appUserViewModel {
   mobileChannel: MOBILE_CHANNEL;
   notificationCount?: number;
   notificationResponse?: number;
+  deleted: boolean;
 }

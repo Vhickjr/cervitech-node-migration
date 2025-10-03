@@ -4,7 +4,9 @@ import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePos
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
-import { NeckAngleModel } from '../models/neckAngle';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { NeckAngleModel } from '../models/NeckAngle';
+import { JobScheduler } from '../services/JobScheduler';
 
 export class NeckAngleController {
   static async postBatchNeckAngleRecords(req: Request, res: Response): Promise<void> {
@@ -15,7 +17,7 @@ export class NeckAngleController {
 
     if (
       !model ||
-      typeof model.appUserId !== 'number' ||
+      typeof model.appUserId !== 'string' ||
       !Array.isArray(model.neckAngleRecords) ||
       model.neckAngleRecords.length === 0
     ) {
@@ -84,27 +86,28 @@ export class NeckAngleController {
     }
   }
 
-  static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
+  // static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
+  //   const responses = getApiResponseMessages();
 
-    try {
-      const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle();
-      res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
-        data,
-      });
-    } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error('Custom error');
-      logger.error(err.message);
+  //   try {
+  //     // Circle back to this later
+  //     const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
+  //     res.status(200).json({
+  //       statusCode: responses[ApiResponseStatus.Successful],
+  //       message: ApiResponseStatus.Successful,
+  //       data,
+  //     });
+  //   } catch (error: unknown) {
+  //     const err = error instanceof Error ? error : new Error('Custom error');
+  //     logger.error(err.message);
 
-      res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
-        message: err.message,
-        data: null,
-      });
-    }
-  }
+  //     res.status(500).json({
+  //       statusCode: responses[ApiResponseStatus.Failed],
+  //       message: err.message,
+  //       data: null,
+  //     });
+  //   }
+  // }
 
   static async resetNotificationCount(req: Request, res: Response): Promise<void> {
     const responses = getApiResponseMessages();
@@ -120,7 +123,6 @@ export class NeckAngleController {
     }
 
     try {
-      const { JobScheduler } = await import('../services/JobScheduler');
       await JobScheduler.resetNotificationCount(userId);
       res.status(200).json({
         statusCode: responses[ApiResponseStatus.Successful],
@@ -177,7 +179,7 @@ export class NeckAngleController {
     }
 
     try {
-      const { Utils } = await import('../helpers/utils');
+      const { Utils } = await import('../utils/utils');
       const report = Utils.currentDayAverageNeckAngleTextReport(Number(neckAngle));
       
       res.status(200).json({
@@ -200,135 +202,19 @@ export class NeckAngleController {
     }
   }
 
-  static async getAppUserNeckAngleRecordsById(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
-    const { userId } = req.params;
 
-    // Check for missing userId (empty or undefined)
-    if (!userId || userId.trim() === '') {
-      res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: 'User ID is required',
-        data: null,
-      });
-      return;
-    }
-
+  static async getUserNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
     try {
-      const data = await NeckAngleService.getAppUserNeckAngleRecordsByIdAsync(userId);
-      
-      res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: 'Neck angle records retrieved successfully',
-        data: data,
-      });
-    } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error('Custom error');
-      logger.error(err.message);
+      const userId = req.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-      // Handle different types of errors with appropriate status codes
-      if (err.message === "User not found.") {
-        res.status(404).json({
-          statusCode: 404,
-          message: 'User not found',
-          data: null,
-        });
-      } else if (err.message === "You have no records of neck angle posture.") {
-        res.status(404).json({
-          statusCode: 404,
-          message: 'You have no records of neck angle posture',
-          data: null,
-        });
-      } else {
-        res.status(500).json({
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: err.message,
-          data: null,
-        });
-      }
-    }
-  }
-
-  static async getAppUserNeckAngleRecordsForaDateRangebyId(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
-    const { userId } = req.params;
-    const { startDate, endDate } = req.query;
-
-    // Check for missing userId (empty or undefined)
-    if (!userId || userId.trim() === '') {
-      res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: 'User ID is required',
-        data: null,
-      });
-      return;
-    }
-
-    if (!startDate || !endDate) {
-      res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: 'Start date and end date are required',
-        data: null,
-      });
-      return;
-    }
-
-    try {
-      const start = new Date(startDate as string);
-      const end = new Date(endDate as string);
-
-      // Validate dates
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        res.status(400).json({
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: 'Invalid date format. Please use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
-          data: null,
-        });
-        return;                   
-      }
-
-      if (start > end) {
-        res.status(400).json({
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: 'Start date must be before or equal to end date',
-          data: null,
-        });
-        return;
-      }
-
-      const data = await NeckAngleService.getAppUserNeckAngleRecordsForaDateRangebyIdAsync(userId, start, end);
-      
-      res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: 'Neck angle records for date range retrieved successfully',
-        data: data,
-      });
-    } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error('Custom error');
-      logger.error(err.message);
-
-      // Handle different types of errors with appropriate status codes
-      if (err.message === "User not found.") {
-        res.status(404).json({
-          statusCode: 404,
-          message: 'User not found',
-          data: null,
-        });
-      } else if (err.message === "No records exist for the selected period.") {
-        res.status(404).json({
-          statusCode: 404,
-          message: 'No records exist for the selected period',
-          data: null,
-        });
-      } else {
-        res.status(500).json({
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: err.message,
-          data: null,
-        });
-      }
+      const data = await NeckAngleService.computeNeckAngleParameters(userId);
+      return res.status(200).json({ message: 'Successful', data });
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
     }
   }
 }
+
 
 

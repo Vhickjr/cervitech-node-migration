@@ -1,13 +1,11 @@
 // src/helpers/MailSender.ts
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { ILogger } from './MailService';
 
 dotenv.config();
 
-interface ILogger {
-  logError(message: string): void;
-  logInfo?(message: string): void;
-}
+
 
 export class MailSender {
   private cerviTechEmail: string;
@@ -43,11 +41,11 @@ export class MailSender {
 
       await transporter.sendMail(mailOptions);
 
-      this.logger.logError('Email sent successfully');
+      this.logger.error('Email sent successfully');
       return 'The mail has been sent successfully !!';
     } catch (error: any) {
-      this.logger.logError('Error in sending mail');
-      this.logger.logError(error.message);
+      this.logger.error('Error in sending mail');
+      this.logger.error(error.message);
       return 'sorry cannot send mail';
     }
   }

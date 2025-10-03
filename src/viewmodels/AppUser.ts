@@ -36,8 +36,10 @@ export interface IAppUser extends Document {
   mobileChannel: MobileChannel;
   notificationCount?: number;
   notificationResponse?: number;
+  deleted: boolean;
 }
 
+console.log('Allowed mobileChannel values:', Object.values(MobileChannel));
 const AppUserSchema: Schema = new Schema({
   username: { type: String, required: true },
   email: { type: String, required: true },
@@ -58,8 +60,10 @@ const AppUserSchema: Schema = new Schema({
   neckAngleRecords: { type: [Object], default: [] }, // Ideally replace 'Object' with a proper sub-schema
   mobileChannel: { type: String, enum: Object.values(MobileChannel), default: MobileChannel.WEB },
   notificationCount: { type: Number },
-  notificationResponse: { type: Number }
+  notificationResponse: { type: Number },
+  deleted: { type: Boolean, default: false },
 }, { timestamps: true });
+  
 
 export default mongoose.models.AppUser || mongoose.model<IAppUser>("AppUser", AppUserSchema);
 

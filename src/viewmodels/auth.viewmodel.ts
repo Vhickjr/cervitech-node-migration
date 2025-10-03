@@ -1,9 +1,13 @@
 // src/viewmodels/auth.viewmodel.ts
 export interface SignupRequest {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
+  lastName: string;
+  firstName: string;
+  username: string;
+  mobileChannel: number;
+  fcmToken?: string;        
+  pictureUrl?: string;
 }
 
 export interface SignupResponse {

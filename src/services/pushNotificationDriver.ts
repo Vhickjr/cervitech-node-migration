@@ -1,15 +1,15 @@
 import axios from 'axios';
 import { ApplicationConstant } from '../utils/applicationConstants';
-import { PushNotificationModelDTO } from '../dtos/PushNotificationModelDTO';
-import { FCMPushNotificationDTO } from '../dtos/FCMPushNotificationDTO';
+import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
+import { FCMPushNotificationDTO } from '../types/FCMPushNotification.types';
 import AppUser from '../models/AppUser';
 import { logger } from '../utils/logger';
 
 export class PushNotificationDriver {
-  private static FCMApiUrl: string = ApplicationConstant.ENV_FCM_API_URL;
-  private static FCMServerKey: string = ApplicationConstant.ENV_FCM_SERVER_KEY;
+  static readonly FCMApiUrl: string = process.env.FCM_API_URL || 'https://fcm.googleapis.com';
+  static readonly FCMServerKey: string = process.env.FCM_SERVER_KEY || '';
 
-  public static async sendPushNotification(model: PushNotificationModelDTO): Promise<boolean> {
+  static async sendPushNotification(model: PushNotificationModelDTO): Promise<boolean> {
     try {
       // Check if user allows push notifications using Mongoose
       const user = await AppUser.findOne({ fcmToken: model.to });
@@ -36,10 +36,10 @@ export class PushNotificationDriver {
         },
       };
 
-      const response = await axios.post(`${this.FCMApiUrl}/fcm/send`, pushNotificationDTO, {
+      const response = await axios.post(`${PushNotificationDriver.FCMApiUrl}/fcm/send`, pushNotificationDTO, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `key=${this.FCMServerKey}`,
+          'Authorization': `key=${PushNotificationDriver.FCMServerKey}`,
           'Sender': `id=${senderId}`,
         },
       });
