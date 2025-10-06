@@ -35,6 +35,7 @@ export class AppUserService {
       }
 
       const user = await AppUser.findById(userId);
+      console.log("Fetched user:", user);
       if (!user) {
         throw new Error("This user cannot be retrieved at the moment. Please contact support.");
       }

@@ -6,7 +6,7 @@ import { getCraniumVertebralAngleFromNeckAngle } from '../../utils/computations'
 import  AppUser  from '../../models/AppUser';
 import { CustomException } from '../../utils/customException';
 import { logger } from '../../utils/logger';
-import { DateLibrary } from "../../helpers/dateLibrary";
+import { DateLibrary } from "../../utils/dateLibrary";
 import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecord.viewmodel";
 import { WeeklyAngleDataViewModel } from "../../viewmodels/WeeklyAngleDataViewModel";
 import { INeckAngleRecord } from '../../models/NeckAngleRecord';
@@ -155,6 +155,40 @@ export class NeckAngleService {
       );
       throw new CustomException("Error calculating weekly averages.");
     }
+}
+
+static getEachDayOfTheWeekAverageNeckAngle(
+  aWeekAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
+): DailyAngleDataViewModel[] {
+  try {
+    // Sunday = 0, Monday = 1, etc.
+    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // keep totals and counts
+    const totals: { [key: number]: number } = {};
+    const counts: { [key: number]: number } = {};
+
+    for (const record of aWeekAngleRecords) {
+      const dayNum = record.dateTimeRecorded.getDay(); // 0-6
+      totals[dayNum] = (totals[dayNum] || 0) + record.angle;
+      counts[dayNum] = (counts[dayNum] || 0) + 1;
+    }
+
+    const averages: DailyAngleDataViewModel[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      averages.push({
+        day: daysMap[i],
+        averageNeckAngle:
+          counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
+      });
+    }
+
+    return averages;
+  } catch (error: any) {
+    logger.error("Error in getEachDayOfTheWeekAverageNeckAngle:", error.message);
+    throw new CustomException("Error calculating daily averages.");
+  }
 }
 
 
@@ -460,8 +494,8 @@ export class NeckAngleService {
       const currentWeekAverageNeckAngle = safeAvg(thisWeek);
       const currentMonthAverageNeckAngle = safeAvg(thisMonth);
   
-      const averageNeckAngleForEachDayOfTheCurrentWeek = DateLibrary.getEachDayOfWeekAverage(thisWeek);
-      const withPositive = averageNeckAngleForEachDayOfTheCurrentWeek.filter((d: DailyAngleDataViewModel) => d.averageNeckAngle > 0);
+      const averageNeckAngleForEachDayOfTheCurrentWeek = this.getEachDayOfTheWeekAverageNeckAngle(thisWeek);
+      const withPositive = (await averageNeckAngleForEachDayOfTheCurrentWeek).filter((d: DailyAngleDataViewModel) => d.averageNeckAngle > 0);
   
       let bestDay: DailyAngleDataViewModel | null = null;
       let badDay: DailyAngleDataViewModel | null = null;
