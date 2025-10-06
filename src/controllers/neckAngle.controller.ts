@@ -214,6 +214,84 @@ export class NeckAngleController {
       return res.status(400).json({ error: err.message });
     }
   }
+
+  static async getAppUserNeckAngleRecordsById(req: Request, res: Response): Promise<void> {
+    const responses = getApiResponseMessages();
+    const { userId } = req.params;
+
+    if (!userId) {
+      res.status(400).json({
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: 'User ID is required',
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      const data = await NeckAngleService.getAppUserNeckAngleRecordsByIdAsync(userId);
+      res.status(200).json({
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: ApiResponseStatus.Successful,
+        data,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
+
+      res.status(500).json({
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: err.message,
+        data: null,
+      });
+    }
+  }
+
+  static async getAppUserNeckAngleRecordsForaDateRangebyId(req: Request, res: Response): Promise<void> {
+    const responses = getApiResponseMessages();
+    const { userId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    if (!userId) {
+      res.status(400).json({
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: 'User ID is required',
+        data: null,
+      });
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      res.status(400).json({
+        statusCode: responses[ApiResponseStatus.BadRequest],
+        message: 'Start date and end date are required',
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      const data = await NeckAngleService.getAppUserNeckAngleRecordsForaDateRangebyIdAsync(
+        userId,
+        new Date(startDate as string),
+        new Date(endDate as string)
+      );
+      res.status(200).json({
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: ApiResponseStatus.Successful,
+        data,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
+
+      res.status(500).json({
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: err.message,
+        data: null,
+      });
+    }
+  }
 }
 
 
