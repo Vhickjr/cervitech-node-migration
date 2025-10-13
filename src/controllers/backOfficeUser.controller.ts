@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import "express-session";
 import backofficeUserService from "../services/backofficeuser.service";
-import { getApiResponseMessages, ApiResponseStatus, DataResult } from "../utils/apiResponse";
-
 
 declare module "express-session" {
   interface SessionData {
@@ -10,23 +8,21 @@ declare module "express-session" {
   }
 }
 
-const responses = getApiResponseMessages();
-
 class BackOfficeUserController {
   static async createUser(req: Request, res: Response) {
     try {
       const data = await backofficeUserService.create(req.body);
-      const result: DataResult = {
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
-      };
-      res.json(result);
+      res.status(201).json({
+        success: true,
+        message: "User created successfully.",
+        data,
+      });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Create User Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create user.",
+        error: err.message,
       });
     }
   }
@@ -34,20 +30,27 @@ class BackOfficeUserController {
   static async loginController(req: Request, res: Response) {
     try {
       const { username, password } = req.body;
-      const user = await backofficeUserService.loginService(username, password);
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Username and password are required.",
+        });
+      }
 
+      const user = await backofficeUserService.loginService(username, password);
       req.session.userName = user.username;
 
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: "Login successful",
-        Data: { username: user.username },
+      res.status(200).json({
+        success: true,
+        message: "Login successful.",
+        data: user,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Login Error:", err.message);
+      res.status(401).json({
+        success: false,
+        message: "Invalid username or password.",
+        error: err.message,
       });
     }
   }
@@ -56,23 +59,31 @@ class BackOfficeUserController {
     try {
       const username = req.session?.userName;
       if (!username) {
-        return res.json({
-          StatusCode: responses[ApiResponseStatus.Failed],
-          Message: "Session username not found.",
-          Data: "",
+        return res.status(401).json({
+          success: false,
+          message: "User not logged in or session expired.",
         });
       }
+
       const data = await backofficeUserService.getByUserName(username);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+      if (!data) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found.",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "User retrieved successfully.",
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Get By Session Username Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve user.",
+        error: err.message,
       });
     }
   }
@@ -80,17 +91,25 @@ class BackOfficeUserController {
   static async forgotPassword(req: Request, res: Response) {
     try {
       const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required.",
+        });
+      }
+
       const data = await backofficeUserService.sendPasswordResetToken(email);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+      res.status(200).json({
+        success: true,
+        message: "Password reset token sent.",
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Forgot Password Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to send password reset token.",
+        error: err.message,
       });
     }
   }
@@ -98,17 +117,25 @@ class BackOfficeUserController {
   static async changePassword(req: Request, res: Response) {
     try {
       const { userId, newPassword } = req.body;
+      if (!userId || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID and new password are required.",
+        });
+      }
+
       const data = await backofficeUserService.changePassword(userId, newPassword);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+      res.status(200).json({
+        success: true,
+        message: "Password changed successfully.",
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Change Password Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to change password.",
+        error: err.message,
       });
     }
   }
@@ -116,17 +143,25 @@ class BackOfficeUserController {
   static async resetPassword(req: Request, res: Response) {
     try {
       const { token, newPassword } = req.body;
+      if (!token || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Token and new password are required.",
+        });
+      }
+
       const data = await backofficeUserService.resetPassword(token, newPassword);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+      res.status(200).json({
+        success: true,
+        message: "Password reset successful.",
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Reset Password Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to reset password.",
+        error: err.message,
       });
     }
   }
@@ -134,16 +169,17 @@ class BackOfficeUserController {
   static async getAllUsers(_req: Request, res: Response) {
     try {
       const data = await backofficeUserService.getAll();
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+      res.status(200).json({
+        success: true,
+        message: "Users retrieved successfully.",
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Get All Users Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve users.",
+        error: err.message,
       });
     }
   }
@@ -152,16 +188,18 @@ class BackOfficeUserController {
     try {
       const { number } = req.params;
       const data = await backofficeUserService.getNumberOfBackOfficeUsers(Number(number));
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+
+      res.status(200).json({
+        success: true,
+        message: `Retrieved ${number} back office users successfully.`,
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Get Number of BackOffice Users Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve users.",
+        error: err.message,
       });
     }
   }
@@ -170,16 +208,25 @@ class BackOfficeUserController {
     try {
       const { id } = req.params;
       const data = await backofficeUserService.deleteById(id);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+
+      if (!data) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found.",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully.",
+        data,
       });
     } catch (err: any) {
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: "",
+      console.error("Delete User Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete user.",
+        error: err.message,
       });
     }
   }
@@ -188,33 +235,33 @@ class BackOfficeUserController {
     try {
       const id = req.params.id || req.body.id;
       const updateData = req.params.id ? req.body : { ...req.body, id: undefined };
-      
-      console.log('Update User Request:', { id, updateData });
-      console.log('Request body:', req.body);
-      console.log('Request params:', req.params);
-      
+
       if (!id) {
-        return res.json({
-          StatusCode: responses[ApiResponseStatus.BadRequest],
-          Message: "User ID is required",
-          Data: null,
+        return res.status(400).json({
+          success: false,
+          message: "User ID is required for update.",
         });
       }
 
       const data = await backofficeUserService.update(id, updateData);
-      console.log('Update User Result:', data);
-      
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: data,
+      if (!data) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found.",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "User updated successfully.",
+        data,
       });
     } catch (err: any) {
-      console.error('Update User Error:', err);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: null,
+      console.error("Update User Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update user.",
+        error: err.message,
       });
     }
   }
@@ -222,22 +269,26 @@ class BackOfficeUserController {
   static async testUserById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      console.log('Testing user with ID:', id);
-      
       const user = await backofficeUserService.getById(id);
-      console.log('Found user:', user);
-      
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Successful],
-        Message: ApiResponseStatus.Successful,
-        Data: user,
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found.",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "User retrieved successfully.",
+        data: user,
       });
     } catch (err: any) {
-      console.error('Test User Error:', err);
-      res.json({
-        StatusCode: responses[ApiResponseStatus.Failed],
-        Message: err.message,
-        Data: null,
+      console.error("Test User Error:", err.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve user.",
+        error: err.message,
       });
     }
   }

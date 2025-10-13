@@ -5,221 +5,219 @@ import { GetUserDataService } from "../services/appUserServices/getUserData";
 import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
 import { getApiResponseMessages, ApiResponseStatus } from "../utils/apiResponse";
 import { DataResult } from "../utils/dataResult";
-import { UpdateUserRequest } from "../types/user.types";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../utils/customException";
 import { logger } from "../utils/logger";
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
     const updateViewModel: PictureUrlUpdateViewModel = req.body;
-
-    console.log("UpdatePictureUrl input:", updateViewModel);
-
-    let dataResult: DataResult;
 
     try {
       if (!updateViewModel.userId || !updateViewModel.pictureUrl) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null
-        };
-        res.status(dataResult.statusCode).json(dataResult);
-        return
+        res.status(400).json({
+          success: false,
+          message: "User ID and Picture URL are required.",
+        });
+        return;
       }
 
-      try {
-        const result = await AppUserService.updatePictureUrlAsync(updateViewModel);
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Successful],
-          message: ApiResponseStatus.Successful,
-          data: result
-        };
-      } catch (customError: any) {
-        console.error("CustomException:", customError.message);
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: customError.message,
-          data: null
-        };
+      const result = await AppUserService.updatePictureUrlAsync(updateViewModel);
+      if (!result) {
+        res.status(404).json({
+          success: false,
+          message: "User not found or picture could not be updated.",
+        });
+        return;
       }
+
+      res.status(200).json({
+        success: true,
+        message: "Profile picture updated successfully.",
+      });
     } catch (error: any) {
-      console.error("Exception:", error.message);
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.UnknownError],
-        message: ApiResponseStatus.UnknownError,
-        exceptionErrorMessage: error.message,
-        data: null
-      };
+      logger.error("UpdatePictureUrl Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error.",
+      });
     }
-
-    res.status(dataResult.statusCode).json(dataResult);
-    return;
   }
 
   static async updateSubscription(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
-    // const id = parseInt(req.params.id);
     const id = req.params.id;
 
-    console.log("UpdateSubscription input ID:", id);
-
-    let dataResult: DataResult;
-
     try {
-      try {
-        const result = await AppUserService.updateSubscriptionAsync(id);
+      const result = await AppUserService.updateSubscriptionAsync(id);
 
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Successful],
-          message: ApiResponseStatus.Successful,
-          data: result
-        };
-      } catch (customError: any) {
-        console.error("CustomException:", customError.message);
-
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: customError.message,
-          data: null
-        };
-      }
+      res.status(200).json({
+        success: true,
+        message: "Subscription updated successfully.",
+      });
     } catch (error: any) {
-      console.error("Unhandled Exception:", error.message);
-
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.UnknownError],
-        message: ApiResponseStatus.UnknownError,
-        exceptionErrorMessage: error.message,
-        data: null
-      };
+      logger.error("UpdateSubscription Error:", error.message);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to update subscription.",
+      });
     }
-
-    res.status(dataResult.statusCode).json(dataResult);
-    return
   }
 
   static async deleteById(req: Request, res: Response): Promise<void> {
-  const id = req.params.id;
-  console.log("DeleteAccount by ID:", id);
+    const id = req.params.id;
 
-  try {
-    const result = await AppUserService.deleteByIdAsync(id);
-    res.status(200).json({ success: true, data: result });
-  } catch (error: any) {
-    console.error("DeleteById Error:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
+    try {
+      const result = await AppUserService.deleteByIdAsync(id);
+      if (!result) {
+        res.status(404).json({
+          success: false,
+          message: "User not found.",
+        });
+        return;
+      }
 
-static async deleteMyAccount(req: Request, res: Response): Promise<void> {
-  const email = req.query.email as string;
-  console.log("DeleteMyAccount input:", email);
-
-  try {
-    const result = await AppUserService.deleteAccountRequest(email);
-    res.status(200).json({ success: true, data: result });
-  } catch (error: any) {
-    console.error("DeleteMyAccount Error:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
-
-static async confirmDeleteMyAccount(req: Request, res: Response): Promise<void> {
-  const email = req.query.email as string;
-  const token = req.query.token as string;
-  console.log("ConfirmDeleteMyAccount input:", { email, token });
-
-  try {
-    const result = await AppUserService.deleteByEmailAsync(email);
-    // res.redirect(`/home/deletemyaccount?success=${result}`);
-  } catch (error: any) {
-    console.error("ConfirmDeleteMyAccount Error:", error.message);
-    // res.redirect(`/home/deletemyaccount?success=false`);
-  }
-}
-
-static async deleteAll(req: Request, res: Response): Promise<void> {
-  console.log("DeleteAll Accounts triggered");
-
-  try {
-    const result = await AppUserService.deleteAllAsync();
-    res.status(200).json({ success: true, data: result });
-  } catch (error: any) {
-    console.error("DeleteAll Error:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
-
-static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
-  const id = req.params.id;
-  console.log("ToggleAllowPushNotifications input ID:", id);
-
-  if (!id) {
-    res.status(400).json({ success: false, error: "Bad Request: Missing ID" });
-    return;
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully.",
+      });
+    } catch (error: any) {
+      logger.error("DeleteById Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete user.",
+      });
+    }
   }
 
-  try {
-    const result = await AppUserService.toggleAllowPushNotificationsAsync(id);
-    res.status(200).json({ success: true, data: result });
-  } catch (error: any) {
-    console.error("ToggleAllowPushNotifications Error:", error.message);
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
+  static async deleteMyAccount(req: Request, res: Response): Promise<void> {
+    const email = req.query.email as string;
 
+    try {
+      if (!email) {
+        res.status(400).json({
+          success: false,
+          message: "Email is required.",
+        });
+        return;
+      }
+
+      const result = await AppUserService.deleteAccountRequest(email);
+      if (!result) {
+        res.status(404).json({
+          success: false,
+          message: "Account not found.",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Account deletion request submitted successfully.",
+      });
+    } catch (error: any) {
+      logger.error("DeleteMyAccount Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error.",
+      });
+    }
+  }
+
+  static async confirmDeleteMyAccount(req: Request, res: Response): Promise<void> {
+    const email = req.query.email as string;
+    const token = req.query.token as string;
+
+    try {
+      const result = await AppUserService.deleteByEmailAsync(email);
+      if (result) {
+        res.status(200).json({
+          success: true,
+          message: "Account deleted successfully.",
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Invalid token or account not found.",
+        });
+      }
+    } catch (error: any) {
+      logger.error("ConfirmDeleteMyAccount Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to confirm account deletion.",
+      });
+    }
+  }
+
+  static async deleteAll(req: Request, res: Response): Promise<void> {
+    try {
+      await AppUserService.deleteAllAsync();
+      res.status(200).json({
+        success: true,
+        message: "All accounts deleted successfully.",
+      });
+    } catch (error: any) {
+      logger.error("DeleteAll Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete all accounts.",
+      });
+    }
+  }
+
+  static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
+    const id = req.params.id;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        message: "User ID is required.",
+      });
+      return;
+    }
+
+    try {
+      await AppUserService.toggleAllowPushNotificationsAsync(id);
+      res.status(200).json({
+        success: true,
+        message: "Push notification preference updated successfully.",
+      });
+    } catch (error: any) {
+      logger.error("ToggleAllowPushNotifications Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to toggle push notifications.",
+      });
+    }
+  }
 
   static async getResponseRate(req: Request, res: Response) {
-    const responses = getApiResponseMessages();
-
     const id = req.query.id as string;
     const dateStr = req.query.date as string;
 
-    let dataResult: DataResult;
-
     try {
-      // Validate input
       if (!id || !dateStr || isNaN(Date.parse(dateStr))) {
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.BadRequest],
-          message: ApiResponseStatus.BadRequest,
-          data: null
-        };
-        return res.status(dataResult.statusCode).json(dataResult);
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or missing user ID/date.",
+        });
       }
 
-      try {
-        const date = new Date(dateStr);
-        const result = await AppUserService.getResponseRateAsync(id, date);
+      const date = new Date(dateStr);
+      const result = await AppUserService.getResponseRateAsync(id, date);
 
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Successful],
-          message: ApiResponseStatus.Successful,
-          data: result
-        };
-      } catch (customError: any) {
-        console.error("CustomException:", customError.message);
-        dataResult = {
-          statusCode: responses[ApiResponseStatus.Failed],
-          message: customError.message,
-          data: null
-        };
-      }
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
     } catch (error: any) {
-      console.error("Unhandled Exception:", error.message);
-      dataResult = {
-        statusCode: responses[ApiResponseStatus.UnknownError],
-        message: ApiResponseStatus.UnknownError,
-        exceptionErrorMessage: error.message,
-        data: null
-      };
-    } 
-
-    return res.status(dataResult.statusCode).json(dataResult);
-  };
+      logger.error("GetResponseRate Error:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch response rate.",
+      });
+    }
+  }
 
   static async updateUser(req: AuthenticatedRequest, res: Response) {
     try {
@@ -228,28 +226,49 @@ static async toggleAllowPushNotifications(req: Request, res: Response): Promise<
 
       const updatedUser = await AppUserService.updateUser(userId!, updateRequest);
 
-      res.status(200).json(updatedUser);
+      res.status(200).json({
+        success: true,
+        message: "User profile updated successfully.",
+        data: updatedUser,
+      });
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      logger.error("UpdateUser Error:", err.message);
+      res.status(400).json({
+        success: false,
+        message: err.message || "Failed to update user.",
+      });
     }
-  };
+  }
 
   static async getByEmail(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body;
 
-      if (!email || typeof email !== 'string') {
-        res.status(400).json({ message: 'Email is required and must be a string.' });
+      if (!email || typeof email !== "string") {
+        res.status(400).json({
+          success: false,
+          message: "Email is required and must be a string.",
+        });
         return;
       }
 
       const user = await GetUserDataService.getByEmail(email);
-      res.status(200).json(user);
+      res.status(200).json({
+        success: true,
+        data: user,
+      });
     } catch (error: any) {
+      logger.error("GetByEmail Error:", error.message);
       if (error instanceof CustomException) {
-        res.status(404).json({ message: error.message });
+        res.status(404).json({
+          success: false,
+          message: error.message,
+        });
       } else {
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({
+          success: false,
+          message: "Internal server error.",
+        });
       }
     }
   }
@@ -258,19 +277,30 @@ static async toggleAllowPushNotifications(req: Request, res: Response): Promise<
     try {
       const { id } = req.body;
 
-      if (typeof id !== 'string' || id.trim() === '') {
-        res.status(400).json({ message: 'A valid user ID is required.' });
+      if (!id || typeof id !== "string") {
+        res.status(400).json({
+          success: false,
+          message: "A valid user ID is required.",
+        });
         return;
       }
 
       const allowPush = await GetUserDataService.getAllowPushNotificationStatus(id);
-      res.status(200).json({ allowPushNotifications: allowPush });
+      res.status(200).json({
+        success: true,
+        data: { allowPushNotifications: allowPush },
+      });
     } catch (error: any) {
-      if (error instanceof CustomException) {
-        res.status(404).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: 'Internal server error' });
-      }
+      logger.error("GetAllowPushNotificationStatus Error:", error.message);
+      res.status(
+        error instanceof CustomException ? 404 : 500
+      ).json({
+        success: false,
+        message:
+          error instanceof CustomException
+            ? error.message
+            : "Internal server error.",
+      });
     }
   }
 
@@ -278,47 +308,64 @@ static async toggleAllowPushNotifications(req: Request, res: Response): Promise<
     try {
       const { username } = req.body;
 
-      if (!username || typeof username !== 'string') {
-        res.status(400).json({ message: 'Username is required and must be a string.' });
+      if (!username || typeof username !== "string") {
+          res.status(400).json({
+          success: false,
+          message: "Username is required and must be a string.",
+        });
         return;
       }
 
       const service = new GetUserDataService();
       const token = await service.getFCMTokenByUsername(username);
 
-      res.status(200).json({ fcmToken: token });
+      res.status(200).json({
+        success: true,
+        data: { fcmToken: token },
+      });
     } catch (error: any) {
-      if (error instanceof CustomException) {
-        res.status(404).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: 'Internal server error' });
-      }
+      logger.error("GetFCMTokenByUsername Error:", error.message);
+      res.status(
+        error instanceof CustomException ? 404 : 500
+      ).json({
+        success: false,
+        message:
+          error instanceof CustomException
+            ? error.message
+            : "Internal server error.",
+      });
     }
   }
 
   static async updateFCMToken(req: Request, res: Response): Promise<void> {
-  try {
-    const { fcmToken, _id } = req.body;
+    try {
+      const { fcmToken, _id } = req.body;
 
-    if (
-      !fcmToken ||
-      typeof fcmToken !== 'string' ||
-      typeof _id !== 'string'
-    ) {
-      res.status(400).json({
-        message: 'Invalid request. Please provide a valid fcmToken (string) and userId (string).'
-      });
-      return;
-    }
-
-      const result = await FCMTokenService.updateFCMToken({ fcmToken, _id });
-      res.status(200).json(result);
-    } catch (error: any) {
-      if (error instanceof CustomException) {
-        res.status(400).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: 'Internal server error' });
+      if (!fcmToken || !_id || typeof fcmToken !== "string" || typeof _id !== "string") {
+          res.status(400).json({
+          success: false,
+          message: "Invalid request. Provide valid fcmToken and user ID.",
+        });
+        return;
       }
+
+      await FCMTokenService.updateFCMToken({ fcmToken, _id });
+
+      res.status(200).json({
+        success: true,
+        message: "FCM token updated successfully.",
+      });
+    } catch (error: any) {
+      logger.error("UpdateFCMToken Error:", error.message);
+      res.status(
+        error instanceof CustomException ? 400 : 500
+      ).json({
+        success: false,
+        message:
+          error instanceof CustomException
+            ? error.message
+            : "Internal server error.",
+      });
     }
   }
 }
