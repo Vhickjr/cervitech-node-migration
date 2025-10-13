@@ -8,6 +8,8 @@ export interface IBackofficeUser extends IUser {
   readOnly: boolean;
   resetToken?: string;
   resetTokenExpires?: Date;
+  hash:string;
+  salt: string;
 }
 
 const BackofficeUserSchema: Schema = new Schema<IBackofficeUser>({
@@ -18,6 +20,8 @@ const BackofficeUserSchema: Schema = new Schema<IBackofficeUser>({
   readOnly: { type: Boolean, default: false },
   resetToken: { type: String },
   resetTokenExpires: { type: Date },
+  hash: { type: String, required: true },   
+  salt: { type: String, required: true } 
 });
 
 const BackofficeUser =
