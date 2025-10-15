@@ -217,17 +217,32 @@ export class NeckAngleService {
 
   static async sendPushNotificationMessageForAverageNeckAngle(
     notificationPayload: SendAverageNeckAnglePushNotificationViewModel
-  ): Promise<boolean> {
+  ): Promise<{ attempted: number; sent: number; failed: { userId: string; reason: string }[] }> {
     const appUsers = await AppUser.find();
 
+    const failed: { userId: string; reason: string }[] = [];
+    let attempted = 0;
+    let sentCount = 0;
+
     for (const appUser of appUsers) {
-      if (!appUser.fcmToken) continue;
+      attempted++;
+
+      if (!appUser.fcmToken) {
+        failed.push({ userId: appUser._id.toString(), reason: 'missing fcmToken' });
+        continue;
+      }
+
+      if (appUser.allowPushNotifications === false) {
+        failed.push({ userId: appUser._id.toString(), reason: 'push disabled by user' });
+        continue;
+      }
 
       let averageNeckAngle: number;
       try {
         averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(appUser._id.toString());
       } catch (error: any) {
         logger.info(error.message);
+        failed.push({ userId: appUser._id.toString(), reason: error.message || 'avg calc failed' });
         continue;
       }
 
@@ -245,24 +260,31 @@ export class NeckAngleService {
         body,
       };
 
-      const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
-      if (sent) {
-        appUser.notificationCount++;
+      try {
+        const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
+        if (sent) {
+          sentCount++;
+          appUser.notificationCount++;
 
-        const responseRate = new ResponseRate({
-          appUserId: appUser._id,
-          dateCreated: new Date(),
-          prompt: 1,
-          response: 0,
-        });
+          const responseRate = new ResponseRate({
+            appUserId: appUser._id,
+            dateCreated: new Date(),
+            prompt: 1,
+            response: 0,
+          });
 
-        await responseRate.save();
+          await responseRate.save();
+        } else {
+          failed.push({ userId: appUser._id.toString(), reason: 'driver returned false' });
+        }
+      } catch (err: any) {
+        failed.push({ userId: appUser._id.toString(), reason: err?.message || 'send failed' });
       }
 
       await appUser.save();
     }
 
-    return true;
+    return { attempted, sent: sentCount, failed };
   }
 
   static async postRandomBatchNeckAngleRecordForTestAsync(

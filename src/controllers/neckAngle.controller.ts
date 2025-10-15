@@ -86,28 +86,30 @@ export class NeckAngleController {
     }
   }
 
-  // static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
-  //   const responses = getApiResponseMessages();
+  
+  static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
+    const responses = getApiResponseMessages();
 
-  //   try {
-  //     // Circle back to this later
-  //     const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
-  //     res.status(200).json({
-  //       statusCode: responses[ApiResponseStatus.Successful],
-  //       message: ApiResponseStatus.Successful,
-  //       data,
-  //     });
-  //   } catch (error: unknown) {
-  //     const err = error instanceof Error ? error : new Error('Custom error');
-  //     logger.error(err.message);
+    try {
+      // Accept optional payload in body but the service recomputes per-user averages
+      const payload = req.body || {};
+      const summary = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(payload as any);
+      res.status(200).json({
+        statusCode: responses[ApiResponseStatus.Successful],
+        message: ApiResponseStatus.Successful,
+        data: summary,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
 
-  //     res.status(500).json({
-  //       statusCode: responses[ApiResponseStatus.Failed],
-  //       message: err.message,
-  //       data: null,
-  //     });
-  //   }
-  // }
+      res.status(500).json({
+        statusCode: responses[ApiResponseStatus.Failed],
+        message: err.message,
+        data: null,
+      });
+    }
+  }
 
   static async resetNotificationCount(req: Request, res: Response): Promise<void> {
     const responses = getApiResponseMessages();
