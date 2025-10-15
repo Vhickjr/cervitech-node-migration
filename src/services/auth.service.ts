@@ -1,24 +1,42 @@
 import { HashUtil } from '../utils/hash';
-import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
+import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse, SendPasswordTokenResponse } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
-import { LoginResponse, LoginRequest } from '../types/auth.types';
+import { LoginResponse, LoginRequest, LoginResponseResult, LogoutRequest, LogoutResponse } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
 import User from '../models/User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import TokenBlacklist from '../models/TokenBlacklist';
 import AppUser from '../models/AppUser';
 import { LoginViewModel, AppUserViewModel } from '../types/auth.types';
-import { CustomException } from '../utils/customException';
+//import { CustomException } from '../utils/customException';
 import { Goal } from '../models/Goal';
 import { logger } from '../utils/logger';
 import { DateLibrary } from '../utils/dateLibrary';
+import { AuthValidation } from '../validation/authValidation';
+
 
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
     console.log("Data", data);
+
+    const validationError:string|null = AuthValidation.signupValidation(data)
+    if(validationError){
+      return{
+        success: false,
+        message:validationError,
+      }
+    }
+
     const existing = await AppUser.findOne({ email: data.email });
-    if (existing) throw new Error('Email already in use');
+    //if (existing) throw new Error('Email already in use');
+    if(existing){
+      return{
+        success:false,
+        message: "Email already in Use",
+
+      }
+    }
 
     const hashedPassword = await HashUtil.hash(data.password);
 
@@ -49,18 +67,26 @@ export class AuthService {
     delete userObj.password;
 
     return {
+      success:true,
       message: 'Signup successful',
       data: userObj,
     };
   }
 
-  static async sendPasswordResetToken({ email }: passwordResetRequest) {
+  static async sendPasswordResetToken({ email }: passwordResetRequest): Promise<SendPasswordTokenResponse> {
     const user = await AppUser.findOne({ email });
-    if (!user) throw new Error('User not found');
+    //if (!user) throw new Error('User not found');
+    if(!user){
+      return{
+        success: false,
+        message : "User doesn't exist"
+      }
+    }
 
     const token = TokenUtil.generateResetToken(user._id.toString());
 
     return {
+      success: true,
       message: 'Password link generated',
       resetLink: `http://localhost:4000/api/auth/reset-password?token=${token}`
     };
@@ -70,36 +96,62 @@ export class AuthService {
     const { userId } = TokenUtil.verifyResetToken(token);
     const hashed = await HashUtil.hash(newPassword);
     await AppUser.findByIdAndUpdate(userId, { password: hashed });
-    return { message: 'Password reset successfully' };
+    return { 
+      success: true,
+      message: 'Password reset successfully' 
+    };
   }
 
-  static async authenticatev1(model: LoginRequest): Promise<LoginResponse> {
+  //The authenticate method being used
+  static async authenticatev1(model: LoginRequest): Promise<LoginResponseResult> {
     const { emailOrUsername, password, mobileChannel } = model;
     
     // Validate mobile channel using enum values
-    if (!Object.values(MOBILE_CHANNEL).includes(mobileChannel)) {
+    /* if (!Object.values(MOBILE_CHANNEL).includes(mobileChannel)) {
       throw new CustomException("Please make sure you pass a valid MobileChannel value for this user");
+    } */
+
+    const validationError:string|null = AuthValidation.loginValidation(model)
+    if(validationError){
+      return{
+        success: false,
+        message:validationError,
+      }
     }
 
-    if (!emailOrUsername) {
+    
+
+/*     if (!emailOrUsername) {
       throw new CustomException("Please provide an email or username");
-    }
+    } */
 
     const user = await AppUser.findOne({
       $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
     });
 
     if (!user) {
-      throw new CustomException("This account does not exist. Please check the email or username provided.");
+      /* throw new CustomException("This account does not exist. Please check the email or username provided."); */
+      return{
+        success:false,
+        message: "This account does not exist. Please check the email or username provided."
+      }
     }
 
     if (user.deleted) {
-      throw new CustomException("This account has been deleted. Please contact support if you believe this is an error.");
+      /* throw new CustomException("This account has been deleted. Please contact support if you believe this is an error."); */
+      return{
+        success:false,
+        message: "This account has been deleted. Please contact support if you believe this is an error."
+      }
     }
 
     const isValidPassword = await HashUtil.compare(password, user.password);
     if (!isValidPassword) {
-      throw new CustomException("An incorrect password provided. Please check password and try again.");
+      /* throw new CustomException("An incorrect password provided. Please check password and try again."); */
+      return{
+        success:false,
+        message: "An incorrect password provided. Please check password and try again."
+      }
     }
 
     user.lastLoginDateTime = new Date();
@@ -115,7 +167,10 @@ export class AuthService {
     }
 
     return {
-      id: user._id.toString(),
+      success:true,
+      message: "Authentication successful",
+      data:{
+         id: user._id.toString(),
       username: user.username,
       email: user.email,
       firstName: user.firstName,
@@ -134,34 +189,56 @@ export class AuthService {
       notificationCount: user.notificationCount,
       token,
       deleted: user.deleted,
+      }
     };
   }
 
-  static async logout(userId: string, token: string): Promise<boolean> {
-    if (!userId) throw new CustomException("UserId is not provided");
-    if (!token) throw new CustomException("Token is missing");
+/*   static async logout(userId: string, token: string): Promise<boolean> { */
+    static async logout(logoutInfo: LogoutRequest): Promise<LogoutResponse>{
+      const {userId, token} = logoutInfo;
+        const validationError:string|null = AuthValidation.logoutValidation(logoutInfo)
+        if(validationError){
+          return{
+            success: false,
+            message: validationError
+          }
+        }
+    /* if (!userId) throw new CustomException("UserId is not provided");
+        if (!token) throw new CustomException("Token is missing"); */
 
-    const user = await AppUser.findById(userId);
-    if (!user) throw new CustomException("User not found");
+      const user = await AppUser.findById(userId);
 
-    try {
-      await TokenBlacklist.create({
-        token,
-        expiresAt: new Date(Date.now() + 3600 * 1000),
-      });
+     /*  if (!user) throw new CustomException("User not found"); */
+     if(!user){
+      return{
+        success: false,
+        message: "User not found"
+      }
+     }
 
-      user.fcmToken = "";
-      await user.save();
+      try {
+        await TokenBlacklist.create({
+          token,
+          expiresAt: new Date(Date.now() + 3600 * 1000),
+        });
 
-      return true;
-    } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error("Unknown error");
-      logger.error(`Logout failed: ${err.message}`);
-      throw err;
+        user.fcmToken = "";
+        await user.save();
+
+        return{
+          success: true,
+          message:"Logout successful"
+        }
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error("Unknown error");
+        logger.error(`Logout failed: ${err.message}`);
+        throw err;
+      }
     }
-  }
+  
 
-  static async logoutv2(userId: string): Promise<boolean> {
+    //The first logout is better because it handles token blacklisting
+  /* static async logoutv2(userId: string): Promise<boolean> {
     try {
       if (userId === "") {
         throw new Error("UserId is not provided");
@@ -186,9 +263,9 @@ export class AuthService {
         throw error;
       }
     }
-  }
+  } */
 
-  static async authenticate(model: LoginViewModel): Promise<AppUserViewModel> {
+ /*  static async authenticate(model: LoginViewModel): Promise<AppUserViewModel> {
     try {
       // Validate mobile channel using enum values
       if (!Object.values(MOBILE_CHANNEL).includes(model.mobileChannel)) {
@@ -252,5 +329,5 @@ export class AuthService {
       logger.error('Unexpected error during authentication:', error);
       throw new Error('Internal server error');
     }
-  }
+  } */
 }
