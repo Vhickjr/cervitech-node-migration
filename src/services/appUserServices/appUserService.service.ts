@@ -35,6 +35,7 @@ export class AppUserService {
       }
 
       const user = await AppUser.findById(userId);
+      console.log("Fetched user:", user);
       if (!user) {
         throw new Error("This user cannot be retrieved at the moment. Please contact support.");
       }
@@ -66,21 +67,22 @@ export class AppUserService {
     }
   }
 
-  static async updatePictureUrlAsync(update: PictureUrlUpdateViewModel): Promise<boolean> {
-    if (!update || update.userId < 1) {
-      throw new Error("UserId not provided");
-    }
-
-    const user = await AppUser.findById(update.userId);
-    if (!user) {
-      throw new Error("This user cannot be retrieved at the moment. Please contact support.");
-    }
-
-    user.pictureUrl = update.pictureUrl ?? user.pictureUrl;
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return true;
+static async updatePictureUrlAsync(update: PictureUrlUpdateViewModel): Promise<boolean> {
+  if (!update || !update.userId) {
+    throw new Error("User ID not provided.");
   }
+
+  const user = await AppUser.findById(update.userId);
+  if (!user) {
+    throw new Error("User not found. Please contact support.");
+  }
+
+  user.pictureUrl = update.pictureUrl ?? user.pictureUrl;
+  await user.save();
+
+  return true;
+}
+
 
   static async deleteByIdAsync(id: string): Promise<boolean> {
   try {
