@@ -7,8 +7,6 @@ import { GoalSchema, IGoal } from './Goal';
 export interface IAppUser extends IUser {
   fcmToken: string;
   username: string;
-  hash: string;
-  salt: string;
   lastLoginDateTime: Date;
   allowPushNotifications: boolean;
   hasPaid: boolean;
@@ -30,8 +28,6 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  hash: { type: String },
-  salt: { type: String },
   pictureUrl: { type: String },
   fcmToken: { type: String },
   username: { type: String, required: true, unique: true },
