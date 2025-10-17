@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import "express-session";
 import backofficeUserService from "../services/backofficeuser.service";
+import { logger } from "../utils/logger";
 
 declare module "express-session" {
   interface SessionData {
@@ -12,13 +13,15 @@ class BackOfficeUserController {
   static async createUser(req: Request, res: Response) {
     try {
       const data = await backofficeUserService.create(req.body);
+      logger.info("BackOffice user created successfully.", { user: req.body.username });
+
       res.status(201).json({
         success: true,
         message: "User created successfully.",
         data,
       });
     } catch (err: any) {
-      console.error("Create User Error:", err.message);
+      logger.error("Create User Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to create user.",
@@ -40,13 +43,14 @@ class BackOfficeUserController {
       const user = await backofficeUserService.loginService(username, password);
       req.session.userName = user.username;
 
+      logger.info("Login successful.", { username });
       res.status(200).json({
         success: true,
         message: "Login successful.",
         data: user,
       });
     } catch (err: any) {
-      console.error("Login Error:", err.message);
+      logger.error("Login Error", { error: err.message });
       res.status(401).json({
         success: false,
         message: "Invalid username or password.",
@@ -73,13 +77,14 @@ class BackOfficeUserController {
         });
       }
 
+      logger.info("Fetched user by session username.", { username });
       res.status(200).json({
         success: true,
         message: "User retrieved successfully.",
         data,
       });
     } catch (err: any) {
-      console.error("Get By Session Username Error:", err.message);
+      logger.error("Get By Session Username Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to retrieve user.",
@@ -99,13 +104,14 @@ class BackOfficeUserController {
       }
 
       const data = await backofficeUserService.sendPasswordResetToken(email);
+      logger.info("Password reset token sent.", { email });
       res.status(200).json({
         success: true,
         message: "Password reset token sent.",
         data,
       });
     } catch (err: any) {
-      console.error("Forgot Password Error:", err.message);
+      logger.error("Forgot Password Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to send password reset token.",
@@ -125,13 +131,14 @@ class BackOfficeUserController {
       }
 
       const data = await backofficeUserService.changePassword(userId, newPassword);
+      logger.info("Password changed successfully.", { userId });
       res.status(200).json({
         success: true,
         message: "Password changed successfully.",
         data,
       });
     } catch (err: any) {
-      console.error("Change Password Error:", err.message);
+      logger.error("Change Password Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to change password.",
@@ -151,13 +158,14 @@ class BackOfficeUserController {
       }
 
       const data = await backofficeUserService.resetPassword(token, newPassword);
+      logger.info("Password reset successful.", { token });
       res.status(200).json({
         success: true,
         message: "Password reset successful.",
         data,
       });
     } catch (err: any) {
-      console.error("Reset Password Error:", err.message);
+      logger.error("Reset Password Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to reset password.",
@@ -169,13 +177,14 @@ class BackOfficeUserController {
   static async getAllUsers(_req: Request, res: Response) {
     try {
       const data = await backofficeUserService.getAll();
+      logger.info("Fetched all backoffice users.");
       res.status(200).json({
         success: true,
         message: "Users retrieved successfully.",
         data,
       });
     } catch (err: any) {
-      console.error("Get All Users Error:", err.message);
+      logger.error("Get All Users Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to retrieve users.",
@@ -189,13 +198,14 @@ class BackOfficeUserController {
       const { number } = req.params;
       const data = await backofficeUserService.getNumberOfBackOfficeUsers(Number(number));
 
+      logger.info("Fetched number of backoffice users.", { count: number });
       res.status(200).json({
         success: true,
         message: `Retrieved ${number} back office users successfully.`,
         data,
       });
     } catch (err: any) {
-      console.error("Get Number of BackOffice Users Error:", err.message);
+      logger.error("Get Number of BackOffice Users Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to retrieve users.",
@@ -210,19 +220,21 @@ class BackOfficeUserController {
       const data = await backofficeUserService.deleteById(id);
 
       if (!data) {
+        logger.warn("Attempted to delete non-existing user.", { id });
         return res.status(404).json({
           success: false,
           message: "User not found.",
         });
       }
 
+      logger.info("User deleted successfully.", { id });
       res.status(200).json({
         success: true,
         message: "User deleted successfully.",
         data,
       });
     } catch (err: any) {
-      console.error("Delete User Error:", err.message);
+      logger.error("Delete User Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to delete user.",
@@ -245,19 +257,21 @@ class BackOfficeUserController {
 
       const data = await backofficeUserService.update(id, updateData);
       if (!data) {
+        logger.warn("Update attempted on non-existing user.", { id });
         return res.status(404).json({
           success: false,
           message: "User not found.",
         });
       }
 
+      logger.info("User updated successfully.", { id });
       res.status(200).json({
         success: true,
         message: "User updated successfully.",
         data,
       });
     } catch (err: any) {
-      console.error("Update User Error:", err.message);
+      logger.error("Update User Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to update user.",
@@ -272,19 +286,21 @@ class BackOfficeUserController {
       const user = await backofficeUserService.getById(id);
 
       if (!user) {
+        logger.warn("TestUserById: user not found.", { id });
         return res.status(404).json({
           success: false,
           message: "User not found.",
         });
       }
 
+      logger.info("TestUserById: user retrieved successfully.", { id });
       res.status(200).json({
         success: true,
         message: "User retrieved successfully.",
         data: user,
       });
     } catch (err: any) {
-      console.error("Test User Error:", err.message);
+      logger.error("Test User Error", { error: err.message });
       res.status(500).json({
         success: false,
         message: "Failed to retrieve user.",
