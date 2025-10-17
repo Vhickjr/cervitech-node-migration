@@ -3,7 +3,6 @@ import { PictureUrlUpdateViewModel } from "../viewmodels/PictureUrlUpdateViewMod
 import { AppUserService } from "../services/appUserServices/appUserService.service";
 import { GetUserDataService } from "../services/appUserServices/getUserData";
 import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
-import { getApiResponseMessages, ApiResponseStatus } from "../utils/apiResponse";
 import { DataResult } from "../utils/dataResult";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../utils/customException";
