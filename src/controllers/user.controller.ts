@@ -8,7 +8,7 @@ import { DataResult } from "../utils/dataResult";
 import { UpdateUserRequest } from "../types/user.types";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../utils/customException";
-import { logger } from "../utils/logger";
+
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
@@ -330,4 +330,5 @@ static async toggleAllowPushNotifications(req: Request, res: Response): Promise<
       }
     }
   }
+
 }

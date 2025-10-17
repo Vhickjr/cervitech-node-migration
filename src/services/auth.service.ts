@@ -2,7 +2,7 @@ import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest } from '../types/auth.types';
-import { generateToken } from '../utils/generateToken';
+import { TokenService } from '../utils/generateToken';
 import User from '../models/User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import TokenBlacklist from '../models/TokenBlacklist';
@@ -106,7 +106,7 @@ export class AuthService {
     user.mobileChannel = mobileChannel;
     await user.save();
 
-    const token = generateToken(user);
+    const token = TokenService.generateToken(user);
 
     let currentTargetedAverageNeckAngle = 0;
     const lastSetGoal = await Goal.findOne({ appUserId: user._id });
