@@ -5,7 +5,7 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 import { MailService } from "../MailService";
 import { MailSender } from "../MailSender";
-import { SendGridEmailSender } from "../SendGridEmailSender";
+import { SendGridEmailSender } from "../sendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../utils/customException";
 import { EmailTemplates } from "../EmailTemplates";
@@ -85,6 +85,7 @@ export class AppUserService {
   static async deleteByIdAsync(id: string): Promise<boolean> {
   try {
     const user = await AppUser.findById(id);
+    console.log(user);
 
     if (!user) {
       throw new CustomException("User does not exist");

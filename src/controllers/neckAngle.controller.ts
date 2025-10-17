@@ -13,8 +13,6 @@ export class NeckAngleController {
     const model: NeckAngleModel = req.body;
     logger.info(`NeckAngleModel: ${JSON.stringify(model)}`);
 
-    const responses = getApiResponseMessages();
-
     if (
       !model ||
       typeof model.appUserId !== 'string' ||
@@ -22,8 +20,8 @@ export class NeckAngleController {
       model.neckAngleRecords.length === 0
     ) {
       res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: ApiResponseStatus.BadRequest,
+        statusCode: 400,
+        message: "BadRequest",
         data: null,
       });
       return;
@@ -32,8 +30,8 @@ export class NeckAngleController {
     try {
       const data = await NeckAngleService.postBatchNeckAngleRecordAsync(model);
       res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
+        statusCode: 200,
+        message: "Successful",
         data,
       });
     } catch (error: unknown) {
@@ -41,7 +39,7 @@ export class NeckAngleController {
       logger.error(err.message);
 
       res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
+        statusCode: 500,
         message: err.message,
         data: null,
       });
@@ -52,16 +50,14 @@ export class NeckAngleController {
     const model: AutomatePostNeckAngleRecordsViewModel = req.body;
     logger.info(`AutomatePostNeckAngleRecordsViewModel: ${JSON.stringify(model)}`);
 
-    const responses = getApiResponseMessages();
-
     if (
       !model ||
       typeof model.appUserId !== 'string' ||
       !Array.isArray(model.testValues)
     ) {
       res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
-        message: ApiResponseStatus.BadRequest,
+        statusCode: 400,
+        message: "BadRequest",
         data: null,
       });
       return;
@@ -70,8 +66,8 @@ export class NeckAngleController {
     try {
       const data = await NeckAngleService.postRandomBatchNeckAngleRecordForTestAsync(model);
       res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
-        message: ApiResponseStatus.Successful,
+        statusCode: 200,
+        message: "Successful",
         data,
       });
     } catch (error: unknown) {
@@ -79,7 +75,7 @@ export class NeckAngleController {
       logger.error(err.message);
 
       res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
+        statusCode: 500,
         message: err.message,
         data: null,
       });
@@ -110,12 +106,11 @@ export class NeckAngleController {
   // }
 
   static async resetNotificationCount(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
     const { userId } = req.params;
 
     if (!userId) {
       res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
+        statusCode: 400,
         message: 'User ID is required',
         data: null,
       });
@@ -125,7 +120,7 @@ export class NeckAngleController {
     try {
       await JobScheduler.resetNotificationCount(userId);
       res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
+        statusCode: 200,
         message: 'Notification count reset successfully',
         data: true,
       });
@@ -134,7 +129,7 @@ export class NeckAngleController {
       logger.error(err.message);
 
       res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
+        statusCode: 500,
         message: err.message,
         data: null,
       });
@@ -142,14 +137,13 @@ export class NeckAngleController {
   }
 
   static async getUsersForTesting(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
 
     try {
       const { default: AppUser } = await import('../models/AppUser');
       const users = await AppUser.find({}, { _id: 1, username: 1, email: 1, fcmToken: 1 }).limit(10);
       
       res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
+        statusCode: 200,
         message: 'Users retrieved successfully',
         data: users,
       });
@@ -158,7 +152,7 @@ export class NeckAngleController {
       logger.error(err.message);
 
       res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
+        statusCode: 500,
         message: err.message,
         data: null,
       });
@@ -166,12 +160,11 @@ export class NeckAngleController {
   }
 
   static async getCurrentDayAverageNeckAngleTextReport(req: Request, res: Response): Promise<void> {
-    const responses = getApiResponseMessages();
     const { neckAngle } = req.query;
 
     if (!neckAngle || isNaN(Number(neckAngle))) {
       res.status(400).json({
-        statusCode: responses[ApiResponseStatus.BadRequest],
+        statusCode: 400,
         message: 'Valid neck angle is required',
         data: null,
       });
@@ -183,7 +176,7 @@ export class NeckAngleController {
       const report = Utils.currentDayAverageNeckAngleTextReport(Number(neckAngle));
       
       res.status(200).json({
-        statusCode: responses[ApiResponseStatus.Successful],
+        statusCode: 200,
         message: 'Text report generated successfully',
         data: {
           neckAngle: Number(neckAngle),
@@ -195,7 +188,7 @@ export class NeckAngleController {
       logger.error(err.message);
 
       res.status(500).json({
-        statusCode: responses[ApiResponseStatus.Failed],
+        statusCode: 500,
         message: err.message,
         data: null,
       });

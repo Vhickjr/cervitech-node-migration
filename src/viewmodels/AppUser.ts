@@ -48,8 +48,6 @@ const AppUserSchema: Schema = new Schema({
   pictureUrl: { type: String },
   fcmToken: { type: String },
   prompt: { type: Number },
-  hash: { type: String },
-  salt: { type: String },
   currentTargetedAverageNeckAngle: { type: Number, default: 0 },
   isGoalOn: { type: Boolean, default: false },
   hasPaid: { type: Boolean, default: false },

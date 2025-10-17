@@ -32,6 +32,7 @@ export class TransactionService {
       description: transactionVM.description,
     });
 
+    console.log("Saving transaction:", transaction);
     await transaction.save();
 
     return AppUserService.updateSubscriptionAsync(transactionVM.appUserId);

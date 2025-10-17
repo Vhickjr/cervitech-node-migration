@@ -40,7 +40,7 @@ app.use('/api/v1/fcm', fcmRoutes);
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/neck-angle', neckAngleRoutes);
 app.use("/api/v1/backoffice-users", backOfficeUser);
-app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI , {
