@@ -1,19 +1,19 @@
 import { Router } from "express";
 import BackOfficeUserController from "../controllers/backOfficeUser.controller";
+import { authenticateJWT } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post("/", BackOfficeUserController.createUser);
+router.post("/signup", BackOfficeUserController.createUser);
 router.post("/login", BackOfficeUserController.loginController);
-router.get("/by-session", BackOfficeUserController.getBySessionUserName);
 router.post("/forgot-password", BackOfficeUserController.forgotPassword);
-router.post("/change-password", BackOfficeUserController.changePassword);
 router.post("/reset-password", BackOfficeUserController.resetPassword);
-router.get("/", BackOfficeUserController.getAllUsers);
-router.get("/count/:number", BackOfficeUserController.getNumberOfBackOfficeUsers);
-router.delete("/:id", BackOfficeUserController.deleteUser);
-router.put("/", BackOfficeUserController.updateUser);
-router.put("/:id", BackOfficeUserController.updateUser);
-router.get("/test/:id", BackOfficeUserController.testUserById);
+router.post("/logout", authenticateJWT, BackOfficeUserController.logoutController);
+router.post("/change-password", authenticateJWT, BackOfficeUserController.changePassword);
+router.get("/", authenticateJWT, BackOfficeUserController.getAllUsers);
+router.get("/count/:number", authenticateJWT, BackOfficeUserController.getNumberOfBackOfficeUsers);
+router.delete("/:id", authenticateJWT, BackOfficeUserController.deleteUser);
+router.put("/:id", authenticateJWT, BackOfficeUserController.updateUser);
+router.get("/test/:id", authenticateJWT, BackOfficeUserController.testUserById);
 
 export default router;

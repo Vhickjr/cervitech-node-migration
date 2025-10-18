@@ -13,7 +13,6 @@ router.delete("/deleteaccount/:id", UserController.deleteById);
 router.delete("/deletemyaccount", UserController.deleteMyAccount); 
 router.delete("/confirmdeletemyaccount", UserController.confirmDeleteMyAccount); 
 router.delete("/deleteall", UserController.deleteAll);
-
 router.get("/getByEmail", UserController.getByEmail);
 router.get("/getAllowPushNotificationStatus", UserController.getAllowPushNotificationStatus);
 router.get("/getFCMToken", UserController.getFCMTokenByUsername);

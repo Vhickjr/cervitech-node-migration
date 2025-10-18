@@ -1,6 +1,9 @@
 import BackofficeUser, { IBackofficeUser } from "../models/BackOfficeUser";
 import { backOfficeUserModel } from "../types/backOfficeUserModel.types";
 import { HashUtil } from "../utils/hash";
+import { TokenUtil } from "../utils/token.util";
+import TokenBlacklist from "../models/TokenBlacklist";
+import crypto from "crypto";
 
 class BackofficeUserService {
   static async create(dto: backOfficeUserModel) {
@@ -27,7 +30,22 @@ class BackofficeUserService {
     const isValid = await HashUtil.compare(password, user.password);
     if (!isValid) throw new Error("Invalid username or password");
 
-    return user;
+    const token = TokenUtil.generateBackofficeUserToken(user);
+
+    return { user, token };
+  }
+
+
+  static async logoutService(token: string) {
+    if (!token) throw new Error("Token required for logout");
+
+    // prevent duplicate blacklist entries
+    const existing = await TokenBlacklist.findOne({ token });
+    if (!existing) {
+      await TokenBlacklist.create({ token });
+    }
+
+    return { success: true, message: "User logged out successfully" };
   }
 
   static async changePassword(userId: string, newPassword: string) {
@@ -55,6 +73,20 @@ class BackofficeUserService {
     return { success: true };
   }
 
+  static async sendPasswordResetToken(email: string) {
+    const user = await BackofficeUser.findOne({ email });
+    if (!user) throw new Error("User not found");
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await BackofficeUser.updateOne(
+      { email },
+      { resetToken: token, resetTokenExpires: Date.now() + 3600000 }
+    );
+
+    return { email, token };
+  }
+
   static async getAll() {
     return await BackofficeUser.find();
   }
@@ -67,16 +99,10 @@ class BackofficeUserService {
     return await BackofficeUser.findById(id);
   }
 
-  static async sendPasswordResetToken(email: string) {
-    const token = Math.random().toString(36).substr(2, 8);
-    await BackofficeUser.updateOne(
-      { email },
-      { resetToken: token, resetTokenExpires: Date.now() + 3600000 }
-    );
-    return { email, token };
-  }
-
   static async getNumberOfBackOfficeUsers(limit: number) {
+    if (limit <= 0) {
+      throw new Error("Specify a valid limit greater than zero");
+    }
     return await BackofficeUser.find().limit(limit);
   }
 
