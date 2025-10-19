@@ -62,23 +62,28 @@ export const AuthController = {
 
   async resetPassword(req: Request, res: Response) {
     try {
-      const result = await AuthService.resetPassword(req.body);
-      if (result.success === false) {
-        logger.warn('Password reset  failed', {
-          email: req.body.email,
-          message: result.message,
+      const token = req.headers.authorization?.split(' ')[1];
+      const {newPassword} = req.body;
+
+      if(!token){
+        return res.status(400).json({
+          success: false,
+          message: 'Token is required in the Authorization header'
         });
+      }
+      const result = await AuthService.resetPassword({token, newPassword});
+      if (result.success === false) {
+        logger.warn('Password reset  failed', { message: result.message });
         return res.status(400).json({
           success: false,
           message: result.message,
         });
       }
-      logger.info('Password reset successfully', { email: req.body.email });
+      logger.info('Password reset successfully');
       res.status(200).json(result);
     } catch (err: any) {
       console.log(err);
       logger.error('Password reset failed. (Unexpected internal error)', {
-        email: req.body.email,
         error: err.message,
       });
       res.status(500).json({
