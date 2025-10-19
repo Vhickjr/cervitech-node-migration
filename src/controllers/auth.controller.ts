@@ -59,6 +59,7 @@ export const AuthController = {
     }
   },
 
+
   async resetPassword(req: Request, res: Response) {
     try {
       const result = await AuthService.resetPassword(req.body);
@@ -75,13 +76,14 @@ export const AuthController = {
       logger.info('Password reset successfully', { email: req.body.email });
       res.status(200).json(result);
     } catch (err: any) {
+      console.log(err);
       logger.error('Password reset failed. (Unexpected internal error)', {
         email: req.body.email,
         error: err.message,
       });
       res.status(500).json({
         success: false,
-        message: 'Internal server error occurred while resetting password',
+        message: `Internal server error occurred while resetting password: ${err}`
       });
     }
   },

@@ -1,5 +1,5 @@
 import { HashUtil } from '../utils/hash';
-import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse, SendPasswordTokenResponse } from '../viewmodels/auth.viewmodel';
+import { SignupRequest, SignupResponse, PasswordResetTokenRequest, SendPasswordTokenResponse, PasswordResetResponse, PasswordResetRequest } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest, LoginResponseResult, LogoutRequest, LogoutResponse } from '../types/auth.types';
 import { generateToken } from '../utils/generateToken';
@@ -20,11 +20,11 @@ export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
     console.log("Data", data);
 
-    const validationError:string|null = AuthValidation.signupValidation(data)
+    const validationError: string[] | null = AuthValidation.signupValidation(data)
     if(validationError){
       return{
         success: false,
-        message:validationError,
+        message: validationError
       }
     }
 
@@ -33,14 +33,15 @@ export class AuthService {
     if(existing){
       return{
         success:false,
-        message: "Email already in Use",
+        message: ["Email already in Use"]
 
       }
     }
 
     const hashedPassword = await HashUtil.hash(data.password);
 
-    const createdUser = await AppUser.create({
+    try{
+      const createdUser = await AppUser.create({
       firstName: data.firstName.trim(),
       lastName: data.lastName.trim(),
       email: data.email.toLowerCase().trim(),
@@ -68,18 +69,33 @@ export class AuthService {
 
     return {
       success:true,
-      message: 'Signup successful',
+      message: ['Signup successful'],
       data: userObj,
     };
+    }catch(error: any){
+      if (error.code === 11000){
+        const field = Object.keys(error.keyValue)[0];
+        const value = error.keyValue[field];
+        return {
+          success: false,
+          message: [`${field} '${value}' is already taken`]
+        };
+      }
+       logger.error(`Signup failed: ${error.message}`);
+       return {
+        success: false,
+        message: ['Internal server error occurred during signup']
+       }
+    }
   }
 
-  static async sendPasswordResetToken({ email }: passwordResetRequest): Promise<SendPasswordTokenResponse> {
+  static async sendPasswordResetToken({ email }: PasswordResetTokenRequest): Promise<SendPasswordTokenResponse> {
     const user = await AppUser.findOne({ email });
     //if (!user) throw new Error('User not found');
     if(!user){
       return{
         success: false,
-        message : "User doesn't exist"
+        message : ["User doesn't exist"]
       }
     }
 
@@ -87,18 +103,18 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Password link generated',
+      message: ['Password link generated'],
       resetLink: `http://localhost:4000/api/auth/reset-password?token=${token}`
     };
   }
 
-  static async resetPassword({ token, newPassword }: passwordResetResponse) {
+  static async resetPassword({ token, newPassword }: PasswordResetRequest): Promise<PasswordResetResponse> {
     const { userId } = TokenUtil.verifyResetToken(token);
     const hashed = await HashUtil.hash(newPassword);
     await AppUser.findByIdAndUpdate(userId, { password: hashed });
     return { 
       success: true,
-      message: 'Password reset successfully' 
+      message: ['Password reset successfully' ]
     };
   }
 
@@ -111,7 +127,7 @@ export class AuthService {
       throw new CustomException("Please make sure you pass a valid MobileChannel value for this user");
     } */
 
-    const validationError:string|null = AuthValidation.loginValidation(model)
+    const validationError: string[] | null= AuthValidation.loginValidation(model)
     if(validationError){
       return{
         success: false,
@@ -133,7 +149,7 @@ export class AuthService {
       /* throw new CustomException("This account does not exist. Please check the email or username provided."); */
       return{
         success:false,
-        message: "This account does not exist. Please check the email or username provided."
+        message: ["This account does not exist. Please check the email or username provided."]
       }
     }
 
@@ -141,7 +157,7 @@ export class AuthService {
       /* throw new CustomException("This account has been deleted. Please contact support if you believe this is an error."); */
       return{
         success:false,
-        message: "This account has been deleted. Please contact support if you believe this is an error."
+        message: ["This account has been deleted. Please contact support if you believe this is an error."]
       }
     }
 
@@ -150,7 +166,7 @@ export class AuthService {
       /* throw new CustomException("An incorrect password provided. Please check password and try again."); */
       return{
         success:false,
-        message: "An incorrect password provided. Please check password and try again."
+        message:["An incorrect password provided. Please check password and try again."]
       }
     }
 
@@ -168,7 +184,7 @@ export class AuthService {
 
     return {
       success:true,
-      message: "Authentication successful",
+      message: ["Authentication successful"],
       data:{
          id: user._id.toString(),
       username: user.username,
@@ -196,7 +212,7 @@ export class AuthService {
 /*   static async logout(userId: string, token: string): Promise<boolean> { */
     static async logout(logoutInfo: LogoutRequest): Promise<LogoutResponse>{
       const {userId, token} = logoutInfo;
-        const validationError:string|null = AuthValidation.logoutValidation(logoutInfo)
+        const validationError = AuthValidation.logoutValidation(logoutInfo)
         if(validationError){
           return{
             success: false,
@@ -212,7 +228,7 @@ export class AuthService {
      if(!user){
       return{
         success: false,
-        message: "User not found"
+        message: ["User not found"]
       }
      }
 
@@ -227,12 +243,15 @@ export class AuthService {
 
         return{
           success: true,
-          message:"Logout successful"
+          message:["Logout successful"]
         }
       } catch (error: unknown) {
         const err = error instanceof Error ? error : new Error("Unknown error");
         logger.error(`Logout failed: ${err.message}`);
-        throw err;
+        return {
+          success: false,
+          message: ['Internal server error during logout']
+        };
       }
     }
   

@@ -12,19 +12,16 @@ export const signupSchema = Joi.object({
     .required()
     .min(8)
     .max(30)
-    .regex(/[A-Z]/, 'uppercase')
-    .regex(/[a-z]/, 'lowercase')
-    .regex(/[0-9]/, 'number')
-    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'special-character')
+    .pattern(/[A-Z]/, { name: 'uppercase character' })
+    .pattern(/[a-z]/, { name: 'lowercase character' })
+    .pattern(/[0-9]/, { name: 'number' })
+    .pattern(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, { name: 'special-character' })
     .messages({
       'string.empty': 'Password cannot be empty',
       'any.required': 'Password is required',
       'string.min': 'Password must have a minimum of 8 characters',
       'string.max': 'Password must have a maximum of 30 characters',
-      'string.regex.uppercase': 'Password must include at least one uppercase letter',
-      'string.regex.lowercase': 'Password must include at least one lowercase letter',
-      'string.regex.number': 'Password must include at least one number',
-      'string.regex.special-character': 'Password must include at least one special character',
+      'string.pattern.name': 'Password must include at least one {#name}', 
     }),
 
   firstName: Joi.string().required().messages({
@@ -41,11 +38,11 @@ export const signupSchema = Joi.object({
     .trim()
     .required()
     .min(3)
-    .regex(/^[a-zA-Z0-9]+$/, 'alphanum')
+    .pattern(/^[a-zA-Z0-9]+$/, { name: 'alphanumeric characters' })
     .messages({
       'string.empty': 'Username cannot be empty',
       'any.required': 'Username is required',
-      'string.regex.alphanum': 'Username must only contain alphanumeric characters',
+      'string.pattern.name': 'Username must only contain {#name}',
       'string.min': 'Username must be a minimum of 3 characters',
     }),
 
@@ -59,9 +56,12 @@ export const signupSchema = Joi.object({
     }),
 
   fcmToken: Joi.string().optional().allow(null, ''),
-
   pictureUrl: Joi.string().uri().optional().allow(null, ''),
-});
+})
+.prefs({ abortEarly: false }); 
+
+
+
 
 export const loginSchema = Joi.object({
   emailOrUsername: Joi.string().trim().required().messages({
@@ -82,7 +82,9 @@ export const loginSchema = Joi.object({
       'any.required': 'Mobile channel is required',
       'any.only': 'Invalid mobile channel provided',
     }),
-});
+})
+.prefs({ abortEarly: false }); 
+
 
 export const logoutSchema = Joi.object({
     userId: Joi.string().required().messages({
@@ -95,5 +97,6 @@ export const logoutSchema = Joi.object({
         'string.empty': 'Token cannot be empty'
     })
 })
+.prefs({ abortEarly: false }); 
 
 

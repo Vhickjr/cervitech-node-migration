@@ -4,7 +4,7 @@ import { inflateSync } from "node:zlib";
 
 export interface BaseServiceResponse{
   success: boolean,
-  message:string
+  message:string[]
 }
 
 export interface SignupRequest {
@@ -23,14 +23,17 @@ export interface SignupResponse extends BaseServiceResponse{
   data?: object;
 }
 
-export interface passwordResetRequest{
+export interface PasswordResetTokenRequest{
   email: string;
 }
 
-export interface passwordResetResponse extends BaseServiceResponse{
+export interface PasswordResetRequest{
   token: string;
   newPassword: string;
 }
+
+export interface PasswordResetResponse extends BaseServiceResponse {}
+
 
 export interface SendPasswordTokenResponse extends BaseServiceResponse{
   resetLink?:string
