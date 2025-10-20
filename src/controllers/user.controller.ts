@@ -6,7 +6,7 @@ import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
 import { DataResult } from "../utils/dataResult";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../utils/customException";
-import { logger } from "../utils/logger";
+
 
 export class UserController {
   static async updatePictureUrl(req: Request, res: Response): Promise<void> {
