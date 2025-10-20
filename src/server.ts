@@ -40,13 +40,13 @@ app.use("/api/v1/goals", goalsRoutes);
 mongoose
   .connect(MONGODB_URI, { dbName: "cervitechdb" })
   .then(() => {
-    logger.info("✅ MongoDB connected");
+    logger.info("MongoDB connected");
     app.listen(PORT, () => {
-      logger.info(`🚀 Server running on port ${PORT}`);
+      logger.info(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    logger.error("❌ MongoDB connection error:", err);
+    logger.error("MongoDB connection error:", err);
   });
 
 export default app;
