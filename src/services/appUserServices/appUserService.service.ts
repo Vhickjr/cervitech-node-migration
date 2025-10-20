@@ -214,6 +214,22 @@ static async deleteAllAsync(): Promise<boolean> {
     }
   }
 
+  static async postResponseRateAsync(userId: string): Promise<boolean> {
+    try {
+      const responseRate = await ResponseRate.findOne({ userId });
+
+      if (responseRate) {
+        responseRate.response = 1;
+        await responseRate.save();
+      }
+
+      return true;
+    } catch (error: any) {
+      logger.error(error.message || 'Unhandled exception in postResponseRate');
+      throw error;
+    }
+  }
+
   static async getResponseRateAsync(userId: string, day: Date): Promise<ResponseRateViewModel> {
     try {
       const startOfDay = new Date(day);

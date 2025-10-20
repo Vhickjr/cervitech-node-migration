@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 // import { CustomException } from '../helpers/CustomException';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware.js';
-
 import { logger } from '../utils/logger.js';
 
 export const AuthController = {
@@ -131,9 +130,26 @@ export const AuthController = {
     } catch (err: any) {
       res.status(500).json({ error: err.message || "Logout failed" });
     }
+  },
+
+  async usernameAlreadyExists(req: Request, res: Response): Promise<void> {
+      try {
+        const { username } = req.body;
+        const exists = await AuthService.usernameAlreadyExists(username);
+        res.status(200).json({ exists });
+      } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+      }
+  },
+
+  async isValidEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+      const isValid = await AuthService.isValidEmail(email);
+      res.status(200).json({ isValid });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
-
-
-
 
 };
