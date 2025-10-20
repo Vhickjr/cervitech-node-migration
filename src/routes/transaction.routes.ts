@@ -5,12 +5,12 @@ import { TransactionController } from "../controllers/transaction.controller";
 const router = express.Router();
 
 
-router.get("/transactions", TransactionController.getAllTransactionRecords);
+router.get("/", TransactionController.getAllTransactionRecords);
 
-router.get("/transactions/:id", TransactionController.getTransactionRecordById);
+router.get("/:id", TransactionController.getTransactionRecordById);
 
-router.get("/transactions/user/:userId", TransactionController.getTransactionRecordsByUserId);
+router.get("/user/:userId", TransactionController.getTransactionRecordsByUserId);
 
-router.post("/transactions/", TransactionController.createTransactionRecord);
+router.post("/", TransactionController.createTransactionRecord);
 
 export default router;

@@ -12,6 +12,7 @@ import userRoutes from './routes/user.routes.js'
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
+// import emailroutes from './routes/email.routes.js';
 // Load environment variables
 dotenv.config();
 
@@ -40,8 +41,9 @@ app.use('/api/v1/fcm', fcmRoutes);
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/neck-angle', neckAngleRoutes);
 app.use("/api/v1/backoffice-users", backOfficeUser);
-app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
+// app.use('/api/v1/email', emailroutes); // disabled to avoid ACS env requirement at startup
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI , {
   dbName: "cervitechdb",   // 👈 force your app to use "cervitech" database
