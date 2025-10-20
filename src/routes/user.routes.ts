@@ -7,7 +7,7 @@ const router = Router();
 router.put("/updatepictureurl", UserController.updatePictureUrl);
 router.put("/updatesubscription/:id", UserController.updateSubscription);
 
-router.post("/postresponserate", UserController.postResponseRate);
+// router.post("/postresponserate", UserController.postResponseRate);
 router.get("/getresponserate", UserController.getResponseRate);
 
 router.post("/toggleallowpushnotifications/:id", UserController.toggleAllowPushNotifications);
