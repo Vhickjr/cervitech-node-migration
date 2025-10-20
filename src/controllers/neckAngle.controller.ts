@@ -1,7 +1,6 @@
 // user.controller.ts
 import { Request, Response } from 'express';
 import { AutomatePostNeckAngleRecordsViewModel } from '../viewmodels/AutomatePostNeckAngleRecords';
-import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { NeckAngleService } from '../services/appUserServices/neckAngle.service';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
@@ -82,28 +81,29 @@ export class NeckAngleController {
     }
   }
 
-  // static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
-  //   const responses = getApiResponseMessages();
+  
+  static async sendPushNotificationMessageForAverageNeckAngle(req: Request, res: Response): Promise<void> {
 
-  //   try {
-  //     // Circle back to this later
-  //     const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
-  //     res.status(200).json({
-  //       statusCode: responses[ApiResponseStatus.Successful],
-  //       message: ApiResponseStatus.Successful,
-  //       data,
-  //     });
-  //   } catch (error: unknown) {
-  //     const err = error instanceof Error ? error : new Error('Custom error');
-  //     logger.error(err.message);
+    try {
+      // Accept optional payload in body but the service recomputes per-user averages
+      const payload = req.body || {};
+      const summary = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(payload as any);
+      res.status(200).json({
+        statusCode: 200,
+        message: 'Notification sent successfully',
+        data: summary,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
 
-  //     res.status(500).json({
-  //       statusCode: responses[ApiResponseStatus.Failed],
-  //       message: err.message,
-  //       data: null,
-  //     });
-  //   }
-  // }
+      res.status(500).json({
+        statusCode:500,
+        message: err.message,
+        data: null,
+      });
+    }
+  }
 
   static async resetNotificationCount(req: Request, res: Response): Promise<void> {
     const { userId } = req.params;
@@ -205,6 +205,83 @@ export class NeckAngleController {
       return res.status(200).json({ message: 'Successful', data });
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
+    }
+  }
+
+  static async getAppUserNeckAngleRecordsById(req: Request, res: Response): Promise<void> {
+    
+    const { userId } = req.params;
+
+    if (!userId) {
+      res.status(400).json({
+        statusCode: 400,
+        message: 'User ID is required',
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      const data = await NeckAngleService.getAppUserNeckAngleRecordsByIdAsync(userId);
+      res.status(200).json({
+        statusCode: 200,
+        message: 'Neck angle records retrieved successfully',
+        data,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
+
+      res.status(500).json({
+        statusCode: 500,
+        message: err.message,
+        data: null,
+      });
+    }
+  }
+
+  static async getAppUserNeckAngleRecordsForaDateRangebyId(req: Request, res: Response): Promise<void> {
+    const { userId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    if (!userId) {
+      res.status(400).json({
+        statusCode: 400,
+        message: 'User ID is required',
+        data: null,
+      });
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      res.status(400).json({
+        statusCode: 400,
+        message: 'Start date and end date are required',
+        data: null,
+      });
+      return;
+    }
+
+    try {
+      const data = await NeckAngleService.getAppUserNeckAngleRecordsForaDateRangebyIdAsync(
+        userId,
+        new Date(startDate as string),
+        new Date(endDate as string)
+      );
+      res.status(200).json({
+        statusCode: 200,
+        message: 'Neck angle records retrieved successfully',
+        data,
+      });
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error('Custom error');
+      logger.error(err.message);
+
+      res.status(500).json({
+        statusCode: 500,
+        message: err.message,
+        data: null,
+      });
     }
   }
 }

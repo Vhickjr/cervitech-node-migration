@@ -21,7 +21,7 @@ import { GOAL_FREQUENCY } from '../../enums/goalFrequency';
 import User from "../../models/User";
 
 import { NeckAngleParametersViewModel } from "../../viewmodels/NeckAngleParameters.viewmodel";
-
+import { neckAngleRecordViewModel } from "../../viewmodels/neckAngleRecord.viewmodels";
 import { DailyAngleDataViewModel } from "../../viewmodels/DailyAngleData.viewmodel";
 import { GoalCycleReportViewModel } from "../../viewmodels/GoalCycleReport.viewmodel";
 
@@ -157,39 +157,39 @@ export class NeckAngleService {
     }
 }
 
-static getEachDayOfTheWeekAverageNeckAngle(
-  aWeekAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
-): DailyAngleDataViewModel[] {
-  try {
-    // Sunday = 0, Monday = 1, etc.
-    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  static getEachDayOfTheWeekAverageNeckAngle(
+    aWeekAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
+  ): DailyAngleDataViewModel[] {
+    try {
+      // Sunday = 0, Monday = 1, etc.
+      const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    // keep totals and counts
-    const totals: { [key: number]: number } = {};
-    const counts: { [key: number]: number } = {};
+      // keep totals and counts
+      const totals: { [key: number]: number } = {};
+      const counts: { [key: number]: number } = {};
 
-    for (const record of aWeekAngleRecords) {
-      const dayNum = record.dateTimeRecorded.getDay(); // 0-6
-      totals[dayNum] = (totals[dayNum] || 0) + record.angle;
-      counts[dayNum] = (counts[dayNum] || 0) + 1;
+      for (const record of aWeekAngleRecords) {
+        const dayNum = record.dateTimeRecorded.getDay(); // 0-6
+        totals[dayNum] = (totals[dayNum] || 0) + record.angle;
+        counts[dayNum] = (counts[dayNum] || 0) + 1;
+      }
+
+      const averages: DailyAngleDataViewModel[] = [];
+
+      for (let i = 0; i < 7; i++) {
+        averages.push({
+          day: daysMap[i],
+          averageNeckAngle:
+            counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
+        });
+      }
+
+      return averages;
+    } catch (error: any) {
+      logger.error("Error in getEachDayOfTheWeekAverageNeckAngle:", error.message);
+      throw new CustomException("Error calculating daily averages.");
     }
-
-    const averages: DailyAngleDataViewModel[] = [];
-
-    for (let i = 0; i < 7; i++) {
-      averages.push({
-        day: daysMap[i],
-        averageNeckAngle:
-          counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
-      });
-    }
-
-    return averages;
-  } catch (error: any) {
-    logger.error("Error in getEachDayOfTheWeekAverageNeckAngle:", error.message);
-    throw new CustomException("Error calculating daily averages.");
   }
-}
 
 
   static async calculateAverageOfLastSetNeckAngles(userId: string): Promise<number> {
@@ -217,17 +217,32 @@ static getEachDayOfTheWeekAverageNeckAngle(
 
   static async sendPushNotificationMessageForAverageNeckAngle(
     notificationPayload: SendAverageNeckAnglePushNotificationViewModel
-  ): Promise<boolean> {
+  ): Promise<{ attempted: number; sent: number; failed: { userId: string; reason: string }[] }> {
     const appUsers = await AppUser.find();
 
+    const failed: { userId: string; reason: string }[] = [];
+    let attempted = 0;
+    let sentCount = 0;
+
     for (const appUser of appUsers) {
-      if (!appUser.fcmToken) continue;
+      attempted++;
+
+      if (!appUser.fcmToken) {
+        failed.push({ userId: appUser._id.toString(), reason: 'missing fcmToken' });
+        continue;
+      }
+
+      if (appUser.allowPushNotifications === false) {
+        failed.push({ userId: appUser._id.toString(), reason: 'push disabled by user' });
+        continue;
+      }
 
       let averageNeckAngle: number;
       try {
         averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(appUser._id.toString());
       } catch (error: any) {
         logger.info(error.message);
+        failed.push({ userId: appUser._id.toString(), reason: error.message || 'avg calc failed' });
         continue;
       }
 
@@ -245,24 +260,31 @@ static getEachDayOfTheWeekAverageNeckAngle(
         body,
       };
 
-      const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
-      if (sent) {
-        appUser.notificationCount++;
+      try {
+        const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
+        if (sent) {
+          sentCount++;
+          appUser.notificationCount++;
 
-        const responseRate = new ResponseRate({
-          appUserId: appUser._id,
-          dateCreated: new Date(),
-          prompt: 1,
-          response: 0,
-        });
+          const responseRate = new ResponseRate({
+            appUserId: appUser._id,
+            dateCreated: new Date(),
+            prompt: 1,
+            response: 0,
+          });
 
-        await responseRate.save();
+          await responseRate.save();
+        } else {
+          failed.push({ userId: appUser._id.toString(), reason: 'driver returned false' });
+        }
+      } catch (err: any) {
+        failed.push({ userId: appUser._id.toString(), reason: err?.message || 'send failed' });
       }
 
       await appUser.save();
     }
 
-    return true;
+    return { attempted, sent: sentCount, failed };
   }
 
   static async postRandomBatchNeckAngleRecordForTestAsync(
@@ -302,6 +324,87 @@ static getEachDayOfTheWeekAverageNeckAngle(
   static defaultPrompt = 5;
   static scheduleResetNotificationCount(userId: string): void {
   throw new Error('Function not implemented.');
+  }
+
+
+  static async getAppUserNeckAngleRecordsByIdAsync(userId: string): Promise<neckAngleRecordViewModel[]> {
+    try {
+      // First check if the user exists
+      const appUser = await AppUser.findById(userId);
+      if (!appUser) {
+        throw new CustomException("User not found.");
+      }
+
+      // Get neck angle records for the user
+      const neckAngleRecords = await NeckAngleRecordModel.find({ appUserId: userId })
+        .sort({ dateTimeRecorded: -1 }) // Sort by most recent first
+        .lean();
+
+      if (!neckAngleRecords || neckAngleRecords.length === 0) {
+        throw new CustomException("You have no records of neck angle posture.");
+      }
+
+      // Map to the view model format
+      const records: neckAngleRecordViewModel[] = neckAngleRecords.map(record => ({
+        appUserId: parseInt(record.appUserId),
+        angle: record.angle,
+        craniumVertebralAngle: record.craniumVertebralAngle,
+        dateTimeRecorded: record.dateTimeRecorded
+      }));
+
+      return records;
+    } catch (error: any) {
+      logger.error(error.message);
+      if (error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException("Error retrieving neck angle records.");
+    }
+  }
+
+  static async getAppUserNeckAngleRecordsForaDateRangebyIdAsync(
+    userId: string, 
+    startDate: Date, 
+    endDate: Date
+  ): Promise<neckAngleRecordViewModel[]> {
+    try {
+      // First check if the user exists
+      const appUser = await AppUser.findById(userId);
+      if (!appUser) {
+        throw new CustomException("User not found.");
+      }
+
+      // Get neck angle records for the user within the date range
+      const neckAngleRecords = await NeckAngleRecordModel.find({ 
+        appUserId: userId,
+        dateTimeRecorded: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      })
+        .sort({ dateTimeRecorded: -1 }) // Sort by most recent first
+        .lean();
+
+      if (!neckAngleRecords || neckAngleRecords.length === 0) {
+        throw new CustomException("No records exist for the selected period.");
+      }
+
+      // Map to the view model format
+      const records: neckAngleRecordViewModel[] = neckAngleRecords.map(record => ({
+        appUserId: parseInt(record.appUserId),
+        angle: record.angle,
+        craniumVertebralAngle: record.craniumVertebralAngle,
+        dateTimeRecorded: record.dateTimeRecorded
+      }));
+
+      return records;
+    } catch (error: any) {
+      logger.error(error.message);
+      if (error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException("Error retrieving neck angle records for date range.");
+    }
   }
 
   // static async calculateAverageOfLastWeekOrDay(
@@ -414,7 +517,7 @@ static getEachDayOfTheWeekAverageNeckAngle(
       const currentMonthAverageNeckAngle = safeAvg(thisMonth);
   
       const averageNeckAngleForEachDayOfTheCurrentWeek = this.getEachDayOfTheWeekAverageNeckAngle(thisWeek);
-      const withPositive = (await averageNeckAngleForEachDayOfTheCurrentWeek).filter((d: DailyAngleDataViewModel) => d.averageNeckAngle > 0);
+      const withPositive = averageNeckAngleForEachDayOfTheCurrentWeek.filter((d: DailyAngleDataViewModel) => d.averageNeckAngle > 0);
   
       let bestDay: DailyAngleDataViewModel | null = null;
       let badDay: DailyAngleDataViewModel | null = null;
