@@ -10,5 +10,7 @@ router.post('/reset-password', AuthController.resetPassword);
 /* router.post('/login', AuthController.login); */
 router.post('/login', AuthController.authenticate);
 router.post('/logout', authenticateJWT,AuthController.logout);
+router.get("/usernameAlreadyExists", AuthController.usernameAlreadyExists);
+router.get("/isValidEmail", AuthController.isValidEmail);
 
 export default router;
