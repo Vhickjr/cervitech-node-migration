@@ -1,3 +1,6 @@
+import { DailyAngleDataViewModel } from "../viewmodels/DailyAngleData.viewmodel";
+import { AbbreviatedNeckAngleRecordViewModel } from "../viewmodels/AbbreviatedNeckAngleRecord.viewmodel";
+
 export class DateLibrary {
   static getCurrentDateTime(): Date {
     const now = new Date();

@@ -5,7 +5,7 @@ export interface ITransactionRecord extends Document {
   appUserId: string;
   paymentRef: string;
   amount: number;
-  status: TRANSACTION_STATUS;
+  status: number;
   transDate: Date;
   description?: string;
   createdOn: Date;
@@ -18,10 +18,10 @@ const TransactionRecordSchema = new Schema<ITransactionRecord>({
   paymentRef: { type: String, required: true },
   amount: { type: Number, required: true },
   status: { type: Number, enum: Object.values(TRANSACTION_STATUS), required: true },
-  transDate: { type: Date, required: true },
+  transDate: { type: Date, required: true, default: Date.now },
   description: { type: String },
   createdOn: { type: Date, default: Date.now },
-  updatedOn: { type: Date },
+  updatedOn: { type: Date, default: Date.now },
   deletedOn: { type: Date },
 },
 { timestamps: true });
