@@ -29,6 +29,17 @@ export const signupSchema = Joi.object({
     'any.required': 'First name is required',
   }),
 
+  confirmPassword: Joi.string()
+    .required()
+    .valid(Joi.ref('password'))
+    .messages({
+      'string.empty': 'Confirm password cannot be empty',
+      'any.required': 'Confirm password is required',
+      'any.only':"Confirm password does not match password"
+    }),
+
+
+
   lastName: Joi.string().required().messages({
     'string.empty': 'Last name cannot be empty',
     'any.required': 'Last name is required',

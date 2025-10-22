@@ -28,7 +28,8 @@ export class AuthService {
       }
     }
 
-    const existing = await AppUser.findOne({ email: data.email });
+    const {password, confirmPassword, ...userData} = data;
+    const existing = await AppUser.findOne({ email: userData.email });
     //if (existing) throw new Error('Email already in use');
     if(existing){
       return{
@@ -38,17 +39,20 @@ export class AuthService {
       }
     }
 
-    const hashedPassword = await HashUtil.hash(data.password);
+    
+
+    const hashedPassword = await HashUtil.hash(password);
 
     try{
       const createdUser = await AppUser.create({
-      firstName: data.firstName.trim(),
-      lastName: data.lastName.trim(),
-      email: data.email.toLowerCase().trim(),
+      ...userData,
+      firstName: userData.firstName.trim(),
+      lastName: userData.lastName.trim(),
+      email: userData.email.toLowerCase().trim(),
       password: hashedPassword,
-      username: data.username,
-      pictureUrl: data.pictureUrl || '',
-      fcmToken: data.fcmToken || '',
+      username: userData.username,
+      pictureUrl: userData.pictureUrl || '',
+      fcmToken: userData.fcmToken || '',
       lastLoginDateTime: new Date(),
       allowPushNotifications: true,
       hasPaid: false,
@@ -56,7 +60,7 @@ export class AuthService {
       responseRate: 0,
       neckAngleRecords: [],
       goals: [],
-      mobileChannel: data.mobileChannel || MOBILE_CHANNEL.WEB,
+      mobileChannel: userData.mobileChannel || MOBILE_CHANNEL.WEB,
       prompt: 0,
       notificationCount: 0,
       currentTargetedAverageNeckAngle: 0,
