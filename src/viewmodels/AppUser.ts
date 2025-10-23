@@ -23,8 +23,6 @@ export interface IAppUser extends Document {
   pictureUrl: string;
   fcmToken: string;
   prompt?: number;
-  /* hash: string;
-  salt: string; */
   currentTargetedAverageNeckAngle: number;
   isGoalOn: boolean;
   hasPaid: boolean;
