@@ -4,6 +4,7 @@ import { IBackofficeUser } from "../models/BackOfficeUser";
 
 const APP_USER_SECRET = process.env.APP_USER_JWT_SECRET || "appuser-secret-key";
 const BACKOFFICE_SECRET = process.env.BACKOFFICE_JWT_SECRET || "backoffice-secret-key";
+const RESET_TOKEN_SECRET = process.env.JWT_SECRET || 'default-reset-secret';
 
 export interface BaseTokenPayload {
   userId: string;
@@ -49,6 +50,20 @@ export class TokenUtil {
       return jwt.verify(token, secret) as BaseTokenPayload;
     } catch {
       throw new Error("Invalid or expired token");
+    }
+  }
+  
+  static generateResetToken(userId: string){
+        return jwt.sign({userId}, RESET_TOKEN_SECRET, {expiresIn:'1h'});
+    }
+
+
+  static verifyResetToken(token: string) {
+    //const SECRET = process.env.JWT_SECRET || 'default';
+    try {
+      return jwt.verify(token, RESET_TOKEN_SECRET) as { userId: string };
+    } catch (err: any) {
+      throw new Error(err.message || 'Invalid or expired token');
     }
   }
 }

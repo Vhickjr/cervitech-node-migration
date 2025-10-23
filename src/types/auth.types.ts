@@ -1,5 +1,6 @@
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import { User } from './user.types';
+import { BaseServiceResponse } from '../viewmodels/auth.viewmodel';
 
 /* export interface LoginResponse {
   id: string;
@@ -8,10 +9,14 @@ import { User } from './user.types';
   token: string;
 } */
 
+
+
+
 export interface MininmalUser {
   _id: string;
   email: string;
 }
+
 export interface LoginRequest {
   emailOrUsername: string;
   password: string;
@@ -40,6 +45,11 @@ export interface LoginResponse {
   deleted: boolean;
 }
 
+export interface LoginResponseResult extends BaseServiceResponse{
+  data?: LoginResponse
+}
+
+
 export interface LoginViewModel {
   emailOrUsername: string;
   password: string;
@@ -67,3 +77,10 @@ export interface AppUserViewModel {
   notificationCount?: number;
   deleted: boolean;
 }
+
+export interface LogoutRequest{
+  userId: string,
+  token: string
+}
+
+export interface LogoutResponse extends BaseServiceResponse{}
