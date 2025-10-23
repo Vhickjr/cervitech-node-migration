@@ -4,6 +4,7 @@ import { AppUserService } from "../services/appUserServices/appUserService.servi
 import { GetUserDataService } from "../services/appUserServices/getUserData";
 import { FCMTokenService } from "../services/appUserServices/fcmToken.service";
 import { DataResult } from "../utils/dataResult";
+import { logger } from "../utils/logger";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CustomException } from "../utils/customException";
 
@@ -220,7 +221,7 @@ export class UserController {
 
   static async updateUser(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.userId;
+      const userId = req.user?.userId;
       const updateRequest = req.body;
 
       const updatedUser = await AppUserService.updateUser(userId!, updateRequest);
