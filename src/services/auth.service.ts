@@ -2,7 +2,8 @@ import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, PasswordResetTokenRequest, SendPasswordTokenResponse, PasswordResetResponse, PasswordResetRequest } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest, LoginResponseResult, LogoutRequest, LogoutResponse } from '../types/auth.types';
-import { generateToken } from '../utils/generateToken';
+//import { generateToken } from '../utils/generateToken';
+import { TokenService } from '../utils/generateToken';
 import User from '../models/User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import TokenBlacklist from '../models/TokenBlacklist';
@@ -178,7 +179,7 @@ export class AuthService {
     user.mobileChannel = mobileChannel;
     await user.save();
 
-    const token = generateToken(user);
+    const token = TokenService.generateToken(user);
 
     let currentTargetedAverageNeckAngle = 0;
     const lastSetGoal = await Goal.findOne({ appUserId: user._id });
@@ -353,4 +354,32 @@ export class AuthService {
       throw new Error('Internal server error');
     }
   } */
+  
+  
+
+  static async usernameAlreadyExists(username: string): Promise<boolean> {
+    const normalizedUsername = username.toLowerCase().trim();
+
+    const exists = await AppUser.exists({
+      username: { $regex: new RegExp(`^${normalizedUsername}$`, 'i') }
+    });
+
+    return !!exists;
+  }
+
+  static async isValidEmail(email: string): Promise<boolean> {
+    const trimmedEmail = email.trim();
+
+    if (trimmedEmail.endsWith('.')) return false;
+
+    try {
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      return emailRegex.test(trimmedEmail);
+    } catch {
+      return false;
+    }
+  }
 }
+

@@ -1,14 +1,13 @@
-import BackofficeUser, {IBackofficeUser} from "../models/BackOfficeUser";
+import BackofficeUser, { IBackofficeUser } from "../models/BackOfficeUser";
 import { backOfficeUserModel } from "../types/backOfficeUserModel.types";
+import { HashUtil } from "../utils/hash";
+import { TokenUtil } from "../utils/token.util";
+import TokenBlacklist from "../models/TokenBlacklist";
 import crypto from "crypto";
-import { validatePassword } from "../utils/passwordUtils";
 
-
-class backofficeUserService {
+class BackofficeUserService {
   static async create(dto: backOfficeUserModel) {
-    // Generate salt + hash from password
-    const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto.pbkdf2Sync(dto.password, salt, 1000, 64, "sha512").toString("hex");
+    const hashedPassword = await HashUtil.hash(dto.password);
 
     const user = new BackofficeUser({
       firstName: dto.firstName,
@@ -16,29 +15,78 @@ class backofficeUserService {
       email: dto.email,
       telephone: dto.telephone,
       username: dto.username,
-      hash,
-      salt,
+      password: hashedPassword,
       accessLevel: dto.accessLevel,
       readOnly: dto.readOnly ?? false,
     });
 
     return await user.save();
   }
-  static async loginService (username: string, password: string) {
+
+  static async loginService(username: string, password: string) {
     const user = await BackofficeUser.findOne({ username });
-  
-    if (!user) {
-      throw new Error("Invalid username or password");
-    }
-  
-    const isValid = validatePassword(password, user.hash, user.salt);
-  
-    if (!isValid) {
-      throw new Error("Invalid username or password");
-    }
-  
-    return user;
+    if (!user) throw new Error("Invalid username or password");
+
+    const isValid = await HashUtil.compare(password, user.password);
+    if (!isValid) throw new Error("Invalid username or password");
+
+    const token = TokenUtil.generateBackofficeUserToken(user);
+
+    return { user, token };
   }
+
+
+  static async logoutService(token: string) {
+    if (!token) throw new Error("Token required for logout");
+
+    // prevent duplicate blacklist entries
+    const existing = await TokenBlacklist.findOne({ token });
+    if (!existing) {
+      await TokenBlacklist.create({ token });
+    }
+
+    return { success: true, message: "User logged out successfully" };
+  }
+
+  static async changePassword(userId: string, newPassword: string) {
+    const user = await BackofficeUser.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    user.password = await HashUtil.hash(newPassword);
+    await user.save();
+
+    return { userId, success: true };
+  }
+
+  static async resetPassword(token: string, newPassword: string) {
+    const user = await BackofficeUser.findOne({
+      resetToken: token,
+      resetTokenExpires: { $gt: Date.now() },
+    });
+    if (!user) throw new Error("Invalid or expired token");
+
+    user.password = await HashUtil.hash(newPassword);
+    user.resetToken = undefined;
+    user.resetTokenExpires = undefined;
+
+    await user.save();
+    return { success: true };
+  }
+
+  static async sendPasswordResetToken(email: string) {
+    const user = await BackofficeUser.findOne({ email });
+    if (!user) throw new Error("User not found");
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await BackofficeUser.updateOne(
+      { email },
+      { resetToken: token, resetTokenExpires: Date.now() + 3600000 }
+    );
+
+    return { email, token };
+  }
+
   static async getAll() {
     return await BackofficeUser.find();
   }
@@ -51,50 +99,10 @@ class backofficeUserService {
     return await BackofficeUser.findById(id);
   }
 
-  static async sendPasswordResetToken(email: string) {
-    // Generate a reset token (for simplicity, random string, but use JWT/crypto in production)
-    const token = Math.random().toString(36).substr(2, 8);
-
-    // Ideally save token to user document or a separate PasswordReset collection
-    await BackofficeUser.updateOne({ email }, { resetToken: token, resetTokenExpires: Date.now() + 3600000 }); 
-
-    return { email, token };
-  }
-
-  static async changePassword(userId: string, newPassword: string) {
-    const user = await BackofficeUser.findById(userId);
-    if (!user) throw new Error("User not found");
-
-    // Hash the new password
-    const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto.pbkdf2Sync(newPassword, salt, 1000, 64, "sha512").toString("hex");
-    
-    user.hash = hash;
-    user.salt = salt;
-    await user.save();
-
-    return { userId, success: true };
-  }
-
-  static async resetPassword(token: string, newPassword: string) {
-    const user = await BackofficeUser.findOne({ resetToken: token, resetTokenExpires: { $gt: Date.now() } });
-    if (!user) throw new Error("Invalid or expired token");
-
-    // Hash the new password
-    const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto.pbkdf2Sync(newPassword, salt, 1000, 64, "sha512").toString("hex");
-    
-    // Update user with new hash and salt, and clear reset token
-    user.hash = hash;
-    user.salt = salt;
-    user.resetToken = undefined;
-    user.resetTokenExpires = undefined;
-
-    await user.save();
-    return { success: true };
-  }
-
   static async getNumberOfBackOfficeUsers(limit: number) {
+    if (limit <= 0) {
+      throw new Error("Specify a valid limit greater than zero");
+    }
     return await BackofficeUser.find().limit(limit);
   }
 
@@ -103,22 +111,17 @@ class backofficeUserService {
   }
 
   static async update(id: string, data: Partial<IBackofficeUser>) {
-    console.log('Service Update - ID:', id, 'Data:', data);
-    
-    // First check if user exists
     const existingUser = await BackofficeUser.findById(id);
-    console.log('Existing User:', existingUser);
-    
     if (!existingUser) {
       throw new Error(`User with ID ${id} not found`);
     }
-    
-    const updatedUser = await BackofficeUser.findByIdAndUpdate(id, data, { new: true });
-    console.log('Updated User:', updatedUser);
-    
+
+    const updatedUser = await BackofficeUser.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+
     return updatedUser;
   }
 }
 
-export default backofficeUserService;
-
+export default BackofficeUserService;
