@@ -118,7 +118,7 @@ export const AuthController = {
 
   async logout(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.userId;
+      const userId = req.user?.userId;
       const token = req.headers.authorization?.split(' ')[1];
 
       const result = await AuthService.logout(userId!, token!);

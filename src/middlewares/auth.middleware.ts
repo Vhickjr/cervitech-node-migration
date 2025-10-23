@@ -37,8 +37,23 @@ export const authenticateJWT = async (
       });
     }
 
-    const payload = TokenUtil.verifyToken(token);
-    req.user = payload; 
+    const payload = TokenUtil.verifyUserToken(token);
+
+    if (!payload.role) {
+      return res.status(403).json({
+        success: false,
+        message: "Token missing role information.",
+      });
+    }
+
+    req.user = {
+      userId: payload.userId,
+      role: payload.role,
+      username: payload.username,
+      email: payload.email,
+      accessLevel: payload.accessLevel,
+    };
+
     next();
   } catch (err: any) {
     return res.status(403).json({

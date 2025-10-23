@@ -5,7 +5,7 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 import { MailService } from "../MailService";
 import { MailSender } from "../MailSender";
-import { SendGridEmailSender } from "../sendGridEmailSender";
+import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../utils/customException";
 import { EmailTemplates } from "../EmailTemplates";
@@ -157,7 +157,7 @@ static async deleteAccountRequest(email: string): Promise<boolean> {
       throw new CustomException("User does not exist");
     }
 
-    const token = await TokenUtil.generateResetToken(user._id.toString());
+    const token = await TokenUtil.generateToken(user._id.toString());
     console.log("Generated token:", token);
 
     await mailService.sendAccountDeletionMail(

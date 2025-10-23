@@ -1,13 +1,17 @@
 import jwt from "jsonwebtoken";
 import { IAppUser } from "../models/AppUser";
 import { IBackofficeUser } from "../models/BackOfficeUser";
+import dotenv from "dotenv";
+dotenv.config();
 
+// Secrets
 const APP_USER_SECRET = process.env.APP_USER_JWT_SECRET || "appuser-secret-key";
 const BACKOFFICE_SECRET = process.env.BACKOFFICE_JWT_SECRET || "backoffice-secret-key";
+const GENERAL_TOKEN_SECRET = process.env.GENERAL_TOKEN_SECRET || "general-secret-key";
 
 export interface BaseTokenPayload {
   userId: string;
-  role: "APP_USER" | "BACKOFFICE_USER";
+  role?: "APP_USER" | "BACKOFFICE_USER";
   username?: string;
   email?: string;
   accessLevel?: string;
@@ -16,6 +20,7 @@ export interface BaseTokenPayload {
 }
 
 export class TokenUtil {
+  // 🔹 App User Auth Token
   static generateAppUserToken(user: IAppUser): string {
     const payload: BaseTokenPayload = {
       userId: String(user._id),
@@ -26,6 +31,7 @@ export class TokenUtil {
     return jwt.sign(payload, APP_USER_SECRET, { expiresIn: "2h" });
   }
 
+  // 🔹 Backoffice Auth Token
   static generateBackofficeUserToken(user: IBackofficeUser): string {
     const payload: BaseTokenPayload = {
       userId: String(user._id),
@@ -37,14 +43,30 @@ export class TokenUtil {
     return jwt.sign(payload, BACKOFFICE_SECRET, { expiresIn: "2h" });
   }
 
-  static verifyToken(token: string): BaseTokenPayload {
+  // General-purpose Token (for password reset, account deletion, etc.)
+  static generateToken(identifier: string, email?: string): string {
+  const payload: { userId: string; email?: string } = { userId: identifier };
+  if (email) payload.email = email;
+  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "1h" });
+}
+
+  static verifyToken(token: string): { userId: string } {
+    try {
+      return jwt.verify(token, GENERAL_TOKEN_SECRET) as { userId: string };
+    } catch {
+      throw new Error("Invalid or expired general token");
+    }
+  }
+
+  static verifyUserToken(token: string): BaseTokenPayload {
     try {
       const decoded = jwt.decode(token) as BaseTokenPayload | null;
       if (!decoded || !decoded.role) throw new Error("Invalid token structure");
 
-      const secret = decoded.role === "BACKOFFICE_USER"
-        ? BACKOFFICE_SECRET
-        : APP_USER_SECRET;
+      const secret =
+        decoded.role === "BACKOFFICE_USER"
+          ? BACKOFFICE_SECRET
+          : APP_USER_SECRET;
 
       return jwt.verify(token, secret) as BaseTokenPayload;
     } catch {

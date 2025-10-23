@@ -1,7 +1,7 @@
 import { EmailClient } from '@azure/communication-email';
 import * as dotenv from 'dotenv';
-import { TokenService } from '../generateToken';
 import { EmailTemplates } from './emailtemplates';
+import { TokenUtil } from '../token.util';
 dotenv.config();
 
 export class Emailutils {
@@ -11,7 +11,7 @@ export class Emailutils {
   public static client = new EmailClient(Emailutils.connectionString);
 
   static async AccountDeletionRequestEmail(to: string, username: string) {
-    const token = TokenService.generateToken({ _id: '', email: to });
+    const token = TokenUtil.generateToken('', to);
     const html = EmailTemplates.accountDeletionRequest(username, to, token);
     const poller = await Emailutils.client.beginSend(EmailTemplates.MessageTemplate(to, 'Account Deletion Request', html));
     const response = await poller.pollUntilDone();
