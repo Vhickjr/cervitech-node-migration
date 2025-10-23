@@ -39,11 +39,11 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/fcm', fcmRoutes);
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/neck-angle', neckAngleRoutes);
-app.use("/api/v1/backoffice-users", (req, res, next) => {
+/* app.use("/api/v1/backoffice-users", (req, res, next) => {
   console.log("Backoffice route hit:", req.method, req.url);
   next();
-}, backOfficeUser);
-//app.use("/api/v1/backoffice-users", backOfficeUser);
+}, backOfficeUser); */
+app.use("/api/v1/backoffice-users", backOfficeUser);
 app.use('/api/v1/transactions', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
 // Connect to MongoDB and start server
