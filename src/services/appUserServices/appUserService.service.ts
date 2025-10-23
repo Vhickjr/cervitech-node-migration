@@ -5,7 +5,7 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 import { MailService } from "../MailService";
 import { MailSender } from "../MailSender";
-import { SendGridEmailSender } from "../sendGridEmailSender";
+import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../utils/customException";
 import { EmailTemplates } from "../EmailTemplates";
@@ -52,8 +52,6 @@ export class AppUserService {
         firstName: user.firstName,
         lastName: user.lastName,
         pictureUrl: user.pictureUrl,
-        salt: user.salt,
-        hash: user.hash,
         isGoalOn: user.isGoalOn,
         allowPushNotifications: user.allowPushNotifications,
         mobileChannel: user.mobileChannel,
@@ -383,8 +381,8 @@ static async deleteAllAsync(): Promise<boolean> {
         lastName: user.lastName,
         pictureUrl: user.pictureUrl,
         fcmToken: user.fcmToken,
-        hash: user.hash,
-        salt: user.salt,
+        /* hash: user.hash,
+        salt: user.salt, */
         currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle ?? 0,
         isGoalOn: user.isGoalOn ?? false,
         hasPaid: user.hasPaid ?? false,
@@ -424,8 +422,6 @@ static async deleteAllAsync(): Promise<boolean> {
           lastName: user.lastName,
           pictureUrl: user.pictureUrl,
           fcmToken: user.fcmToken,
-          hash: user.hash,
-          salt: user.salt,
           currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle ?? 0,
           isGoalOn: user.isGoalOn ?? false,
           hasPaid: user.hasPaid ?? false,

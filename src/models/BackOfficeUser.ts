@@ -12,7 +12,7 @@ export interface IBackofficeUser extends IUser {
 
 const BackofficeUserSchema: Schema = new Schema<IBackofficeUser>({
   ...UserSchema.obj,
-  password: { type: String, required: false }, // Override to make password optional since we use hash/salt
+  password: { type: String, required: false }, 
   username: { type: String, required: true, unique: true },
   accessLevel: { type: String, required: true },
   readOnly: { type: Boolean, default: false },

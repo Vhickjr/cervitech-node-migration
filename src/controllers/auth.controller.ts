@@ -9,32 +9,89 @@ export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const result = await AuthService.signup(req.body);
+      if (result.success === false) {
+        logger.warn('User signup failed', { email: req.body.email, message: result.message });
+        return res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+      }
+
       logger.info('User signed up successfully', { email: req.body.email });
       res.status(201).json(result);
     } catch (err: any) {
-      logger.error('User signup failed', { email: req.body.email, error: err.message });
-      res.status(400).json({ error: err.message });
+      logger.error('User signup failed.(Unexpected internal error)', {
+        email: req.body.email,
+        error: err.message,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error occurred during signup',
+      });
     }
-    },
-  async sendPasswordToken(req: Request, res: Response){
-     try{
+  },
+
+  async sendPasswordToken(req: Request, res: Response) {
+    try {
       const result = await AuthService.sendPasswordResetToken(req.body);
+      if (result.success === false) {
+        logger.warn('Sending password token failed', {
+          email: req.body.email,
+          message: result.message,
+        });
+        return res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+      }
+      logger.info('Password token sent successfully.', { email: req.body.email });
       res.status(200).json(result);
-      } catch (err: any) {
-        res.status(400).json({ error: err.message });
-     }
-  },
-  async resetPassword(req: Request, res: Response){
-    try{
-      const result = await AuthService.resetPassword(req.body);
-      logger.info('Password reset successfully', { email: req.body.email });
-      res.status(200).json(result);
-    } catch(err: any){
-      logger.error('Password reset failed', { email: req.body.email, error: err.message });
-      res.status(400).json({error: err.message});
+    } catch (err: any) {
+      logger.error('Sending password token failed (Unexpected internal error)', {
+        email: req.body.email,
+        error: err.message,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error occurred while sending password token',
+      });
     }
   },
- /*  async login(req: Request, res: Response) {
+
+
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      const {newPassword} = req.body;
+
+      if(!token){
+        return res.status(400).json({
+          success: false,
+          message: 'Token is required in the Authorization header'
+        });
+      }
+      const result = await AuthService.resetPassword({token, newPassword});
+      if (result.success === false) {
+        logger.warn('Password reset  failed', { message: result.message });
+        return res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+      }
+      logger.info('Password reset successfully');
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.log(err);
+      logger.error('Password reset failed. (Unexpected internal error)', {
+        error: err.message,
+      });
+      res.status(500).json({
+        success: false,
+        message: `Internal server error occurred while resetting password: ${err}`
+      });
+    }
+  },
+  /*  async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
       const result = await AuthService.login(email, password);
@@ -99,15 +156,36 @@ export const AuthController = {
 
   async authenticate(req: Request, res: Response) {
     try {
-      const model = req.body;
-      const authenticatedResult = await AuthService.authenticate(model);
-      res.status(200).json(authenticatedResult);
+      const result = await AuthService.authenticatev1(req.body);
+      if (result.success === false) {
+        logger.warn('Authentication / Login failed', {
+          emailOrUsername: req.body.emailOrUsername,
+          message: result.message,
+        });
+        return res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+      }
+
+      logger.info('Authentication successful', {
+        emailOrUsername: req.body.emailOrUsername,
+        message: result.message,
+      });
+      res.status(200).json(result);
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      logger.error('Authentication failed. (Unexpected internal error)', {
+        emailOrUsername: req.body.emailOrUsername,
+        error: err.message,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error occurred while authenticating user',
+      });
     }
   },
 
-/*   async logout(req: Request, res: Response) {
+  /*   async logout(req: Request, res: Response) {
     try {
       // Send back logout confirmation
       res.status(200).json({ message: 'Logged out successfully' });
@@ -118,17 +196,39 @@ export const AuthController = {
 
   async logout(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.userId;
+      const userId = req.user?.userId;
       const token = req.headers.authorization?.split(' ')[1];
 
-      const result = await AuthService.logout(userId!, token!);
+      if (!userId) {
+        return res
+          .status(401)
+          .json({ success: false, message: 'Authentication failed. User ID missing.' });
+      }
+      if (!token) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Token is required in the header.' });
+      }
 
-      res.status(200).json({
-        message: "Logged out successfully",
-        data: result,
-      });
+      const result = await AuthService.logout({ userId, token });
+      if (result.success === false) {
+        return res.status(400).json({
+          success: false,
+          message: result.message,
+        });
+      }
+
+      res.status(200).json(result);
+
     } catch (err: any) {
-      res.status(500).json({ error: err.message || "Logout failed" });
+      logger.error('Logout failed. (Unexpected internal error)', {
+        userId: req.user?.userId,
+        error: err.message,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error occurred while logging user',
+      });
     }
   },
 
