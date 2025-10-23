@@ -1,5 +1,5 @@
-import { DailyAngleDataViewModel } from "../viewmodels/DailyAngleData.viewmodel";
 import { AbbreviatedNeckAngleRecordViewModel } from "../viewmodels/AbbreviatedNeckAngleRecord.viewmodel";
+import { DailyAngleDataViewModel } from "../viewmodels/DailyAngleData.viewmodel";
 
 export class DateLibrary {
   static getCurrentDateTime(): Date {
