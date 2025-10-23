@@ -66,7 +66,7 @@ export const updateFCMToken = async (req: Request, res: Response): Promise<void>
 export class FCMController{
   static async updateFCMToken(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.userId;
+      const userId = req.user?.userId;
       const { fcmToken } = req.body;
 
       if (!fcmToken) {

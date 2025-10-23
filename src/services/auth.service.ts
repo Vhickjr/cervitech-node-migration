@@ -2,7 +2,6 @@ import { HashUtil } from '../utils/hash';
 import { SignupRequest, SignupResponse, passwordResetRequest, passwordResetResponse } from '../viewmodels/auth.viewmodel';
 import { TokenUtil } from '../utils/token.util';
 import { LoginResponse, LoginRequest } from '../types/auth.types';
-import { TokenService } from '../utils/generateToken';
 import User from '../models/User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
 import TokenBlacklist from '../models/TokenBlacklist';
@@ -58,7 +57,7 @@ export class AuthService {
     const user = await AppUser.findOne({ email });
     if (!user) throw new Error('User not found');
 
-    const token = TokenUtil.generateResetToken(user._id.toString());
+    const token = TokenUtil.generateToken(user._id.toString());
 
     return {
       message: 'Password link generated',
@@ -67,7 +66,7 @@ export class AuthService {
   }
 
   static async resetPassword({ token, newPassword }: passwordResetResponse) {
-    const { userId } = TokenUtil.verifyResetToken(token);
+    const { userId } = TokenUtil.verifyToken(token);
     const hashed = await HashUtil.hash(newPassword);
     await AppUser.findByIdAndUpdate(userId, { password: hashed });
     return { message: 'Password reset successfully' };
@@ -106,7 +105,8 @@ export class AuthService {
     user.mobileChannel = mobileChannel;
     await user.save();
 
-    const token = TokenService.generateToken(user);
+    const token = TokenUtil.generateAppUserToken(user);
+
 
     let currentTargetedAverageNeckAngle = 0;
     const lastSetGoal = await Goal.findOne({ appUserId: user._id });
