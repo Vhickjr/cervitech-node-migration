@@ -1,13 +1,6 @@
 import { Request, Response } from "express";
-import "express-session";
 import backofficeUserService from "../services/backofficeuser.service";
 import { logger } from "../utils/logger";
-
-declare module "express-session" {
-  interface SessionData {
-    userName?: string;
-  }
-}
 
 class BackOfficeUserController {
   static async createUser(req: Request, res: Response) {
@@ -31,6 +24,8 @@ class BackOfficeUserController {
   }
 
   static async loginController(req: Request, res: Response) {
+    console.log("Login controller hit");
+
     try {
       const { username, password } = req.body;
       if (!username || !password) {
@@ -40,14 +35,19 @@ class BackOfficeUserController {
         });
       }
 
-      const user = await backofficeUserService.loginService(username, password);
-      req.session.userName = user.username;
+      const { user, token } = await backofficeUserService.loginService(username, password);
 
-      logger.info("Login successful.", { username });
+      logger.info("Backoffice login successful.", { username });
+
       res.status(200).json({
         success: true,
         message: "Login successful.",
-        data: user,
+        data: {
+          id: user._id,
+          username: user.username,
+          accessLevel: user.accessLevel,
+          token,
+        },
       });
     } catch (err: any) {
       logger.error("Login Error", { error: err.message });
@@ -59,35 +59,29 @@ class BackOfficeUserController {
     }
   }
 
-  static async getBySessionUserName(req: Request, res: Response) {
+  static async logoutController(req: Request, res: Response) {
     try {
-      const username = req.session?.userName;
-      if (!username) {
-        return res.status(401).json({
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith("Bearer ")) {
+        return res.status(400).json({
           success: false,
-          message: "User not logged in or session expired.",
+          message: "Authorization token missing.",
         });
       }
 
-      const data = await backofficeUserService.getByUserName(username);
-      if (!data) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found.",
-        });
-      }
+      const token = authHeader.split(" ")[1];
+      await backofficeUserService.logoutService(token);
 
-      logger.info("Fetched user by session username.", { username });
+      logger.info("User logged out successfully.");
       res.status(200).json({
         success: true,
-        message: "User retrieved successfully.",
-        data,
+        message: "Logout successful. Token invalidated.",
       });
     } catch (err: any) {
-      logger.error("Get By Session Username Error", { error: err.message });
+      logger.error("Logout Error", { error: err.message });
       res.status(500).json({
         success: false,
-        message: "Failed to retrieve user.",
+        message: "Failed to logout user.",
         error: err.message,
       });
     }
@@ -197,6 +191,14 @@ class BackOfficeUserController {
     try {
       const { number } = req.params;
       const data = await backofficeUserService.getNumberOfBackOfficeUsers(Number(number));
+
+      if (Number(number) === 0) {
+        logger.warn("Requested number of users is zero.");
+        return res.status(400).json({
+          success: false,
+          message: "Number must be greater than zero.",
+        });
+      }
 
       logger.info("Fetched number of backoffice users.", { count: number });
       res.status(200).json({

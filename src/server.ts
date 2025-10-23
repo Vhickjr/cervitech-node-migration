@@ -12,28 +12,21 @@ import userRoutes from './routes/user.routes.js'
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
-import emailroutes from './routes/email.routes.js';
 // Load environment variables
 dotenv.config();
 
 const app = express();
-app.use(bodyParser.json())
 const PORT = process.env.PORT || 4000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cervitechdb';
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/cervitechdb";
 
 // Middleware
+app.use(bodyParser.json());
 app.use(express.json());
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "keyboardcat", // secret for signing
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // ⚠️ set secure: true if using HTTPS
+  morgan(":method :url :status :response-time ms - :res[content-length]", {
+    stream: logger.stream,
   })
 );
-app.use(morgan(':method :url :status :response-time ms - :res[content-length]', {
-  stream: logger.stream
-}));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
@@ -43,21 +36,19 @@ app.use('/api/v1/neck-angle', neckAngleRoutes);
 app.use("/api/v1/backoffice-users", backOfficeUser);
 app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
-app.use('/api/v1/email', emailroutes);
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI , {
   dbName: "cervitechdb",   // 👈 force your app to use "cervitech" database
 })
 
   .then(() => {
-    logger.info('MongoDB connected');
-
+    logger.info("MongoDB connected");
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
   })
-  .catch((err: unknown) => {
-    logger.error('MongoDB connection error:');
+  .catch((err) => {
+    logger.error("MongoDB connection error:", err);
   });
 
 export default app;
