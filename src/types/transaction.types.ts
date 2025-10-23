@@ -19,8 +19,6 @@ export interface AppUserViewModel {
   firstName?: string;
   lastName?: string;
   pictureUrl?: string;
-  salt: string;
-  hash: string;
   isGoalOn: boolean;
   allowPushNotifications: boolean;
   mobileChannel: MobileChannel;

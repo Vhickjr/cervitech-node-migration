@@ -4,13 +4,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "Node16",          // <-- switch to CommonJS
-    "moduleResolution": "node16",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src"]
 }
