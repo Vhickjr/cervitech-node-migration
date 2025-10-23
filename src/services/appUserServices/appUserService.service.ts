@@ -5,7 +5,7 @@ import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdate
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
 import { MailService } from "../MailService";
 import { MailSender } from "../MailSender";
-import { SendGridEmailSender } from "../SendGridEmailSender";
+import { SendGridEmailSender } from "../sendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../utils/customException";
 import { EmailTemplates } from "../EmailTemplates";
@@ -35,6 +35,7 @@ export class AppUserService {
       }
 
       const user = await AppUser.findById(userId);
+      console.log("Fetched user:", user);
       if (!user) {
         throw new Error("This user cannot be retrieved at the moment. Please contact support.");
       }
@@ -66,25 +67,27 @@ export class AppUserService {
     }
   }
 
-  static async updatePictureUrlAsync(update: PictureUrlUpdateViewModel): Promise<boolean> {
-    if (!update || update.userId < 1) {
-      throw new Error("UserId not provided");
-    }
-
-    const user = await AppUser.findById(update.userId);
-    if (!user) {
-      throw new Error("This user cannot be retrieved at the moment. Please contact support.");
-    }
-
-    user.pictureUrl = update.pictureUrl ?? user.pictureUrl;
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return true;
+static async updatePictureUrlAsync(update: PictureUrlUpdateViewModel): Promise<boolean> {
+  if (!update || !update.userId) {
+    throw new Error("User ID not provided.");
   }
+
+  const user = await AppUser.findById(update.userId);
+  if (!user) {
+    throw new Error("User not found. Please contact support.");
+  }
+
+  user.pictureUrl = update.pictureUrl ?? user.pictureUrl;
+  await user.save();
+
+  return true;
+}
+
 
   static async deleteByIdAsync(id: string): Promise<boolean> {
   try {
     const user = await AppUser.findById(id);
+    console.log(user);
 
     if (!user) {
       throw new CustomException("User does not exist");
@@ -208,6 +211,22 @@ static async deleteAllAsync(): Promise<boolean> {
     } catch (error) {
       logger.error("Error in toggleAllowPushNotificationsAsync:", error);
       throw new CustomException("Error toggling push notifications.");
+    }
+  }
+
+  static async postResponseRateAsync(userId: string): Promise<boolean> {
+    try {
+      const responseRate = await ResponseRate.findOne({ userId });
+
+      if (responseRate) {
+        responseRate.response = 1;
+        await responseRate.save();
+      }
+
+      return true;
+    } catch (error: any) {
+      logger.error(error.message || 'Unhandled exception in postResponseRate');
+      throw error;
     }
   }
 

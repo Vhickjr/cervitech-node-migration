@@ -69,80 +69,56 @@ export class DateLibrary {
   }
 
   static startOfDay(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
   }
 
   static endOfDay(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(23, 59, 59, 999);
-    return d;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
   }
 
-  static getEachDayOfWeekAverage(
-    records: AbbreviatedNeckAngleRecordViewModel[]
-  ): DailyAngleDataViewModel[] {
-    const days = ['MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT', 'SUN'];
-    const sums = new Array(7).fill(0);
-    const counts = new Array(7).fill(0);
-
-    records.forEach((r) => {
-      const dow = r.dateTimeRecorded.getDay(); // 0 = Sun, 1 = Mon ...
-      // map Sun(0) -> index 6, Mon(1)->0 ...
-      const idx = (dow + 6) % 7;
-      sums[idx] += r.angle;
-      counts[idx] += 1;
-    });
-
-    return days.map((day, idx) => ({
-      day,
-      averageNeckAngle: counts[idx] === 0 ? 0 : +(sums[idx] / counts[idx]).toFixed(1),
-    }));
-  }
-
-
-  static formatDay(day: string) {
-    switch (day.toLowerCase().trim()) {
-      case 'sunday':
-        return 'SUN';
-      case 'monday':
-        return 'MON';
-      case 'tuesday':
-        return 'TUE';
-      case 'wednesday':
-        return 'WED';
-      case 'thursday':
-        return 'THUR';
-      case 'friday':
-        return 'FRI';
-      case 'saturday':
-        return 'SAT';
-      default:
-        return 'NIL';
-    }
-  }
-  
   static startOfWeek(date: Date): Date {
     const d = new Date(date);
     const day = d.getDay(); 
-    let delta = 1 - day; 
-
-    if (day === 0) {
-     
-      delta = -6;
-    }
-
-    d.setDate(d.getDate() + delta);
+    const diff = (day === 0 ? -6 : 1) - day; 
+    d.setDate(d.getDate() + diff);
     d.setHours(0, 0, 0, 0);
     return d;
   }
 
   static endOfWeek(date: Date): Date {
-    const monday = this.startOfWeek(date);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
-    return sunday;
+    const start = this.startOfWeek(date);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return end;
   }
+
+  static formatDay(dateStr: string): string {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return daysMap[date.getDay()];
+  }
+
+
+  static getEachDayOfWeekAverage(records: { angle: number; dateTimeRecorded: Date }[]) {
+    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const grouped: { [key: number]: number[] } = {};
+
+    for (const r of records) {
+      const day = r.dateTimeRecorded.getDay(); 
+      if (!grouped[day]) grouped[day] = [];
+      grouped[day].push(r.angle);
+    }
+
+    return Object.keys(grouped).map(dayNum => {
+      const values = grouped[+dayNum];
+      const avg = values.reduce((s, v) => s + v, 0) / values.length;
+      return {
+        day: daysMap[+dayNum],
+        averageNeckAngle: +avg.toFixed(1)
+      };
+    });
+  }
+
 }

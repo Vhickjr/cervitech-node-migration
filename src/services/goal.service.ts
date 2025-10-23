@@ -18,7 +18,6 @@ export class GoalService {
   static async turnOnGoalAsync(model: SetGoalViewModel): Promise<boolean> {
     try {
       const user = await AppUser.findById(model.appUserId);
-      console.log("appUserId:", model.appUserId, typeof model.appUserId);
 
       if (!user) throw new CustomException('User does not exist');
       
@@ -74,28 +73,27 @@ export class GoalService {
 
   static async getAllGoalsByIdAsync(model: TurnOnGoalViewModel): Promise<GoalCycleReportViewModel[]> {
     try {
-      const goals = await Goal.findById(model.appUserId);
-
-      if (!goals.length) {return []};
+      const goals = await Goal.findById(model.appUserId).exec();
+      if (!goals || goals.length === 0) return [];
 
       const reports: GoalCycleReportViewModel[] = [];
-
+      
+      
       let counter = 1;
-      for (const goal of goals) {
-        for (const report of goal.goalCycleCompletionReports) {
-          reports.push({
-            id: counter++, // numeric,
-            appUserId: goal.appUserId,
-            frequency: goal.frequency,
-            targetedAverageNeckAngle: goal.targetedAverageNeckAngle,
-            actualAverageNeckAngle: Math.round(report.actualAverageNeckAngle * 10) / 10,
-            complianceInPercentage: Math.round(report.complianceInPercentage * 10) / 10,
-            dateOfConcludedCycle: report.dateOfConcludedCycle,
-            dayOfConcludedCycle: report.dayOfConcludedCycle,
-            colorTag: Utils.getColorTag(report.complianceInPercentage),
-          });
-        }
-      }
+      for (const report of goals.goalCycleCompletionReports) {
+        reports.push({
+          id: counter++,
+          appUserId: goals.appUserId,
+          frequency: goals.frequency,
+          targetedAverageNeckAngle: goals.targetedAverageNeckAngle,
+          actualAverageNeckAngle: Math.round(report.actualAverageNeckAngle * 10) / 10,
+          complianceInPercentage: Math.round(report.complianceInPercentage * 10) / 10,
+          dateOfConcludedCycle: report.dateOfConcludedCycle,
+          dayOfConcludedCycle: report.dayOfConcludedCycle,
+          colorTag: Utils.getColorTag(report.complianceInPercentage),
+  });
+}
+
 
       return reports;
     } catch (error: any) {
@@ -106,9 +104,9 @@ export class GoalService {
 
   static async getCurrentTargetedAverageNeckAngleAsync(appUserId: string): Promise<number> {
     try {
-      const goals = await Goal.find({ appUserId }).sort({ dateSet: -1 }).exec();
+      const goals = await Goal.find({ _id: appUserId }).sort({ dateSet: -1 }).exec();
       const lastGoal = goals[0]; // Most recent goal due to sorting
-
+      console.log("Last Goal:", lastGoal);
       return lastGoal?.targetedAverageNeckAngle ?? 0;
     } catch (error: any) {
       logger.error(error.message);
