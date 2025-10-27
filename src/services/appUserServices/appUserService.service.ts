@@ -155,7 +155,7 @@ static async deleteAccountRequest(email: string): Promise<boolean> {
       throw new CustomException("User does not exist");
     }
 
-    const token = await TokenUtil.generateResetToken(user._id.toString());
+    const token = await TokenUtil.generateToken(user._id.toString());
     console.log("Generated token:", token);
 
     await mailService.sendAccountDeletionMail(

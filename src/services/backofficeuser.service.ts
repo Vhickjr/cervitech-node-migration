@@ -3,9 +3,9 @@ import { backOfficeUserModel } from "../types/backOfficeUserModel.types";
 import { HashUtil } from "../utils/hash";
 import { TokenUtil } from "../utils/token.util";
 import TokenBlacklist from "../models/TokenBlacklist";
-import crypto from "crypto";
 
 class BackofficeUserService {
+  /** Create new backoffice user */
   static async create(dto: backOfficeUserModel) {
     const hashedPassword = await HashUtil.hash(dto.password);
 
@@ -23,6 +23,7 @@ class BackofficeUserService {
     return await user.save();
   }
 
+  /**user login */
   static async loginService(username: string, password: string) {
     const user = await BackofficeUser.findOne({ username });
     if (!user) throw new Error("Invalid username or password");
@@ -31,15 +32,13 @@ class BackofficeUserService {
     if (!isValid) throw new Error("Invalid username or password");
 
     const token = TokenUtil.generateBackofficeUserToken(user);
-
     return { user, token };
   }
 
-
+  /** Logout user by blacklisting token */
   static async logoutService(token: string) {
     if (!token) throw new Error("Token required for logout");
 
-    // prevent duplicate blacklist entries
     const existing = await TokenBlacklist.findOne({ token });
     if (!existing) {
       await TokenBlacklist.create({ token });
@@ -48,6 +47,7 @@ class BackofficeUserService {
     return { success: true, message: "User logged out successfully" };
   }
 
+  /** Change password directly (authenticated users) */
   static async changePassword(userId: string, newPassword: string) {
     const user = await BackofficeUser.findById(userId);
     if (!user) throw new Error("User not found");
@@ -58,69 +58,58 @@ class BackofficeUserService {
     return { userId, success: true };
   }
 
-  static async resetPassword(token: string, newPassword: string) {
-    const user = await BackofficeUser.findOne({
-      resetToken: token,
-      resetTokenExpires: { $gt: Date.now() },
-    });
-    if (!user) throw new Error("Invalid or expired token");
-
-    user.password = await HashUtil.hash(newPassword);
-    user.resetToken = undefined;
-    user.resetTokenExpires = undefined;
-
-    await user.save();
-    return { success: true };
-  }
-
   static async sendPasswordResetToken(email: string) {
     const user = await BackofficeUser.findOne({ email });
     if (!user) throw new Error("User not found");
 
-    const token = crypto.randomBytes(32).toString("hex");
-
-    await BackofficeUser.updateOne(
-      { email },
-      { resetToken: token, resetTokenExpires: Date.now() + 3600000 }
-    );
-
-    return { email, token };
+    const resetToken = TokenUtil.generateToken(user._id.toString());
+    return { email, resetToken };
   }
 
+  static async resetPassword(token: string, newPassword: string) {
+    const { userId } = TokenUtil.verifyToken(token);
+
+    const user = await BackofficeUser.findById(userId);
+    if (!user) throw new Error("Invalid or expired token");
+
+    user.password = await HashUtil.hash(newPassword);
+    await user.save();
+
+    return { success: true, message: "Password reset successfully" };
+  }
+
+  /** Fetch all users */
   static async getAll() {
     return await BackofficeUser.find();
   }
 
+  /** Get user by username */
   static async getByUserName(username: string) {
     return await BackofficeUser.findOne({ username });
   }
 
+  /** Get user by ID */
   static async getById(id: string) {
     return await BackofficeUser.findById(id);
   }
 
+  /** Limit user query */
   static async getNumberOfBackOfficeUsers(limit: number) {
-    if (limit <= 0) {
-      throw new Error("Specify a valid limit greater than zero");
-    }
+    if (limit <= 0) throw new Error("Specify a valid limit greater than zero");
     return await BackofficeUser.find().limit(limit);
   }
 
+  /** Delete user by ID */
   static async deleteById(id: string) {
     return await BackofficeUser.findByIdAndDelete(id);
   }
 
+  /** Update user */
   static async update(id: string, data: Partial<IBackofficeUser>) {
     const existingUser = await BackofficeUser.findById(id);
-    if (!existingUser) {
-      throw new Error(`User with ID ${id} not found`);
-    }
+    if (!existingUser) throw new Error(`User with ID ${id} not found`);
 
-    const updatedUser = await BackofficeUser.findByIdAndUpdate(id, data, {
-      new: true,
-    });
-
-    return updatedUser;
+    return await BackofficeUser.findByIdAndUpdate(id, data, { new: true });
   }
 }
 
