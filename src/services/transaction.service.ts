@@ -27,7 +27,7 @@ export class TransactionService {
       appUserId: transactionVM.appUserId,
       paymentRef: transactionVM.paymentRef,
       amount: transactionVM.amount,
-      status: transactionVM.status as TRANSACTION_STATUS,
+      status: transactionVM.status,
       transDate: transactionVM.transDate,
       description: transactionVM.description,
     });

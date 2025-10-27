@@ -198,7 +198,7 @@ export class NeckAngleController {
 
   static async getUserNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.userId;
+      const userId = req.user?.userId;
       if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
       const data = await NeckAngleService.computeNeckAngleParameters(userId);
