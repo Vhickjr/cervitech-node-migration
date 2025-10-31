@@ -1,6 +1,7 @@
 import BackofficeUser, { IBackofficeUser } from "../models/BackOfficeUser";
 import { backOfficeUserModel } from "../types/backOfficeUserModel.types";
 import { HashUtil } from "../utils/hash";
+import { EmailUtils } from "../utils/EmailService/emailutils";
 import { TokenUtil } from "../utils/token.util";
 import TokenBlacklist from "../models/TokenBlacklist";
 
@@ -63,7 +64,10 @@ class BackofficeUserService {
     if (!user) throw new Error("User not found");
 
     const resetToken = TokenUtil.generateToken(user._id.toString());
-    return { email, resetToken };
+
+    await EmailUtils.sendPasswordResetEmail(user.email, user.username, resetToken);
+
+    return { email: user.email, message: "Password reset email sent successfully" };
   }
 
   static async resetPassword(token: string, newPassword: string) {

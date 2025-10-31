@@ -3,12 +3,8 @@ import ResponseRate from "../../viewmodels/ResponseRateViewModel";
 import { PictureUrlUpdateViewModel } from "../../viewmodels/PictureUrlUpdateViewModel";
 import { SubscriptionUpdateViewModel } from "../../viewmodels/SubscriptionUpdateViewModel";
 import { AppUserResponse, ResponseRateViewModel } from "../../viewmodels/ResponseRateViewModel";
-import { MailService } from "../MailService";
-import { MailSender } from "../MailSender";
-import { SendGridEmailSender } from "../SendGridEmailSender";
 import { Activity } from "../../viewmodels/Activity";
 import { CustomException } from "../../utils/customException";
-import { EmailTemplates } from "../EmailTemplates";
 import { NeckAngleRecordModel } from "../../models/NeckAngleRecord";
 import { DateLibrary } from "../../utils/dateLibrary";
 import { Goal } from "../../models/Goal";
@@ -21,11 +17,8 @@ import {AppUserViewModel} from "../../viewmodels/AppUserViewModel";
 import User from "../../models/User";
 // import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
 import { TokenUtil } from "../../utils/token.util";
+import { EmailUtils } from "../../utils/EmailService/emailutils";
 
-const mailSender = new MailSender(logger);
-const emailTemplates = new EmailTemplates(logger);
-const sendGridEmailSender = new SendGridEmailSender(emailTemplates);
-const mailService = new MailService(logger, emailTemplates, mailSender, sendGridEmailSender);
 
 export class AppUserService {
   static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
@@ -95,10 +88,7 @@ static async updatePictureUrlAsync(update: PictureUrlUpdateViewModel): Promise<b
     await user.save();
 
     try {
-      await mailService.sendAccountDeletionConfirmationMail(
-        user.email.trim().toLowerCase(),
-        user.username
-      );
+      await EmailUtils.sendAccountDeletionConfirmation(user.email, user.username);
     } catch (emailError) {
       logger.error("Failed to send deletion confirmation email:", emailError);
     }
@@ -127,10 +117,7 @@ static async deleteByEmailAsync(email: string): Promise<boolean> {
     await user.save();
 
     try {
-      await mailService.sendAccountDeletionConfirmationMail(
-        normalizedEmail,
-        user.username
-      );
+      await EmailUtils.sendAccountDeletionConfirmation(normalizedEmail, user.username);
     } catch (emailError) {
       logger.error("Failed to send deletion confirmation email:", emailError);
     }
@@ -158,11 +145,7 @@ static async deleteAccountRequest(email: string): Promise<boolean> {
     const token = await TokenUtil.generateToken(user._id.toString());
     console.log("Generated token:", token);
 
-    await mailService.sendAccountDeletionMail(
-      normalizedEmail,
-      user.username,
-      token
-    );
+    await EmailUtils.sendAccountDeletionRequest(normalizedEmail, user.username);
 
     return true;
   } catch (ex: any) {
