@@ -1,5 +1,7 @@
 // emailTemplates.ts
-import { Emailutils } from "./emailutils";
+import { EmailUtils } from "./emailutils";
+const baseUrl = process.env.BACKEND_URL || "http://localhost:5000";
+
 export const EmailTemplates = {
   accountDeletion: (username: string) => {
     return `<!DOCTYPE html>
@@ -27,30 +29,42 @@ export const EmailTemplates = {
 </html>`;
   },
 
-  passwordReset: (username: string, Token: string) => {
-    return `<!DOCTYPE html>
+  passwordReset: (username: string, token: string) => {
+  const resetLink = `${baseUrl}/api/v1/backoffice-users/reset-password?token=${encodeURIComponent(token)}`;
+
+  return `<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Password Reset</title>
+  <meta charset="UTF-8">
+  <title>Password Reset</title>
 </head>
 <body style="font-family: Arial, sans-serif; text-align:center">
-    <!--<h1>Password Reset</h1>-->
-    <table cellpadding="0" cellspacing="0" border="0" width="100%">
-        <tr>
-            <td align="center" valign="top">
-                <a href="https://cervitech.com.ng"><img style="padding-top: 60px" src="https://firebasestorage.googleapis.com/v0/b/cervitech-e4465.appspot.com/o/cervitechLogo2x.png?alt=media&token=ed03f4e5-6bdb-4a58-b7a1-b46ee385b288"></a>
-            </td>
-        </tr>
-    </table>
-    <p>Hi ${username},</p>
-    <p>You recently requested a password reset for your account. Please use the following token to reset your password:<span style="font-weight: bold; color: #4c2a7f">${Token}</p>
-    <p>Please note that the token provided is valid for 30 minutes only. Make sure to reset your password within this timeframe. After 30 minutes, the token will expire, and you'll need to request a new one.</p>
-    <p>If you did not request this password reset, please ignore this email.</p>
-    <p>Best regards,<br>CerviTech Team</p>
+  <table cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr>
+      <td align="center" valign="top">
+        <a href="http://localhost:3000">
+          <img style="padding-top: 60px" src="https://firebasestorage.googleapis.com/v0/b/cervitech-e4465.appspot.com/o/cervitechLogo2x.png?alt=media&token=ed03f4e5-6bdb-4a58-b7a1-b46ee385b288">
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  <p>Hi ${username},</p>
+  <p>You recently requested a password reset for your account.</p>
+  <p>Click the button below to reset your password:</p>
+
+  <a href="${resetLink}" 
+     style="display:inline-block; padding:12px 24px; background-color:#4c2a7f; color:#ffffff; border-radius:5px; text-decoration:none; font-weight:bold;">
+     Reset Password
+  </a>
+
+  <p>This link will expire in 30 minutes.</p>
+  <p>If you didn’t request this, you can safely ignore this email.</p>
+  <p>Best regards,<br>CerviTech Team</p>
 </body>
 </html>`;
-  },
+},
+
 
   signUp: (username: string) => {
     return `<!DOCTYPE html>
@@ -225,17 +239,4 @@ export const EmailTemplates = {
 </body>
 </html>`;
   }, 
-
-  MessageTemplate: (to: string, subject: string, html: string) => {
-  return {
-    senderAddress: Emailutils.sender,
-    content: {
-      subject: subject,
-      html,
-    },
-    recipients: {
-      to: [{ address: to }],
-    }
-  }}
-
 };
