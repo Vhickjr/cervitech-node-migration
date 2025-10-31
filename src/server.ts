@@ -13,6 +13,8 @@ import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
 import emailRoutes from './routes/email.routes.js';
+import { startMonthlyReminderJob } from "./jobs/monthlyReminder.job";
+
 // Load environment variables
 dotenv.config();
 
@@ -49,6 +51,7 @@ mongoose.connect(MONGODB_URI , {
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
+    startMonthlyReminderJob();
   })
   .catch((err) => {
     logger.error("MongoDB connection error:", err);
