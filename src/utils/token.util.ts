@@ -47,16 +47,16 @@ export class TokenUtil {
   static generateToken(identifier: string, email?: string): string {
   const payload: { userId: string; email?: string } = { userId: identifier };
   if (email) payload.email = email;
-  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "1h" });
+  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "30m" });
 }
 
-  static verifyToken(token: string): { userId: string } {
-    try {
-      return jwt.verify(token, GENERAL_TOKEN_SECRET) as { userId: string };
-    } catch {
-      throw new Error("Invalid or expired general token");
-    }
+static verifyToken(token: string): { userId: string; email?: string } {
+  try {
+    return jwt.verify(token, GENERAL_TOKEN_SECRET) as { userId: string; email?: string };
+  } catch {
+    throw new Error("Invalid or expired general token");
   }
+}
 
   static verifyUserToken(token: string): BaseTokenPayload {
     try {
