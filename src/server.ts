@@ -12,6 +12,9 @@ import userRoutes from './routes/user.routes.js'
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
+import emailRoutes from './routes/email.routes.js';
+import { startMonthlyReminderJob } from "./jobs/monthlyReminder.job";
+
 // Load environment variables
 dotenv.config();
 
@@ -36,6 +39,8 @@ app.use('/api/v1/neck-angle', neckAngleRoutes);
 app.use("/api/v1/backoffice-users", backOfficeUser);
 app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
+app.use("/api/v1/email", emailRoutes);
+
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI , {
   dbName: "cervitechdb",   // 👈 force your app to use "cervitech" database
@@ -46,6 +51,7 @@ mongoose.connect(MONGODB_URI , {
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
     });
+    startMonthlyReminderJob();
   })
   .catch((err) => {
     logger.error("MongoDB connection error:", err);

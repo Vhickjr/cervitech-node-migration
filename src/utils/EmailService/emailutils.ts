@@ -1,53 +1,58 @@
-import { EmailClient } from '@azure/communication-email';
-import * as dotenv from 'dotenv';
-import { EmailTemplates } from './emailtemplates';
-import { TokenUtil } from '../token.util';
+// src/utils/EmailService/emailutils.ts
+import { EmailClient } from "@azure/communication-email";
+import * as dotenv from "dotenv";
+import { EmailTemplates } from "./emailtemplates";
+import { TokenUtil } from "../token.util";
+
 dotenv.config();
 
-export class Emailutils {
-// ✅ Static class-level constants
-  public static connectionString = process.env.ACS_CONNECTION_STRING!;
-  public static sender = process.env.SENDER_EMAIL!;
-  public static client = new EmailClient(Emailutils.connectionString);
+export class EmailUtils {
+  private static connectionString = process.env.ACS_CONNECTION_STRING!;
+  private static sender = process.env.SENDER_EMAIL!;
+  private static client = new EmailClient(EmailUtils.connectionString);
 
-  static async AccountDeletionRequestEmail(to: string, username: string) {
-    const token = TokenUtil.generateToken('', to);
-    const html = EmailTemplates.accountDeletionRequest(username, to, token);
-    const poller = await Emailutils.client.beginSend(EmailTemplates.MessageTemplate(to, 'Account Deletion Request', html));
-    const response = await poller.pollUntilDone();
+  private static async sendEmail(to: string, subject: string, html: string) {
+    try {
+      const message = {
+        senderAddress: EmailUtils.sender,
+        content: { subject, html },
+        recipients: { to: [{ address: to }] },
+      };
 
-    return response;
+      const poller = await EmailUtils.client.beginSend(message);
+      const response = await poller.pollUntilDone();
+
+      console.log(`Email sent successfully to ${to}`);
+      return response;
+    } catch (error: any) {
+      console.error(`Failed to send email to ${to}:`, error.message);
+      throw error;
+    }
   }
 
-  static async AccountDeletion(to: string, username: string) {
-    const html = EmailTemplates.accountDeletion(username);
-    const poller = await Emailutils.client.beginSend(EmailTemplates.MessageTemplate(to, 'Account Deletion Confirmed!', html));
-    const response = await poller.pollUntilDone();
-
-    return response;
-  }
-
-  static async PasswordReset(to: string, username: string, Token: string) {
-    const html = EmailTemplates.passwordReset(username, Token);
-    const poller = await Emailutils.client.beginSend(EmailTemplates.MessageTemplate(to, 'Password Reset Request', html));
-    const response = await poller.pollUntilDone();
-
-    return response;
-  }
-
-  static async Reminder(to: string, username: string) {
-    const html = EmailTemplates.reminder(username);
-    const poller = await Emailutils.client.beginSend(EmailTemplates.MessageTemplate(to, 'Checking In - We Miss You at CerviTech!', html));
-    const response = await poller.pollUntilDone();
-
-    return response;
-  }
-
-  static async Signup(to: string, username: string) {
+  static async sendSignupEmail(to: string, username: string) {
     const html = EmailTemplates.signUp(username);
-    const poller = await Emailutils.client.beginSend(EmailTemplates.MessageTemplate(to, 'Welcome', html));
-    const response = await poller.pollUntilDone();
+    return await EmailUtils.sendEmail(to, "Welcome to CerviTech!", html);
+  }
 
-    return response;
+  static async sendPasswordResetEmail(to: string, username: string, token: string) {
+    const html = EmailTemplates.passwordReset(username, token);
+    return await EmailUtils.sendEmail(to, "Password Reset Request", html);
+  }
+
+  static async sendReminderEmail(to: string, username: string) {
+    const html = EmailTemplates.reminder(username);
+    return await EmailUtils.sendEmail(to, "We Miss You at CerviTech!", html);
+  }
+
+  static async sendAccountDeletionRequest(to: string, username: string) {
+    const token = TokenUtil.generateToken('',to);
+    const html = EmailTemplates.accountDeletionRequest(username, to, token);
+    return await EmailUtils.sendEmail(to, "Account Deletion Request", html);
+  }
+
+  static async sendAccountDeletionConfirmation(to: string, username: string) {
+    const html = EmailTemplates.accountDeletion(username);
+    return await EmailUtils.sendEmail(to, "Account Deletion Confirmed", html);
   }
 }
