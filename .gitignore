@@ -4,3 +4,4 @@ npm-cache/
 .env
 dist/
 .env.staging
+,env.staging
