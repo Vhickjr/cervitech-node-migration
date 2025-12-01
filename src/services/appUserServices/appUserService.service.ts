@@ -142,10 +142,11 @@ static async deleteAccountRequest(email: string): Promise<boolean> {
       throw new CustomException("User does not exist");
     }
 
-    const token = await TokenUtil.generateToken(user._id.toString());
+    const token = TokenUtil.generateToken(user._id.toString());
     console.log("Generated token:", token);
 
-    await EmailUtils.sendAccountDeletionRequest(normalizedEmail, user.username);
+    console.log("Token before sending email:", token);
+    await EmailUtils.sendAccountDeletionRequest(normalizedEmail, user.username, token);
 
     return true;
   } catch (ex: any) {
@@ -342,7 +343,7 @@ static async deleteAllAsync(): Promise<boolean> {
       throw new CustomException("User Id is missing from request.");
     }
 
-    const user = await User.findById(userId);
+    const user = await AppUser.findById(userId);
     if (!user) {
       throw new CustomException(
         "This user cannot be retrieved at the moment, please contact support."
@@ -387,7 +388,7 @@ static async deleteAllAsync(): Promise<boolean> {
         throw new CustomException("UserId is not provided");
         }
 
-        const user = await User.findById(userId);
+        const user = await AppUser.findById(userId);
         if (!user) {
         throw new CustomException("This user cannot be retrieved at the moment, please contact support.");
         }

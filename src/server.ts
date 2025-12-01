@@ -4,7 +4,9 @@ import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { logger } from './utils/logger';
+import cors from 'cors';
 import bodyParser from 'body-parser';
+import legacyRoutes from './routes/legacy.routes';
 import backOfficeUser from "./routes/backOfficeUser.routes"
 import authRoutes from './routes/auth.routes.js';
 import fcmRoutes from './routes/fcm.routes.js'
@@ -21,6 +23,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/cervitechdb";
+const frontendUrl = process.env.FRONTEND_URL;
 
 // Middleware
 app.use(bodyParser.json());
@@ -30,6 +33,14 @@ app.use(
     stream: logger.stream,
   })
 );
+
+app.use(cors({
+  origin: "http://localhost:5173", // frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true, // if you use cookies or auth headers
+}));
+
+app.use('/api/v1', legacyRoutes);
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
@@ -50,6 +61,7 @@ mongoose.connect(MONGODB_URI , {
     logger.info("MongoDB connected");
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
+      console.log(frontendUrl)
     });
     startMonthlyReminderJob();
   })

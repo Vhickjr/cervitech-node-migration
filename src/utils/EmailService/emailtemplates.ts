@@ -1,6 +1,12 @@
 // emailTemplates.ts
 import { EmailUtils } from "./emailutils";
-const baseUrl = process.env.BACKEND_URL || "http://localhost:5000";
+import * as dotenv from "dotenv";
+dotenv.config();
+
+
+const baseUrl = process.env.BACKEND_URL;
+
+const frontendBaseUrl = process.env.FRONTEND_URL;
 
 export const EmailTemplates = {
   accountDeletion: (username: string) => {
@@ -30,40 +36,28 @@ export const EmailTemplates = {
   },
 
   passwordReset: (username: string, token: string) => {
-  const resetLink = `${baseUrl}/api/v1/backoffice-users/reset-password?token=${encodeURIComponent(token)}`;
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Password Reset</title>
-</head>
-<body style="font-family: Arial, sans-serif; text-align:center">
-  <table cellpadding="0" cellspacing="0" border="0" width="100%">
-    <tr>
-      <td align="center" valign="top">
-        <a href="http://localhost:3000">
-          <img style="padding-top: 60px" src="https://firebasestorage.googleapis.com/v0/b/cervitech-e4465.appspot.com/o/cervitechLogo2x.png?alt=media&token=ed03f4e5-6bdb-4a58-b7a1-b46ee385b288">
+    const resetLink = `${frontendBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Password Reset</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; text-align:center;">
+        <p>Hi ${username},</p>
+        <p>You requested a password reset. Click the button below to set your new password:</p>
+        <a href="${resetLink}" 
+           style="display:inline-block; padding:12px 24px; background-color:#4c2a7f; color:white; border-radius:5px; text-decoration:none; font-weight:bold;">
+           Reset Password
         </a>
-      </td>
-    </tr>
-  </table>
-
-  <p>Hi ${username},</p>
-  <p>You recently requested a password reset for your account.</p>
-  <p>Click the button below to reset your password:</p>
-
-  <a href="${resetLink}" 
-     style="display:inline-block; padding:12px 24px; background-color:#4c2a7f; color:#ffffff; border-radius:5px; text-decoration:none; font-weight:bold;">
-     Reset Password
-  </a>
-
-  <p>This link will expire in 30 minutes.</p>
-  <p>If you didn’t request this, you can safely ignore this email.</p>
-  <p>Best regards,<br>CerviTech Team</p>
-</body>
-</html>`;
-},
+        <p>This link will expire in 30 minutes.</p>
+        <p>If you didn’t request this, ignore this email.</p>
+        <p>Best regards,<br>CerviTech Team</p>
+      </body>
+      </html>
+    `;
+  },
 
 
   signUp: (username: string) => {
@@ -181,62 +175,70 @@ export const EmailTemplates = {
 </html>`;
 }, 
 
-  accountDeletionRequest: (username: string,  to: string, token: string) => {
-    const confirmationLink = `https://cervitech.com.ng/confirm-deletion?email=${encodeURIComponent(to)}&token=${encodeURIComponent(token)}`;
-    return `<!DOCTYPE html>
+accountDeletionRequest: (username: string, to: string, token: string) => {
+const confirmationLink = `${baseUrl}/api/v1/user/confirmdeletemyaccount?token=${encodeURIComponent(token)}`;
+
+  return `
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Account Deletion Confirmation</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .logo {
-            padding-top: 20px;
-        }
-
-
-
-        .btn-danger {
-            color: #fff;
-            background: -webkit-linear-gradient(0deg, #2C0C56 0%, #653893 100%);
-            border: 1px solid #653893;
-            width: 30%;
-            border-radius: 5px;
-            height: 40px;
-            position: relative;
-            display: block;
-            text-decoration: none;
-            margin: 0 auto;
-            text-align: center;
-            color:white;
-            display: flex; /* CSS3 */
-            align-items: center; /* Vertical align */
-            justify-content: center; /* Horizontal align */
-        }
-    </style>
+<meta charset="UTF-8" />
+<title>Account Deletion Confirmation</title>
 </head>
-<body>
-    <table cellpadding="0" cellspacing="0" border="0" width="100%">
-        <tr>
-            <td align="center" valign="top">
-                <a href="https://cervitech.com.ng"><img class="logo" src="https://firebasestorage.googleapis.com/v0/b/cervitech-e4465.appspot.com/o/cervitechLogo2x.png?alt=media&token=ed03f4e5-6bdb-4a58-b7a1-b46ee385b288"></a>
-            </td>
-        </tr>
-    </table>
-    <p style="margin-top:5px">Hi ${username},</p>
-    <p>Thank you for using CerviTech. You've initiated the account deletion process. Please follow the link below to confirm the deletion:</p>
-    <a href="${confirmationLink}" target="_blank" class="btn btn-danger">Confirm Account Deletion</a>
-    <!--<button class="btn-danger" onclick="confirm([email], [Token])">Confirm Account Deletion</button>-->
-    <p>If you didn't request this, you can ignore this email, and your account will remain active.</p>
+<body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
 
-    <p>Feel free to reach out to our support team at contact.cervitech@gmail.com if you have any questions or concerns.</p>
-    <p>Best regards,<br>CerviTech Team</p>
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <a href="https://cervitech.com.ng">
+          <img src="https://firebasestorage.googleapis.com/v0/b/cervitech-e4465.appspot.com/o/cervitechLogo2x.png?alt=media&token=ed03f4e5-6bdb-4a58-b7a1-b46ee385b288"
+               alt="CerviTech Logo"
+               style="padding-top: 20px; width: 150px;" />
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  <p style="margin-top: 20px;">Hi ${username},</p>
+  <p>Thank you for using CerviTech. You've initiated the account deletion process. Please follow the link below to confirm the deletion:</p>
+
+  <!-- Button -->
+  <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin-top: 20px;">
+    <tr>
+      <td align="center" bgcolor="#653893" 
+          style="
+            background: linear-gradient(0deg, #2C0C56 0%, #653893 100%);
+            border-radius: 5px;
+          ">
+        <a href="${confirmationLink}"
+          style="
+            display: inline-block;
+            padding: 12px 25px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            width: 200px;
+            text-align: center;
+            border: 1px solid #653893;
+            border-radius: 5px;
+          "
+          target="_blank">
+          Confirm Account Deletion
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  <p style="margin-top: 20px;">If you didn't request this, you can ignore this email, and your account will remain active.</p>
+
+  <p style="margin-top: 10px;">Feel free to reach out to our support team at <b>contact.cervitech@gmail.com</b> if you have any questions or concerns.</p>
+
+  <p style="margin-top: 20px;">Best regards,<br>CerviTech Team</p>
+
 </body>
-</html>`;
-  }, 
+</html>
+`;
+}
+
 };

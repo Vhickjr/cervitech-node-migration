@@ -45,11 +45,12 @@ export class EmailUtils {
     return await EmailUtils.sendEmail(to, "We Miss You at CerviTech!", html);
   }
 
-  static async sendAccountDeletionRequest(to: string, username: string) {
-    const token = TokenUtil.generateToken('',to);
-    const html = EmailTemplates.accountDeletionRequest(username, to, token);
-    return await EmailUtils.sendEmail(to, "Account Deletion Request", html);
+  static async sendAccountDeletionRequest(to: string, username: string, token: string) {
+      console.log("Token received in EmailUtils:", token);
+      const html = EmailTemplates.accountDeletionRequest(username, to, token);
+      return await EmailUtils.sendEmail(to, "Account Deletion Request", html);
   }
+
 
   static async sendAccountDeletionConfirmation(to: string, username: string) {
     const html = EmailTemplates.accountDeletion(username);

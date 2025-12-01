@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { IAppUser } from "../models/AppUser";
 import { IBackofficeUser } from "../models/BackOfficeUser";
+import AppUser from "../models/AppUser"; 
+import BackofficeUser from "../models/BackOfficeUser";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -47,7 +49,7 @@ export class TokenUtil {
   static generateToken(identifier: string, email?: string): string {
   const payload: { userId: string; email?: string } = { userId: identifier };
   if (email) payload.email = email;
-  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "30m" });
+  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "10m" });
 }
 
 static verifyToken(token: string): { userId: string; email?: string } {
@@ -58,20 +60,31 @@ static verifyToken(token: string): { userId: string; email?: string } {
   }
 }
 
-  static verifyUserToken(token: string): BaseTokenPayload {
-    try {
-      const decoded = jwt.decode(token) as BaseTokenPayload | null;
-      if (!decoded || !decoded.role) throw new Error("Invalid token structure");
+static async verifyUserToken(token: string): Promise<BaseTokenPayload> {
+  try {
+    const decoded = jwt.decode(token) as BaseTokenPayload | null;
+    if (!decoded || !decoded.role) throw new Error("Invalid token structure");
 
-      const secret =
-        decoded.role === "BACKOFFICE_USER"
-          ? BACKOFFICE_SECRET
-          : APP_USER_SECRET;
+    const secret =
+      decoded.role === "BACKOFFICE_USER" ? BACKOFFICE_SECRET : APP_USER_SECRET;
 
-      return jwt.verify(token, secret) as BaseTokenPayload;
-    } catch {
-      throw new Error("Invalid or expired token");
+    const payload = jwt.verify(token, secret) as BaseTokenPayload;
+
+    // ✅ Check if the user is deleted
+    let user;
+    if (payload.role === "APP_USER") {
+      user = await AppUser.findById(payload.userId);
+    } else {
+      user = await BackofficeUser.findById(payload.userId);
     }
+
+    if (!user) throw new Error("User not found");
+    if ((user as any).deleted) throw new Error("User account is deleted");
+
+    return payload;
+  } catch (err) {
+    throw new Error("Invalid or expired token");
   }
+}
   
 }

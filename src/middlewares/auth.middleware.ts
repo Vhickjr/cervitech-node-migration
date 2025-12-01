@@ -37,7 +37,7 @@ export const authenticateJWT = async (
       });
     }
 
-    const payload = TokenUtil.verifyUserToken(token);
+    const payload = await TokenUtil.verifyUserToken(token);
 
     if (!payload.role) {
       return res.status(403).json({

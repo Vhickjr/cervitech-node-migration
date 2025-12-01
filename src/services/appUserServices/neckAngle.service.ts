@@ -78,6 +78,119 @@ export class NeckAngleService {
 
   static readonly numberOfRecordPostBeforeSendingAverageNeckAngle: number = parseInt(process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0', 10);
 
+  static async getEachWeekOfTheMonthAverageNeckAngle(aMonthAngleRecords: AbbreviatedNeckAngleRecordViewModel[]): Promise<WeeklyAngleDataViewModel[]> {
+    try {
+      let weekOneRecords = 0,
+        weekTwoRecords = 0,
+        weekThreeRecords = 0,
+        weekFourRecords = 0,
+        weekFiveRecords = 0;
+
+      let weekOneCount = 0,
+        weekTwoCount = 0,
+        weekThreeCount = 0,
+        weekFourCount = 0,
+        weekFiveCount = 0;
+
+      for (const record of aMonthAngleRecords) {
+        const weekNum = DateLibrary.getWeekNumberOfMonth(record.dateTimeRecorded);
+
+        switch (weekNum) {
+          case 1:
+            weekOneRecords += record.angle;
+            weekOneCount++;
+            break;
+          case 2:
+            weekTwoRecords += record.angle;
+            weekTwoCount++;
+            break;
+          case 3:
+            weekThreeRecords += record.angle;
+            weekThreeCount++;
+            break;
+          case 4:
+            weekFourRecords += record.angle;
+            weekFourCount++;
+            break;
+          case 5:
+            weekFiveRecords += record.angle;
+            weekFiveCount++;
+            break;
+          default:
+            break;
+        }
+      }
+
+      const averageNeckAngleForEachWeekOfTheMonthWeek: WeeklyAngleDataViewModel[] = [
+        {
+          week: 1,
+          averageNeckAngle: weekOneCount < 1 ? 0 : weekOneRecords / weekOneCount,
+        },
+        {
+          week: 2,
+          averageNeckAngle: weekTwoCount < 1 ? 0 : weekTwoRecords / weekTwoCount,
+        },
+        {
+          week: 3,
+          averageNeckAngle:
+            weekThreeCount < 1 ? 0 : weekThreeRecords / weekThreeCount,
+        },
+        {
+          week: 4,
+          averageNeckAngle:
+            weekFourCount < 1 ? 0 : weekFourRecords / weekFourCount,
+        },
+        {
+          week: 5,
+          averageNeckAngle:
+            weekFiveCount < 1 ? 0 : weekFiveRecords / weekFiveCount,
+        },
+      ];
+
+      return averageNeckAngleForEachWeekOfTheMonthWeek;
+    } catch (error: any) {
+      logger.error(
+        "Error in getEachWeekOfTheMonthAverageNeckAngle:",
+        error.message
+      );
+      throw new CustomException("Error calculating weekly averages.");
+    }
+}
+
+static getEachDayOfTheWeekAverageNeckAngle(
+  aWeekAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
+): DailyAngleDataViewModel[] {
+  try {
+    // Sunday = 0, Monday = 1, etc.
+    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // keep totals and counts
+    const totals: { [key: number]: number } = {};
+    const counts: { [key: number]: number } = {};
+
+    for (const record of aWeekAngleRecords) {
+      const dayNum = record.dateTimeRecorded.getDay(); // 0-6
+      totals[dayNum] = (totals[dayNum] || 0) + record.angle;
+      counts[dayNum] = (counts[dayNum] || 0) + 1;
+    }
+
+    const averages: DailyAngleDataViewModel[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      averages.push({
+        day: daysMap[i],
+        averageNeckAngle:
+          counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
+      });
+    }
+
+    return averages;
+  } catch (error: any) {
+    logger.error("Error in getEachDayOfTheWeekAverageNeckAngle:", error.message);
+    throw new CustomException("Error calculating daily averages.");
+  }
+}
+
   static async calculateAverageOfLastSetNeckAngles(userId: string): Promise<number> {
     const records = await NeckAngleRecordModel.find({ appUserId: userId })
       .sort({ _id: -1 })

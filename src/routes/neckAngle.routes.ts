@@ -6,7 +6,6 @@ import { authenticateJWT } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
 
-<<<<<<< HEAD
 router.post('/neckangle/postBatchNeckAngleRecords', NeckAngleController.postBatchNeckAngleRecords);
 router.post('/neckangle/postrandomneckanglerecords', NeckAngleController.postRandomTestBatchNeckAngleRecords);
 router.get('/neck-angle-stats', authenticateJWT, NeckAngleController.getUserNeckAngleStatistics);
