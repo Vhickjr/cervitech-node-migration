@@ -53,7 +53,7 @@ app.use('/api/v1/goals', goalsroutes);
 app.use("/api/v1/email", emailRoutes);
 
 // Connect to MongoDB and start server
-mongoose.connect(MONGODB_URI , {
+mongoose.connect(MONGODB_URI, {
   dbName: "cervitechdb",   // 👈 force your app to use "cervitech" database
 })
 
