@@ -47,7 +47,6 @@ export const AuthController = {
         emailOrUsername: req.body.EmailOrUsername ?? req.body.emailOrUsername ?? req.body.email,
         password: req.body.Password ?? req.body.password,
         mobileChannel: req.body.MobileChannel ?? req.body.mobileChannel,
-        fcmToken: req.body.FCMToken ?? req.body.fcmToken,
       };
 
       const result = await AuthService.authenticatev1(body);
