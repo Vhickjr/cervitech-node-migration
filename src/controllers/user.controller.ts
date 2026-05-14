@@ -247,6 +247,25 @@ static async updateUser(req: AuthenticatedRequest, res: Response) {
     }
   }
 
+  // Get user profile by Id
+  static async fetch_user_profile(req : Request, res : Response) : Promise<void>{
+    try {
+      const id = req.params.id ?? req.query.id;
+
+      if (!id || typeof id !== "string"){
+        res.status(400).json({ success: false, message: "Id is required and must be a string." });
+        return;
+      }
+
+      const user = await GetUserDataService.getById(id);
+      res.status(200).json({success : true,data : user});
+    } catch (error : any) {
+      logger.error("GetById Error:", error.message);
+      if (error instanceof CustomException) res.status(404).json({ success: false, message: error.message });
+      else res.status(500).json({ success: false, message: "Internal server error." });
+    }
+  }
+
   // -------------------------
   // Get push notification status
   // -------------------------

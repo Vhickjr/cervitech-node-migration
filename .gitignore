@@ -1,6 +1,7 @@
 # dependencies
 node_modules/
 npm-cache/
+*.env
 .env
 dist/
 .env.staging
