@@ -36,10 +36,10 @@ export class EmailController {
   }
 
   static async accountDeletionRequest(req: Request, res: Response) {
-    const { to, username } = req.body;
+    const { to, username, token } = req.body;
 
     try {
-      const result = await EmailUtils.sendAccountDeletionRequest(to, username);
+      const result = await EmailUtils.sendAccountDeletionRequest(to, username, token);
       res.status(200).json({ message: "Account deletion request email sent successfully", result });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to send deletion request email" });
