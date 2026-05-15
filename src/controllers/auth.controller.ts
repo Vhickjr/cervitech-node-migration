@@ -4,7 +4,6 @@ import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { TokenUtil } from "../utils/token.util";
 import TokenBlacklist from "../models/TokenBlacklist";
 import { logger } from "../utils/logger";
-import { EmailUtils } from "../utils/EmailService/emailutils";
 
 export const AuthController = {
   // -------------------------
@@ -29,13 +28,6 @@ export const AuthController = {
       if (!result.success) {
         logger.warn("User signup failed", { email: body.email, message: result.message });
         return res.status(400).json({ success: false, message: result.message });
-      }
-
-      let mailResp
-      try {
-        mailResp = await EmailUtils.sendSignupEmail(body.email, body.username);
-      } catch (error) {
-        logger.warn("Signup email failed", { email: body.email, mailResp });
       }
 
       logger.info("User signed up successfully", { email: body.email });
