@@ -48,13 +48,14 @@ export class AuthService {
     }
 
     const hashedPassword = await HashUtil.hash(password);
+    const email = userData.email.toLowerCase().trim()
 
     try {
       const createdUser = await AppUser.create({
         ...userData,
         firstName: userData.firstName.trim(),
         lastName: userData.lastName.trim(),
-        email: userData.email.toLowerCase().trim(),
+        email,
         password: hashedPassword,
         username: userData.username,
         pictureUrl: userData.pictureUrl || '',
@@ -76,6 +77,13 @@ export class AuthService {
 
       const userObj = createdUser.toObject();
       delete userObj.password;
+
+      let mailResp
+      try {
+        mailResp = await EmailUtils.sendSignupEmail(email, userData.username);
+      } catch (error) {
+        logger.warn("Signup email failed", { email, mailResp });
+      }
 
       return {
         success: true,
@@ -100,7 +108,7 @@ export class AuthService {
     }
   }
 
-static async sendPasswordResetToken(email: string) {
+  static async sendPasswordResetToken(email: string) {
     const user = await AppUser.findOne({ email: email.toLowerCase() });
     if (!user) {
       return { success: false, message: "User does not exist" };
@@ -113,21 +121,21 @@ static async sendPasswordResetToken(email: string) {
   }
 
   static async resetPassword(token: string, newPassword: string, _email?: string) {
-  const blacklisted = await TokenBlacklist.findOne({ token });
-  if (blacklisted) throw new Error("This token has already been used or is invalid");
+    const blacklisted = await TokenBlacklist.findOne({ token });
+    if (blacklisted) throw new Error("This token has already been used or is invalid");
 
-  const { userId } = TokenUtil.verifyToken(token);
+    const { userId } = TokenUtil.verifyToken(token);
 
-  const hashed = await HashUtil.hash(newPassword);
-  await AppUser.findByIdAndUpdate(userId, { password: hashed });
+    const hashed = await HashUtil.hash(newPassword);
+    await AppUser.findByIdAndUpdate(userId, { password: hashed });
 
-  await TokenBlacklist.create({
-    token,
-    expiresAt: new Date(), 
-  });
+    await TokenBlacklist.create({
+      token,
+      expiresAt: new Date(),
+    });
 
-  return { success: true, message: "Password reset successfully" };
-}
+    return { success: true, message: "Password reset successfully" };
+  }
 
 
   static async authenticatev1(model: LoginRequest): Promise<LoginResponseResult> {
