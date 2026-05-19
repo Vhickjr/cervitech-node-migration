@@ -5,6 +5,7 @@ import { authenticateJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+router.put("/update", authenticateJWT, UserController.updateUser);
 
 router.put("/updatepictureurl", authenticateJWT, UserController.updatePictureUrl);
 router.put("/updatesubscription/:id", UserController.updateSubscription);
