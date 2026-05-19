@@ -49,7 +49,7 @@ export class TokenUtil {
   static generateToken(identifier: string, email?: string): string {
   const payload: { userId: string; email?: string } = { userId: identifier };
   if (email) payload.email = email;
-  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "10m" });
+  return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "30m" });
 }
 
 static verifyToken(token: string): { userId: string; email?: string } {
