@@ -3,6 +3,7 @@ node_modules/
 npm-cache/
 *.env
 .env
+*.env
 dist/
 .env.staging
 ,env.staging

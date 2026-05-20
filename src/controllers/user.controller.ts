@@ -231,7 +231,8 @@ static async updateUser(req: AuthenticatedRequest, res: Response) {
   // Get user by email
   // -------------------------
   static async getByEmail(req: Request, res: Response): Promise<void> {
-    const email = req.body.Email ?? req.body.email ?? req.query.email;
+    const email = req.query.email;
+    console.log(email)
     if (!email || typeof email !== "string") {
       res.status(400).json({ success: false, message: "Email is required and must be a string." });
       return;
