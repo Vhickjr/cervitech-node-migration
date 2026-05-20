@@ -87,6 +87,31 @@ export const AuthController = {
   },
 
   // -------------------------
+  // Change password
+  // -------------------------
+  async changePassword(req : Request, res : Response) {
+    try {
+      const userId =  req.body.UserId ?? req.body.userId;
+      const formerPassword = req.body.FormerPassword ?? req.body.formerPassword;
+      const newPassword = req.body.NewPassword ?? req.body.newPassword;
+      
+      if (!userId) return res.status(401).json({ success: false, message: "User ID missing" });
+      if (!formerPassword || !newPassword) return res.status(401).json({ success: false, message: "Former password or New password is missing" });
+
+      const result = await AuthService.changePassword(userId,formerPassword,newPassword);
+
+      if (!result.success) return res.status(401).json({ success : false,  message : result.message });
+
+      return res.status(200).json(result);
+    
+    } catch (err : any) {
+      logger.error("Password change failed", { error: err.message });
+      return res.status(500).json({ success: false, message: "Internal server error during logout" });
+    }
+  },
+
+
+  // -------------------------
   // Send password reset token
   // -------------------------
   async sendPasswordToken(req: Request, res: Response) {
