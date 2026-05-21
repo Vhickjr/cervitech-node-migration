@@ -5,25 +5,33 @@ import { authenticateJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.put("/update", authenticateJWT, UserController.updateUser);
+// Static GET routes
+router.get("/response-rate", UserController.getResponseRate);
+router.get("/usernames/exists", AuthController.usernameAlreadyExists);
+router.get("/emails/validate", AuthController.isValidEmail);
+router.get("/deletions/confirm", UserController.confirmDeleteMyAccount);
+router.get("/fcm-token", UserController.getFCMTokenByUsername);
+router.get("/", UserController.getByEmail);
 
-router.put("/updatepictureurl", authenticateJWT, UserController.updatePictureUrl);
-router.put("/updatesubscription/:id", UserController.updateSubscription);
+// Parametric GET routes
+router.get("/:id/push-notifications", UserController.getAllowPushNotificationStatus);
+router.get("/:id", UserController.fetch_user_profile);
 
-// router.post("/postresponserate", UserController.postResponseRate);
-router.get("/getresponserate", UserController.getResponseRate);
+// Static PUT routes
+router.put("/", authenticateJWT, UserController.updateUser);
+router.put("/picture", authenticateJWT, UserController.updatePictureUrl);
+
+// Parametric PUT routes
+router.put("/:id/subscription", UserController.updateSubscription);
+router.put("/:id/push-notifications", UserController.toggleAllowPushNotifications);
+router.put("/:id/fcm-token", UserController.updateFCMToken);
+
+// Static POST routes
 router.post('/logout', authenticateJWT, AuthController.logout);
-router.get("/usernameAlreadyExists", AuthController.usernameAlreadyExists);
-router.get('/fetch_user_profile/:id',UserController.fetch_user_profile);
-router.get("/isValidEmail", AuthController.isValidEmail);
-router.post("/toggleallowpushnotifications/:id", UserController.toggleAllowPushNotifications);
-router.delete("/deleteaccount/:id", UserController.deleteById);
-router.delete("/deletemyaccount", UserController.deleteMyAccount);
-router.get("/confirmdeletemyaccount", UserController.confirmDeleteMyAccount);
-router.delete("/deleteall", UserController.deleteAll);
-router.get("/getByEmail", UserController.getByEmail);
-router.get("/getAllowPushNotificationStatus", UserController.getAllowPushNotificationStatus);
-router.get("/getFCMToken", UserController.getFCMTokenByUsername);
-router.put("/updateFCMToken", UserController.updateFCMToken);
+router.post("/deletion-requests", UserController.deleteMyAccount);
+
+// DELETE routes
+router.delete("/", UserController.deleteAll);
+router.delete("/:id", UserController.deleteById);
 
 export default router;

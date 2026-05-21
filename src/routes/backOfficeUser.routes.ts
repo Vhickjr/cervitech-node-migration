@@ -11,10 +11,9 @@ router.post("/reset-password", BackOfficeUserController.resetPassword);
 
 router.post("/logout", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.logoutController);
 router.post("/change-password", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.changePassword);
-router.get("/", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.getAllUsers);
-router.get("/count/:number", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.getNumberOfBackOfficeUsers);
+router.get("/", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.getUsers);
 router.delete("/:id", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.deleteUser);
 router.put("/:id", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.updateUser);
-router.get("/test/:id", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.testUserById);
+router.get("/:id", authenticateJWT, authorizeRole('BACKOFFICE_USER'), BackOfficeUserController.testUserById);
 
 export default router;
