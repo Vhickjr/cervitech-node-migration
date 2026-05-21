@@ -14,6 +14,7 @@ router.put("/updatesubscription/:id", UserController.updateSubscription);
 router.get("/getresponserate", UserController.getResponseRate);
 router.post('/logout', authenticateJWT, AuthController.logout);
 router.get("/usernameAlreadyExists", AuthController.usernameAlreadyExists);
+router.get('/fetch_user_profile/:id',UserController.fetch_user_profile);
 router.get("/isValidEmail", AuthController.isValidEmail);
 router.post("/toggleallowpushnotifications/:id", UserController.toggleAllowPushNotifications);
 router.delete("/deleteaccount/:id", UserController.deleteById);
