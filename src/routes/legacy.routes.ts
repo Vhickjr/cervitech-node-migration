@@ -81,12 +81,6 @@ router.delete("/user/delete", (req, res) => {
   }
 });
 
-// Update user
-router.put("/user/update", (req, res) => {
-  req.body = { ...req.body, Id: req.body.Id ?? req.body.id ?? req.body._id };
-  return UserController.updateUser(req as any, res);
-});
-
 // Get user by email
 router.get("/user", (req, res) => {
   if (req.query.email) {

@@ -12,7 +12,7 @@ export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const body = {
-        username: req.body.Username ?? req.body.username,
+        username: (req.body.Username ?? req.body.username)?.toLowerCase?.(),
         firstName: req.body.FirstName ?? req.body.firstName,
         lastName: req.body.LastName ?? req.body.lastName,
         email: (req.body.Email ?? req.body.email)?.toLowerCase?.(),
@@ -44,7 +44,7 @@ export const AuthController = {
   async authenticate(req: Request, res: Response) {
     try {
       const body = {
-        emailOrUsername: req.body.EmailOrUsername ?? req.body.emailOrUsername ?? req.body.email,
+        emailOrUsername: (req.body.EmailOrUsername ?? req.body.emailOrUsername ?? req.body.email)?.toLowerCase(),
         password: req.body.Password ?? req.body.password,
         mobileChannel: req.body.MobileChannel ?? req.body.mobileChannel,
       };

@@ -196,35 +196,35 @@ export class UserController {
   // -------------------------
   // Update user profile
   // -------------------------
-static async updateUser(req: AuthenticatedRequest, res: Response) {
-  const userId = req.user?.userId ?? req.body.Id ?? req.body.id ?? req.body._id;
-  if (!userId) {
-    res.status(400).json({ success: false, message: "User ID is required." });
-    return;
-  }
+  static async updateUser(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user?.userId ?? req.body.Id ?? req.body.id ?? req.body._id;
+    if (!userId) {
+      res.status(400).json({ success: false, message: "User ID is required." });
+      return;
+    }
 
-  try {
-    const normalizedUpdate: {
-      email?: string;
-      firstName?: string;
-      lastName?: string;
-      username?: string;
-      telephone?: string;
-    } = {
-      email: req.body.email ?? req.body.Email,
-      firstName: req.body.firstName ?? req.body.FirstName,
-      lastName: req.body.lastName ?? req.body.LastName,
-      username: req.body.username ?? req.body.Username,
-      telephone: req.body.telephone ?? req.body.Telephone,
-    };
+    try {
+      const normalizedUpdate: {
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+        username?: string;
+        telephone?: string;
+      } = {
+        email: req.body.email ?? req.body.Email,
+        firstName: req.body.firstName ?? req.body.FirstName,
+        lastName: req.body.lastName ?? req.body.LastName,
+        username: (req.body.username ?? req.body.Username)?.toLowerCase?.(),
+        telephone: req.body.telephone ?? req.body.Telephone,
+      };
 
-    const updatedUser = await AppUserService.updateUser(userId, normalizedUpdate);
-    res.status(200).json({ success: true, message: "User profile updated successfully.", data: updatedUser });
-  } catch (err: any) {
-    logger.error("UpdateUser Error:", err.message);
-    res.status(400).json({ success: false, message: err.message || "Failed to update user." });
+      const updatedUser = await AppUserService.updateUser(userId, normalizedUpdate);
+      res.status(200).json({ success: true, message: "User profile updated successfully.", data: updatedUser });
+    } catch (err: any) {
+      logger.error("UpdateUser Error:", err.message);
+      res.status(400).json({ success: false, message: err.message || "Failed to update user." });
+    }
   }
-}
 
 
   // -------------------------
