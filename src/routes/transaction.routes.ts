@@ -9,7 +9,7 @@ router.get("/", TransactionController.getAllTransactionRecords);
 
 router.get("/:id", TransactionController.getTransactionRecordById);
 
-router.get("/user/:userId", TransactionController.getTransactionRecordsByUserId);
+router.get("/users/:userId", TransactionController.getTransactionRecordsByUserId);
 
 router.post("/", TransactionController.createTransactionRecord);
 

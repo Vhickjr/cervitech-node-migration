@@ -6,16 +6,14 @@ import { authenticateJWT } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
 
-router.post('/neckangle/postBatchNeckAngleRecords', NeckAngleController.postBatchNeckAngleRecords);
-router.post('/neckangle/postrandomneckanglerecords', NeckAngleController.postRandomTestBatchNeckAngleRecords);
-router.get('/neck-angle-stats', authenticateJWT, NeckAngleController.getUserNeckAngleStatistics);
 //// router.post('/neckangle/sendPushNotificationMessageForAverageNeckAngle', NeckAngleController.sendPushNotificationMessageForAverageNeckAngle);   
 // //the sendPushNotificationMessageForAverageNeckAngle was commented out in neck angle controller
-router.post('/neckangle/resetNotificationCount/:userId', NeckAngleController.resetNotificationCount);
-router.get('/neckangle/getUsersForTesting', NeckAngleController.getUsersForTesting);
-router.get('/neckangle/getCurrentDayAverageNeckAngleTextReport', NeckAngleController.getCurrentDayAverageNeckAngleTextReport);
-router.post('/postBatchNeckAngleRecords', NeckAngleController.postBatchNeckAngleRecords);
-router.post('/postrandomneckanglerecords', NeckAngleController.postRandomTestBatchNeckAngleRecords);
-router.post("/weekly-averages", NeckAngleController.getWeeklyNeckAngleAverages);
+router.post('/records/batch', NeckAngleController.postBatchNeckAngleRecords);
+router.post('/records/random', NeckAngleController.postRandomTestBatchNeckAngleRecords);
+router.get('/stats', authenticateJWT, NeckAngleController.getUserNeckAngleStatistics);
+router.post('/users/:userId/notification-count/reset', NeckAngleController.resetNotificationCount);
+router.get('/test-users', NeckAngleController.getUsersForTesting);
+router.get('/reports/current-day', NeckAngleController.getCurrentDayAverageNeckAngleTextReport);
+router.post('/weekly-averages', NeckAngleController.getWeeklyNeckAngleAverages);
 
 export default router;
