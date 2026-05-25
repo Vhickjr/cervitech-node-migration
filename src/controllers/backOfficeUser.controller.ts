@@ -168,47 +168,37 @@ class BackOfficeUserController {
     }
   }
 
-  static async getAllUsers(_req: Request, res: Response) {
+  static async getUsers(req: Request, res: Response) {
     try {
+      const limitVal = req.query.limit ?? req.params.limit;
+      if (limitVal !== undefined) {
+        const limitNum = Number(limitVal);
+        if (isNaN(limitNum) || limitNum <= 0) {
+          logger.warn("Requested number of users is zero or invalid.");
+          return res.status(400).json({
+            success: false,
+            message: "Limit must be greater than zero.",
+          });
+        }
+        const data = await backofficeUserService.getNumberOfBackOfficeUsers(limitNum);
+        logger.info("Fetched number of backoffice users.", { count: limitNum });
+        return res.status(200).json({
+          success: true,
+          message: `Retrieved ${limitNum} back office users successfully.`,
+          data,
+        });
+      }
+
       const data = await backofficeUserService.getAll();
       logger.info("Fetched all backoffice users.");
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Users retrieved successfully.",
         data,
       });
     } catch (err: any) {
-      logger.error("Get All Users Error", { error: err.message });
-      res.status(500).json({
-        success: false,
-        message: "Failed to retrieve users.",
-        error: err.message,
-      });
-    }
-  }
-
-  static async getNumberOfBackOfficeUsers(req: Request, res: Response) {
-    try {
-      const { number } = req.params;
-      const data = await backofficeUserService.getNumberOfBackOfficeUsers(Number(number));
-
-      if (Number(number) === 0) {
-        logger.warn("Requested number of users is zero.");
-        return res.status(400).json({
-          success: false,
-          message: "Number must be greater than zero.",
-        });
-      }
-
-      logger.info("Fetched number of backoffice users.", { count: number });
-      res.status(200).json({
-        success: true,
-        message: `Retrieved ${number} back office users successfully.`,
-        data,
-      });
-    } catch (err: any) {
-      logger.error("Get Number of BackOffice Users Error", { error: err.message });
-      res.status(500).json({
+      logger.error("Get Users Error", { error: err.message });
+      return res.status(500).json({
         success: false,
         message: "Failed to retrieve users.",
         error: err.message,

@@ -196,35 +196,35 @@ export class UserController {
   // -------------------------
   // Update user profile
   // -------------------------
-static async updateUser(req: AuthenticatedRequest, res: Response) {
-  const userId = req.user?.userId ?? req.body.Id ?? req.body.id ?? req.body._id;
-  if (!userId) {
-    res.status(400).json({ success: false, message: "User ID is required." });
-    return;
-  }
+  static async updateUser(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user?.userId ?? req.body.Id ?? req.body.id ?? req.body._id;
+    if (!userId) {
+      res.status(400).json({ success: false, message: "User ID is required." });
+      return;
+    }
 
-  try {
-    const normalizedUpdate: {
-      email?: string;
-      firstName?: string;
-      lastName?: string;
-      username?: string;
-      telephone?: string;
-    } = {
-      email: req.body.email ?? req.body.Email,
-      firstName: req.body.firstName ?? req.body.FirstName,
-      lastName: req.body.lastName ?? req.body.LastName,
-      username: req.body.username ?? req.body.Username,
-      telephone: req.body.telephone ?? req.body.Telephone,
-    };
+    try {
+      const normalizedUpdate: {
+        email?: string;
+        firstName?: string;
+        lastName?: string;
+        username?: string;
+        telephone?: string;
+      } = {
+        email: req.body.email ?? req.body.Email,
+        firstName: req.body.firstName ?? req.body.FirstName,
+        lastName: req.body.lastName ?? req.body.LastName,
+        username: (req.body.username ?? req.body.Username)?.toLowerCase?.(),
+        telephone: req.body.telephone ?? req.body.Telephone,
+      };
 
-    const updatedUser = await AppUserService.updateUser(userId, normalizedUpdate);
-    res.status(200).json({ success: true, message: "User profile updated successfully.", data: updatedUser });
-  } catch (err: any) {
-    logger.error("UpdateUser Error:", err.message);
-    res.status(400).json({ success: false, message: err.message || "Failed to update user." });
+      const updatedUser = await AppUserService.updateUser(userId, normalizedUpdate);
+      res.status(200).json({ success: true, message: "User profile updated successfully.", data: updatedUser });
+    } catch (err: any) {
+      logger.error("UpdateUser Error:", err.message);
+      res.status(400).json({ success: false, message: err.message || "Failed to update user." });
+    }
   }
-}
 
 
   // -------------------------
@@ -249,18 +249,18 @@ static async updateUser(req: AuthenticatedRequest, res: Response) {
   }
 
   // Get user profile by Id
-  static async fetch_user_profile(req : Request, res : Response) : Promise<void>{
+  static async fetch_user_profile(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id ?? req.query.id;
 
-      if (!id || typeof id !== "string"){
+      if (!id || typeof id !== "string") {
         res.status(400).json({ success: false, message: "Id is required and must be a string." });
         return;
       }
 
       const user = await GetUserDataService.getById(id);
-      res.status(200).json({success : true,data : user});
-    } catch (error : any) {
+      res.status(200).json({ success: true, data: user });
+    } catch (error: any) {
       logger.error("GetById Error:", error.message);
       if (error instanceof CustomException) res.status(404).json({ success: false, message: error.message });
       else res.status(500).json({ success: false, message: "Internal server error." });
@@ -271,7 +271,7 @@ static async updateUser(req: AuthenticatedRequest, res: Response) {
   // Get push notification status
   // -------------------------
   static async getAllowPushNotificationStatus(req: Request, res: Response): Promise<void> {
-    const id = req.body.Id ?? req.body.id;
+    const id = req.body.Id ?? req.body.id ?? req.params.id ?? req.params.Id;
     if (!id || typeof id !== "string") {
       res.status(400).json({ success: false, message: "A valid user ID is required." });
       return;
@@ -290,7 +290,7 @@ static async updateUser(req: AuthenticatedRequest, res: Response) {
   // Get FCM token by username
   // -------------------------
   static async getFCMTokenByUsername(req: Request, res: Response): Promise<void> {
-    const username = req.body.Username ?? req.body.username;
+    const username = req.body.Username ?? req.body.username ?? req.query.username ?? req.query.Username;
     if (!username || typeof username !== "string") {
       res.status(400).json({ success: false, message: "Username is required and must be a string." });
       return;

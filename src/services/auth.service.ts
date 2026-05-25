@@ -108,17 +108,39 @@ export class AuthService {
     }
   }
 
-  static async sendPasswordResetToken(email: string) {
-    const user = await AppUser.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return { success: false, message: "User does not exist" };
+  static async changePassword(userId : string, formerPassword : string, newPassword : string ) {
+    const user =  await AppUser.findById(userId);
+    
+    if (!user ) {
+      return { success: false, message: "User does not exist in database" };
     }
 
-    const token = TokenUtil.generateToken(user._id.toString());
-    await EmailUtils.sendPasswordResetEmail(user.email, user.username, token);
+    const password = user.password;
+    const hashPass = await HashUtil.hash(formerPassword);
+    const same = await HashUtil.compare(formerPassword,password);
+    
+    if (!same) {
+      return {success: false,message : "Incorrect former password, Try again or RESET password"}
+    }
+    const newPassHash = await HashUtil.hash(newPassword)
 
-    return { success: true, message: "Password reset email sent" };
+    await AppUser.findByIdAndUpdate(userId,{"password" : newPassHash});
+
+    return { success : true, message : "Password change Successful"}
+    
   }
+
+  static async sendPasswordResetToken(email: string) {
+      const user = await AppUser.findOne({ email: email.toLowerCase() });
+      if (!user) {
+        return { success: false, message: "User does not exist" };
+      }
+
+      const token = TokenUtil.generateToken(user._id.toString());
+      await EmailUtils.sendPasswordResetEmail(user.email, user.username, token);
+
+      return { success: true, message: "Password reset email sent" };
+    }
 
   static async resetPassword(token: string, newPassword: string, _email?: string) {
     const blacklisted = await TokenBlacklist.findOne({ token });
