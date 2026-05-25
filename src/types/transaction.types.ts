@@ -1,8 +1,7 @@
-import { MobileChannel } from "../viewmodels/AppUser";
+import { MobileChannel } from '../viewmodels/AppUser';
 
 export interface TransactionViewModel {
   id?: string;
-  appUserId: string;
   paymentRef: string;
   amount: number;
   status: number;
@@ -25,4 +24,4 @@ export interface AppUserViewModel {
   dateRegistered?: string;
   responseRate: number;
   lastLoginDateTime?: Date;
-};
+}

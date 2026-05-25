@@ -1,16 +1,13 @@
-import express from "express";
-import { TransactionController } from "../controllers/transaction.controller";
-
+import express from 'express';
+import { TransactionController } from '../controllers/transaction.controller';
+import { authenticateJWT } from '../middlewares/auth.middleware';
 
 const router = express.Router();
 
+router.get('/', authenticateJWT, TransactionController.getTransactionRecordsByUserId);
 
-router.get("/", TransactionController.getAllTransactionRecords);
+router.get('/:id', authenticateJWT, TransactionController.getTransactionRecordById);
 
-router.get("/:id", TransactionController.getTransactionRecordById);
-
-router.get("/users/:userId", TransactionController.getTransactionRecordsByUserId);
-
-router.post("/", TransactionController.createTransactionRecord);
+router.post('/', authenticateJWT, TransactionController.createTransactionRecord);
 
 export default router;
