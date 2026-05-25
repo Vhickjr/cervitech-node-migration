@@ -21,7 +21,7 @@ export class NeckAngleController {
     ) {
       res.status(400).json({
         statusCode: 400,
-        message: "BadRequest",
+        message: 'BadRequest',
         data: null,
       });
       return;
@@ -31,7 +31,7 @@ export class NeckAngleController {
       const data = await NeckAngleService.postBatchNeckAngleRecordAsync(model);
       res.status(200).json({
         statusCode: 200,
-        message: "Successful",
+        message: 'Successful',
         data,
       });
     } catch (error: unknown) {
@@ -48,14 +48,16 @@ export class NeckAngleController {
 
   static async getWeeklyNeckAngleAverages(req: Request, res: Response) {
     try {
-      const records = req.body.records.map((r: { dateTimeRecorded: string; [key: string]: any }) => ({
-  ...r,
-  dateTimeRecorded: new Date(r.dateTimeRecorded)
-}));
+      const records = req.body.records.map(
+        (r: { dateTimeRecorded: string; [key: string]: any }) => ({
+          ...r,
+          dateTimeRecorded: new Date(r.dateTimeRecorded),
+        })
+      );
       if (!Array.isArray(records)) {
-        return res.status(400).json({ error: "records must be an array" });
+        return res.status(400).json({ error: 'records must be an array' });
       }
-      console.log("records received:", records);
+      console.log('records received:', records);
       const result = await NeckAngleService.getEachWeekOfTheMonthAverageNeckAngle(records);
       res.json(result);
     } catch (error: any) {
@@ -67,14 +69,10 @@ export class NeckAngleController {
     const model: AutomatePostNeckAngleRecordsViewModel = req.body;
     logger.info(`AutomatePostNeckAngleRecordsViewModel: ${JSON.stringify(model)}`);
 
-    if (
-      !model ||
-      typeof model.appUserId !== 'string' ||
-      !Array.isArray(model.testValues)
-    ) {
+    if (!model || typeof model.appUserId !== 'string' || !Array.isArray(model.testValues)) {
       res.status(400).json({
         statusCode: 400,
-        message: "BadRequest",
+        message: 'BadRequest',
         data: null,
       });
       return;
@@ -84,7 +82,7 @@ export class NeckAngleController {
       const data = await NeckAngleService.postRandomBatchNeckAngleRecordForTestAsync(model);
       res.status(200).json({
         statusCode: 200,
-        message: "Successful",
+        message: 'Successful',
         data,
       });
     } catch (error: unknown) {
@@ -104,7 +102,7 @@ export class NeckAngleController {
 
   //   try {
   //     // Circle back to this later
-  //     const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle(); 
+  //     const data = await NeckAngleService.sendPushNotificationMessageForAverageNeckAngle();
   //     res.status(200).json({
   //       statusCode: responses[ApiResponseStatus.Successful],
   //       message: ApiResponseStatus.Successful,
@@ -122,16 +120,10 @@ export class NeckAngleController {
   //   }
   // }
 
-  static async resetNotificationCount(req: Request, res: Response): Promise<void> {
-    const { userId } = req.params;
-
+  static async resetNotificationCount(req: AuthenticatedRequest, res: Response) {
+    const userId = req.user?.userId;
     if (!userId) {
-      res.status(400).json({
-        statusCode: 400,
-        message: 'User ID is required',
-        data: null,
-      });
-      return;
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     try {
@@ -154,11 +146,12 @@ export class NeckAngleController {
   }
 
   static async getUsersForTesting(req: Request, res: Response): Promise<void> {
-
     try {
       const { default: AppUser } = await import('../models/AppUser');
-      const users = await AppUser.find({}, { _id: 1, username: 1, email: 1, fcmToken: 1 }).limit(10);
-      
+      const users = await AppUser.find({}, { _id: 1, username: 1, email: 1, fcmToken: 1 }).limit(
+        10
+      );
+
       res.status(200).json({
         statusCode: 200,
         message: 'Users retrieved successfully',
@@ -191,13 +184,13 @@ export class NeckAngleController {
     try {
       const { Utils } = await import('../utils/utils');
       const report = Utils.currentDayAverageNeckAngleTextReport(Number(neckAngle));
-      
+
       res.status(200).json({
         statusCode: 200,
         message: 'Text report generated successfully',
         data: {
           neckAngle: Number(neckAngle),
-          report: report
+          report: report,
         },
       });
     } catch (error: unknown) {
@@ -212,7 +205,6 @@ export class NeckAngleController {
     }
   }
 
-
   static async getUserNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.userId;
@@ -225,6 +217,3 @@ export class NeckAngleController {
     }
   }
 }
-
-
-
