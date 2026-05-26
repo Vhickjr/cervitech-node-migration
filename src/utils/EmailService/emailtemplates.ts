@@ -1,16 +1,15 @@
 // emailTemplates.ts
-import { EmailUtils } from "./emailutils";
-import * as dotenv from "dotenv";
+import { EmailUtils } from './emailutils';
+import * as dotenv from 'dotenv';
 dotenv.config();
-
 
 const baseUrl = process.env.BACKEND_URL;
 
 const frontendBaseUrl = process.env.FRONTEND_URL;
 
 export const EmailTemplates = {
-    accountDeletion: (username: string) => {
-        return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  accountDeletion: (username: string) => {
+    return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>
     <link
@@ -172,11 +171,11 @@ export const EmailTemplates = {
     <!--7--><!--/$-->
   </body>
 </html>`;
-    },
+  },
 
-    passwordReset: (username: string, token: string) => {
-        const resetLink = `${frontendBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
-        return `
+  passwordReset: (username: string, token: string) => {
+    const resetLink = `${frontendBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    return `
       <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>
@@ -367,11 +366,10 @@ export const EmailTemplates = {
   </body>
 </html>
     `;
-    },
+  },
 
-
-    signUp: (username: string) => {
-        return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  signUp: (username: string) => {
+    return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>
     <link
@@ -575,10 +573,10 @@ export const EmailTemplates = {
     <!--7--><!--/$-->
   </body>
 </html>`;
-    },
+  },
 
-    reminder: (username: string) => {
-        return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  reminder: (username: string) => {
+    return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>
     <link
@@ -752,12 +750,12 @@ export const EmailTemplates = {
     <!--7--><!--/$-->
   </body>
 </html>`;
-    },
+  },
 
-    accountDeletionRequest: (username: string, to: string, token: string) => {
-        const confirmationLink = `${baseUrl}/api/v1/user/confirmdeletemyaccount?token=${encodeURIComponent(token)}`;
+  accountDeletionRequest: (username: string, to: string, token: string) => {
+    const confirmationLink = `${baseUrl}/api/v1/user/deletions/confirm?token=${encodeURIComponent(token)}`;
 
-        return `
+    return `
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>
@@ -941,6 +939,5 @@ export const EmailTemplates = {
     <!--7--><!--/$-->
   </body>
 </html>`;
-    }
-
+  },
 };

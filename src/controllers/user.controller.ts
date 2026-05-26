@@ -44,8 +44,8 @@ export class UserController {
   // -------------------------
   // Update subscription
   // -------------------------
-  static async updateSubscription(req: Request, res: Response): Promise<void> {
-    const id = req.params.id ?? req.body.Id ?? req.body.id;
+  static async updateSubscription(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const id = req.user?.userId;
     if (!id) {
       res.status(400).json({ success: false, message: 'User ID is required.' });
       return;
@@ -89,8 +89,8 @@ export class UserController {
   // -------------------------
   // Request account deletion (legacy compatible)
   // -------------------------
-  static async deleteMyAccount(req: Request, res: Response): Promise<void> {
-    const email = (req.query.email as string) ?? req.body.Email ?? req.body.email;
+  static async deleteMyAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const email = req.user?.email;
     if (!email) {
       res.status(400).json({ success: false, message: 'Email is required.' });
       return;
@@ -164,8 +164,11 @@ export class UserController {
   // -------------------------
   // Toggle push notification preference
   // -------------------------
-  static async toggleAllowPushNotifications(req: Request, res: Response): Promise<void> {
-    const id = req.params.id ?? req.body.Id ?? req.body.id;
+  static async toggleAllowPushNotifications(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    const id = req.user?.userId;
     if (!id) {
       res.status(400).json({ success: false, message: 'User ID is required.' });
       return;
@@ -343,14 +346,18 @@ export class UserController {
   // -------------------------
   // Update FCM token
   // -------------------------
-  static async updateFCMToken(req: Request, res: Response): Promise<void> {
-    const fcmToken = req.body.FCMToken ?? req.body.fcmToken ?? req.body.token;
-    const _id = req.body.UserId ?? req.body.userId ?? req.body._id;
+  static async updateFCMToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const body = req.body ?? {};
+    const fcmToken = (body.FCMToken ?? body.fcmToken ?? body.token) as string;
+    const _id = req.user?.userId;
 
-    if (!fcmToken || !_id || typeof fcmToken !== 'string' || typeof _id !== 'string') {
-      res
-        .status(400)
-        .json({ success: false, message: 'Invalid request. Provide valid fcmToken and user ID.' });
+    if (!_id) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    if (!fcmToken || typeof fcmToken !== 'string') {
+      res.status(400).json({ success: false, message: 'Invalid request. Provide valid fcmToken.' });
       return;
     }
 
