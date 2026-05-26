@@ -207,7 +207,9 @@ export class UserController {
       res.status(200).json({ success: true, data: result });
     } catch (error: any) {
       logger.error('GetResponseRate Error:', error);
-      res.status(500).json({ success: false, message: error?.message || 'Failed to fetch response rate.' });
+      res
+        .status(500)
+        .json({ success: false, message: error?.message || 'Failed to fetch response rate.' });
     }
   }
 
@@ -314,8 +316,7 @@ export class UserController {
   // Get FCM token by username
   // -------------------------
   static async getFCMTokenByUsername(req: Request, res: Response): Promise<void> {
-    const username =
-      req.body.Username ?? req.body.username ?? req.query.username ?? req.query.Username;
+    const username = req.query.username ?? req.query.Username;
     if (!username || typeof username !== 'string') {
       res
         .status(400)
