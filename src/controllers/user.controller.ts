@@ -293,15 +293,18 @@ export class UserController {
   // -------------------------
   // Get push notification status
   // -------------------------
-  static async getAllowPushNotificationStatus(req: Request, res: Response): Promise<void> {
-    const id = req.body.Id ?? req.body.id ?? req.params.id ?? req.params.Id;
-    if (!id || typeof id !== 'string') {
-      res.status(400).json({ success: false, message: 'A valid user ID is required.' });
+  static async getAllowPushNotificationStatus(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     try {
-      const allowPush = await GetUserDataService.getAllowPushNotificationStatus(id);
+      const allowPush = await GetUserDataService.getAllowPushNotificationStatus(userId);
       res.status(200).json({ success: true, data: { allowPushNotifications: allowPush } });
     } catch (error: any) {
       logger.error('GetAllowPushNotificationStatus Error:', error.message);
