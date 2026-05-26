@@ -14,9 +14,9 @@ export class UserController {
   // -------------------------
   // Update profile picture
   // -------------------------
-  static async updatePictureUrl(req: Request, res: Response): Promise<void> {
+  static async updatePictureUrl(req: AuthenticatedRequest, res: Response): Promise<void> {
     const updateViewModel: PictureUrlUpdateViewModel = {
-      userId: req.body.UserId ?? req.body.userId ?? req.body.Id ?? req.body.id,
+      userId: (req.user?.userId || '') as unknown as number,
       pictureUrl: req.body.PictureUrl ?? req.body.pictureUrl,
     };
 
