@@ -28,7 +28,7 @@ import { Goal } from '../models/Goal.js';
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
-    console.log("Data", data);
+    console.log('Data', data);
 
     const validationError = AuthValidation.signupValidation(data);
     if (validationError) {
@@ -43,12 +43,12 @@ export class AuthService {
     if (existing) {
       return {
         success: false,
-        message: ["Email already in use"],
+        message: ['Email already in use'],
       };
     }
 
     const hashedPassword = await HashUtil.hash(password);
-    const email = userData.email.toLowerCase().trim()
+    const email = userData.email.toLowerCase().trim();
 
     try {
       const createdUser = await AppUser.create({
@@ -78,11 +78,11 @@ export class AuthService {
       const userObj = createdUser.toObject();
       delete userObj.password;
 
-      let mailResp
+      let mailResp;
       try {
         mailResp = await EmailUtils.sendSignupEmail(email, userData.username);
       } catch (error) {
-        logger.warn("Signup email failed", { email, mailResp });
+        logger.warn('Signup email failed', { email, mailResp });
       }
 
       return {
@@ -108,43 +108,41 @@ export class AuthService {
     }
   }
 
-  static async changePassword(userId : string, formerPassword : string, newPassword : string ) {
-    const user =  await AppUser.findById(userId);
-    
-    if (!user ) {
-      return { success: false, message: "User does not exist in database" };
+  static async changePassword(userId: string, formerPassword: string, newPassword: string) {
+    const user = await AppUser.findById(userId);
+
+    if (!user) {
+      return { success: false, message: 'User does not exist in database' };
     }
 
     const password = user.password;
-    const hashPass = await HashUtil.hash(formerPassword);
-    const same = await HashUtil.compare(formerPassword,password);
-    
+    const same = await HashUtil.compare(formerPassword, password);
+
     if (!same) {
-      return {success: false,message : "Incorrect former password, Try again or RESET password"}
+      return { success: false, message: 'Incorrect former password, Try again or RESET password' };
     }
-    const newPassHash = await HashUtil.hash(newPassword)
+    const newPassHash = await HashUtil.hash(newPassword);
 
-    await AppUser.findByIdAndUpdate(userId,{"password" : newPassHash});
+    await AppUser.findByIdAndUpdate(userId, { password: newPassHash });
 
-    return { success : true, message : "Password change Successful"}
-    
+    return { success: true, message: 'Password change Successful' };
   }
 
   static async sendPasswordResetToken(email: string) {
-      const user = await AppUser.findOne({ email: email.toLowerCase() });
-      if (!user) {
-        return { success: false, message: "User does not exist" };
-      }
-
-      const token = TokenUtil.generateToken(user._id.toString());
-      await EmailUtils.sendPasswordResetEmail(user.email, user.username, token);
-
-      return { success: true, message: "Password reset email sent" };
+    const user = await AppUser.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return { success: false, message: 'User does not exist' };
     }
+
+    const token = TokenUtil.generateToken(user._id.toString());
+    await EmailUtils.sendPasswordResetEmail(user.email, user.username, token);
+
+    return { success: true, message: 'Password reset email sent' };
+  }
 
   static async resetPassword(token: string, newPassword: string, _email?: string) {
     const blacklisted = await TokenBlacklist.findOne({ token });
-    if (blacklisted) throw new Error("This token has already been used or is invalid");
+    if (blacklisted) throw new Error('This token has already been used or is invalid');
 
     const { userId } = TokenUtil.verifyToken(token);
 
@@ -156,9 +154,8 @@ export class AuthService {
       expiresAt: new Date(),
     });
 
-    return { success: true, message: "Password reset successfully" };
+    return { success: true, message: 'Password reset successfully' };
   }
-
 
   static async authenticatev1(model: LoginRequest): Promise<LoginResponseResult> {
     const { emailOrUsername, password, mobileChannel } = model;
@@ -178,9 +175,7 @@ export class AuthService {
     if (!user) {
       return {
         success: false,
-        message: [
-          "This account does not exist. Please check the email or username provided.",
-        ],
+        message: ['This account does not exist. Please check the email or username provided.'],
       };
     }
 
@@ -188,7 +183,7 @@ export class AuthService {
       return {
         success: false,
         message: [
-          "This account has been deleted. Please contact support if you believe this is an error.",
+          'This account has been deleted. Please contact support if you believe this is an error.',
         ],
       };
     }
@@ -197,9 +192,7 @@ export class AuthService {
     if (!isValidPassword) {
       return {
         success: false,
-        message: [
-          "An incorrect password provided. Please check password and try again.",
-        ],
+        message: ['An incorrect password provided. Please check password and try again.'],
       };
     }
 
@@ -217,7 +210,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: ["Authentication successful"],
+      message: ['Authentication successful'],
       data: {
         id: user._id.toString(),
         username: user.username,
@@ -257,7 +250,7 @@ export class AuthService {
     if (!user) {
       return {
         success: false,
-        message: ["User not found"],
+        message: ['User not found'],
       };
     }
 
@@ -272,10 +265,10 @@ export class AuthService {
 
       return {
         success: true,
-        message: ["Logout successful"],
+        message: ['Logout successful'],
       };
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error("Unknown error");
+      const err = error instanceof Error ? error : new Error('Unknown error');
       logger.error(`Logout failed: ${err.message}`);
 
       return {
@@ -284,7 +277,6 @@ export class AuthService {
       };
     }
   }
-
 
   static async usernameAlreadyExists(username: string): Promise<boolean> {
     const normalizedUsername = username.toLowerCase().trim();
