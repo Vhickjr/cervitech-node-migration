@@ -102,9 +102,9 @@ export const AuthController = {
   // -------------------------
   // Change password
   // -------------------------
-  async changePassword(req: Request, res: Response) {
+  async changePassword(req: AuthenticatedRequest, res: Response) {
     try {
-      const userId = req.body.UserId ?? req.body.userId;
+      const userId = req.user?.userId;
       const formerPassword = req.body.FormerPassword ?? req.body.formerPassword;
       const newPassword = req.body.NewPassword ?? req.body.newPassword;
 
@@ -190,7 +190,8 @@ export const AuthController = {
   // -------------------------
   async isValidEmail(req: Request, res: Response) {
     try {
-      const email = req.body.Email ?? req.body.email;
+      const body = req.body ?? {};
+      const email = body.Email ?? body.email ?? req.query.Email ?? req.query.email;
       if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
 
       const isValid = await AuthService.isValidEmail(email);
