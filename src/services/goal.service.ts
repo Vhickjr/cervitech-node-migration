@@ -12,15 +12,13 @@ import { AppUserService } from './appUserServices/appUserService.service';
 import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
 import { GoalCycleCompletionReport } from '../models/GoalCycleCompletionReport';
 
-
 export class GoalService {
-
-  static async turnOnGoalAsync(model: SetGoalViewModel): Promise<boolean> {
+  static async turnOnGoalAsync(appUserId: string, model: SetGoalViewModel): Promise<boolean> {
     try {
-      const user = await AppUser.findById(model.appUserId);
+      const user = await AppUser.findById(appUserId);
 
       if (!user) throw new CustomException('User does not exist');
-      
+
       // Save each GoalCycleCompletionReport individually
       const savedReports = await Promise.all(
         model.goalCycleCompletionReports.map(async (report) => {
@@ -34,14 +32,14 @@ export class GoalService {
       );
 
       const goal = new Goal({
-        appUserId: model.appUserId,
+        appUserId,
         targetedAverageNeckAngle: model.targetedAverageNeckAngle,
         frequency: model.frequency,
         dateSet: DateLibrary.getCurrentDateTime(),
-        goalCycleCompletionReports: model.goalCycleCompletionReports
+        goalCycleCompletionReports: model.goalCycleCompletionReports,
       });
       await goal.save();
-      
+
       user.isGoalOn = true;
       await user.save();
 
@@ -54,9 +52,9 @@ export class GoalService {
     }
   }
 
-  static async turnOffGoalAsync(model: TurnOnGoalViewModel): Promise<boolean> {
+  static async turnOffGoalAsync(appUserId: string, model: TurnOnGoalViewModel): Promise<boolean> {
     try {
-      const user = await AppUser.findById(model.appUserId);
+      const user = await AppUser.findById(appUserId);
       if (!user) throw new CustomException('User not found');
 
       user.isGoalOn = false;
@@ -71,14 +69,16 @@ export class GoalService {
     }
   }
 
-  static async getAllGoalsByIdAsync(model: TurnOnGoalViewModel): Promise<GoalCycleReportViewModel[]> {
+  static async getAllGoalsByIdAsync(
+    appUserId: string,
+    model: TurnOnGoalViewModel
+  ): Promise<GoalCycleReportViewModel[]> {
     try {
-      const goals = await Goal.findById(model.appUserId).exec();
+      const goals = await Goal.findById(appUserId).exec();
       if (!goals || goals.length === 0) return [];
 
       const reports: GoalCycleReportViewModel[] = [];
-      
-      
+
       let counter = 1;
       for (const report of goals.goalCycleCompletionReports) {
         reports.push({
@@ -91,9 +91,8 @@ export class GoalService {
           dateOfConcludedCycle: report.dateOfConcludedCycle,
           dayOfConcludedCycle: report.dayOfConcludedCycle,
           colorTag: Utils.getColorTag(report.complianceInPercentage),
-  });
-}
-
+        });
+      }
 
       return reports;
     } catch (error: any) {
@@ -106,7 +105,7 @@ export class GoalService {
     try {
       const goals = await Goal.find({ _id: appUserId }).sort({ dateSet: -1 }).exec();
       const lastGoal = goals[0]; // Most recent goal due to sorting
-      console.log("Last Goal:", lastGoal);
+      console.log('Last Goal:', lastGoal);
       return lastGoal?.targetedAverageNeckAngle ?? 0;
     } catch (error: any) {
       logger.error(error.message);
@@ -128,7 +127,7 @@ export class GoalService {
           await PushNotificationDriver.sendPushNotification(model);
         },
         null, // onComplete
-        true  // start immediately
+        true // start immediately
       );
       return true;
     } catch (error: any) {
@@ -146,9 +145,17 @@ export class GoalService {
     const jobId = `userid-${userId}`;
     const cronTime = frequency === 'DAILY' ? '*/5 * * * *' : '*/10 * * * *';
 
-    new CronJob(cronTime, () => {
-      AppUserService.calculateAverageOfLastWeekOrDay(userId, frequency, dateSet, goalId);
-    }, null, true, undefined, undefined, false);
+    new CronJob(
+      cronTime,
+      () => {
+        AppUserService.calculateAverageOfLastWeekOrDay(userId, frequency, dateSet, goalId);
+      },
+      null,
+      true,
+      undefined,
+      undefined,
+      false
+    );
   }
 
   private removeScheduledJob(userId: string): void {
