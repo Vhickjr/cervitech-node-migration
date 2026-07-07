@@ -43,7 +43,7 @@ export class AuthService {
     if (existing) {
       return {
         success: false,
-        message: ['Email already in use'],
+        message: 'Email already in use',
       };
     }
 
@@ -87,7 +87,7 @@ export class AuthService {
 
       return {
         success: true,
-        message: ['Signup successful'],
+        message: 'Signup successful',
         data: userObj,
       };
     } catch (error: any) {
@@ -96,14 +96,14 @@ export class AuthService {
         const value = error.keyValue[field];
         return {
           success: false,
-          message: [`${field} '${value}' is already taken`],
+          message: `${field} '${value}' is already taken`,
         };
       }
 
       logger.error(`Signup failed: ${error.message}`);
       return {
         success: false,
-        message: ['Internal server error occurred during signup'],
+        message: 'Internal server error occurred during signup',
       };
     }
   }
@@ -128,7 +128,7 @@ export class AuthService {
     return { success: true, message: 'Password change Successful' };
   }
 
-  static async sendPasswordResetToken(email: string) {
+  static async sendPasswordResetToken({email}: PasswordResetTokenRequest): Promise<SendPasswordTokenResponse> {
     const user = await AppUser.findOne({ email: email.toLowerCase() });
     if (!user) {
       return { success: false, message: 'User does not exist' };
@@ -140,7 +140,7 @@ export class AuthService {
     return { success: true, message: 'Password reset email sent' };
   }
 
-  static async resetPassword(token: string, newPassword: string, _email?: string) {
+  static async resetPassword({token, newPassword}: PasswordResetRequest): Promise<PasswordResetResponse> {
     const blacklisted = await TokenBlacklist.findOne({ token });
     if (blacklisted) throw new Error('This token has already been used or is invalid');
 
@@ -175,16 +175,14 @@ export class AuthService {
     if (!user) {
       return {
         success: false,
-        message: ['This account does not exist. Please check the email or username provided.'],
+        message: 'This account does not exist. Please check the email or username provided.',
       };
     }
 
     if (user.deleted) {
       return {
         success: false,
-        message: [
-          'This account has been deleted. Please contact support if you believe this is an error.',
-        ],
+        message: 'This account has been deleted. Please contact support if you believe this is an error.',
       };
     }
 
@@ -192,7 +190,7 @@ export class AuthService {
     if (!isValidPassword) {
       return {
         success: false,
-        message: ['An incorrect password provided. Please check password and try again.'],
+        message: 'An incorrect password provided. Please check password and try again.',
       };
     }
 
@@ -210,7 +208,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: ['Authentication successful'],
+      message: 'Authentication successful',
       data: {
         id: user._id.toString(),
         username: user.username,
@@ -250,7 +248,7 @@ export class AuthService {
     if (!user) {
       return {
         success: false,
-        message: ['User not found'],
+        message: 'User not found',
       };
     }
 
@@ -265,7 +263,7 @@ export class AuthService {
 
       return {
         success: true,
-        message: ['Logout successful'],
+        message: 'Logout successful',
       };
     } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error('Unknown error');
@@ -273,7 +271,7 @@ export class AuthService {
 
       return {
         success: false,
-        message: ['Internal server error during logout'],
+        message: 'Internal server error during logout',
       };
     }
   }
