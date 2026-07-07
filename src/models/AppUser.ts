@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from './User';
 import { MOBILE_CHANNEL } from '../enums/mobileChannel';
-import { NeckAngleRecordSchema, INeckAngleRecord } from './NeckAngleRecord';
-import { GoalSchema, IGoal } from './Goal';
+import { INeckAngleRecord, NeckAngleRecordSchema } from './NeckAngleRecord';
+import { IGoal, GoalSchema } from './Goal';
 
 export interface IAppUser extends IUser {
   fcmToken: string;
@@ -40,15 +40,9 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   currentTargetedAverageNeckAngle: { type: Number, default: 0 }, 
   dateRegistered: { type: Date, default: Date.now }, 
 
-  neckAngleRecords: {
-    type: [NeckAngleRecordSchema],
-    default: [],
-  },
+  neckAngleRecords: [NeckAngleRecordSchema],
 
-  goals: {
-    type: [GoalSchema],
-    default: [],
-  },
+  goals: [GoalSchema],
 
   mobileChannel: {
     type: Number, 

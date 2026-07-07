@@ -153,12 +153,11 @@ export const AuthController = {
       const token = req.body.Token ?? req.body.token ?? req.query.token;
       const newPassword =
         req.body.NewPassword ?? req.body.newPassword ?? req.body.ConfirmNewPassword;
-      const email = req.body.Email ?? req.body.email;
 
       if (!token || !newPassword)
         return res.status(400).json({ success: false, message: 'Token and password are required' });
 
-      const result = await AuthService.resetPassword(token, newPassword, email);
+      const result = await AuthService.resetPassword({token, newPassword});
       await TokenBlacklist.create({ token });
 
       return res.status(200).json(result);

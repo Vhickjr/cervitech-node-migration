@@ -103,7 +103,7 @@ export class TransactionService {
     appUserId: string,
     id: string
   ): Promise<TransactionViewModel | null> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.isValidObjectId(id)) {
       throw new CustomException('Invalid transaction ID.');
     }
 
