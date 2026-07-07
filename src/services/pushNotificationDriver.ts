@@ -36,13 +36,17 @@ export class PushNotificationDriver {
         },
       };
 
-      const response = await axios.post(`${PushNotificationDriver.FCMApiUrl}/fcm/send`, pushNotificationDTO, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `key=${PushNotificationDriver.FCMServerKey}`,
-          'Sender': `id=${senderId}`,
-        },
-      });
+      const response = await axios.post(
+        `${PushNotificationDriver.FCMApiUrl}/fcm/send`,
+        pushNotificationDTO,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `key=${PushNotificationDriver.FCMServerKey}`,
+            Sender: `id=${senderId}`,
+          },
+        }
+      );
 
       return true;
     } catch (error: any) {
