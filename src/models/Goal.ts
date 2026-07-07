@@ -16,10 +16,7 @@ export const GoalSchema = new Schema<IGoal>({
   dateSet: { type: Date, required: true },
   targetedAverageNeckAngle: { type: Number, required: true },
   frequency: { type: String, required: true },
-  goalCycleCompletionReports: {
-    type: [GoalCycleCompletionReportSchema],
-    default: [],
-  },
+  goalCycleCompletionReports: [GoalCycleCompletionReportSchema],
 });
 
 export const Goal = mongoose.models.Goal || mongoose.model<IGoal>('Goal', GoalSchema);
