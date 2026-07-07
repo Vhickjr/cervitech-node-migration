@@ -198,7 +198,7 @@ export class UserController {
       return;
     }
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.isValidObjectId(id)) {
       res.status(400).json({ success: false, message: 'Invalid user ID format.' });
       return;
     }
