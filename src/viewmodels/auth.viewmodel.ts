@@ -1,10 +1,10 @@
 // src/viewmodels/auth.viewmodel.ts
 
-import { inflateSync } from "node:zlib";
+import { inflateSync } from 'node:zlib';
 
-export interface BaseServiceResponse{
-  success: boolean,
-  message:string[]
+export interface BaseServiceResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface SignupRequest {
@@ -15,29 +15,26 @@ export interface SignupRequest {
   firstName: string;
   username: string;
   mobileChannel: number;
-  fcmToken?: string;        
+  fcmToken?: string;
   pictureUrl?: string;
 }
 
 //added success to the response to handle when the its successful or not
-export interface SignupResponse extends BaseServiceResponse{
+export interface SignupResponse extends BaseServiceResponse {
   data?: object;
 }
 
-export interface PasswordResetTokenRequest{
+export interface PasswordResetTokenRequest {
   email: string;
 }
 
-export interface PasswordResetRequest{
+export interface PasswordResetRequest {
   token: string;
   newPassword: string;
 }
 
 export interface PasswordResetResponse extends BaseServiceResponse {}
 
-
-export interface SendPasswordTokenResponse extends BaseServiceResponse{
-  resetLink?:string
+export interface SendPasswordTokenResponse extends BaseServiceResponse {
+  resetLink?: string;
 }
-
-
