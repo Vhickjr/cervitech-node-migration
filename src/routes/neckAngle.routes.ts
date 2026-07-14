@@ -18,5 +18,6 @@ router.post(
 router.get('/test-users', NeckAngleController.getUsersForTesting);
 router.get('/reports/current-day', NeckAngleController.getCurrentDayAverageNeckAngleTextReport);
 router.post('/weekly-averages', NeckAngleController.getWeeklyNeckAngleAverages);
+router.get('/weekly-chart', authenticateJWT, NeckAngleController.getWeeklyChartData);
 
 export default router;

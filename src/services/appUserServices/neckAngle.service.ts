@@ -24,6 +24,7 @@ import { NeckAngleParametersViewModel } from "../../viewmodels/NeckAngleParamete
 
 import { DailyAngleDataViewModel } from "../../viewmodels/DailyAngleData.viewmodel";
 import { GoalCycleReportViewModel } from "../../viewmodels/GoalCycleReport.viewmodel";
+import { WeeklyChartDataViewModel } from "../../viewmodels/WeeklyChartData.viewmodel";
 
 
 
@@ -379,6 +380,34 @@ static getEachDayOfTheWeekAverageNeckAngle(
   //   }
   // }
 
+
+  static async getWeeklyChartData(userId: string): Promise<WeeklyChartDataViewModel> {
+    const today = new Date();
+    const startOfWeek = DateLibrary.startOfWeek(today);
+    const endOfWeek = DateLibrary.endOfWeek(today);
+
+    const records = await NeckAngleRecordModel.find({
+      appUserId: userId,
+      dateTimeRecorded: { $gte: startOfWeek, $lte: endOfWeek },
+    }).lean();
+
+    const daysMap = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const totals: { [key: number]: number } = {};
+    const counts: { [key: number]: number } = {};
+
+    for (const record of records) {
+      const dayNum = record.dateTimeRecorded.getDay();
+      totals[dayNum] = (totals[dayNum] || 0) + record.angle;
+      counts[dayNum] = (counts[dayNum] || 0) + 1;
+    }
+
+    const result = {} as WeeklyChartDataViewModel;
+    for (let i = 0; i < 7; i++) {
+      result[daysMap[i]] = counts[i] ? +(totals[i] / counts[i]).toFixed(1) : 0;
+    }
+
+    return result;
+  }
 
   static async computeNeckAngleParameters(userId: string): Promise<NeckAngleParametersViewModel> {
     try {
