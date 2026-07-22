@@ -1,11 +1,13 @@
 import { CustomException } from '../../utils/customException';
 import { logger } from '../../utils/logger';
 import AppUser from '../../models/AppUser';
-import { AppUserViewModel } from '../../types/auth.types';
+import { AppUserViewModel, toAppUserViewModel } from '../../viewmodels/AppUser.viewmodel';
 
 export class GetUserDataService {
-    
-  static async getByEmail(email: string): Promise<AppUserViewModel> {
+
+  static async getByEmail(
+    email: string
+  ): Promise<AppUserViewModel & { currentTargetedAverageNeckAngle: number }> {
     try {
       const user = await AppUser.findOne({ email: email }).exec();
 
@@ -16,27 +18,10 @@ export class GetUserDataService {
       }
 
       return {
-        id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        password: user.password,
-        email: user.email,
-        pictureUrl: user.pictureUrl,
-        fcmToken: user.fcmToken,
-        allowPushNotifications: user.allowPushNotifications,
-        hasPaid: user.hasPaid,
-        mobileChannel: user.mobileChannel,
-        isGoalOn: user.isGoalOn,
-        dateRegistered: user.dateRegistered,
-        responseRate: user.responseRate,
-        lastLoginDateTime: user.lastLoginDateTime,
-        prompt: user.prompt,
-        notificationCount: user.notificationCount,
+        ...toAppUserViewModel(user),
         currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle,
-        deleted: user.deleted,
-      }
-    } 
+      };
+    }
     catch (error) {
       if (error instanceof CustomException) {
         logger.error(error.message);
@@ -47,7 +32,9 @@ export class GetUserDataService {
     }
   }
 
-  static async getById(id: string): Promise<AppUserViewModel> {
+  static async getById(
+    id: string
+  ): Promise<AppUserViewModel & { currentTargetedAverageNeckAngle: number }> {
     try {
       const user = await AppUser.findById(id);
 
@@ -58,26 +45,9 @@ export class GetUserDataService {
       }
 
       return {
-        id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        password: user.password,
-        email: user.email,
-        pictureUrl: user.pictureUrl,
-        fcmToken: user.fcmToken,
-        allowPushNotifications: user.allowPushNotifications,
-        hasPaid: user.hasPaid,
-        mobileChannel: user.mobileChannel,
-        isGoalOn: user.isGoalOn,
-        dateRegistered: user.dateRegistered,
-        responseRate: user.responseRate,
-        lastLoginDateTime: user.lastLoginDateTime,
-        prompt: user.prompt,
-        notificationCount: user.notificationCount,
+        ...toAppUserViewModel(user),
         currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle,
-        deleted: user.deleted,
-      }
+      };
 
     } catch (error) {
       if (error instanceof CustomException) {
