@@ -3,7 +3,9 @@ import session from 'express-session';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { logger } from './utils/logger';
+import { swaggerSpec } from './config/swagger';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import legacyRoutes from './routes/legacy.routes';
@@ -43,6 +45,10 @@ app.use(
 );
 
 // app.use('/api/v1', legacyRoutes);
+
+// API docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
