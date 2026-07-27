@@ -7,17 +7,177 @@ const router = express.Router();
 
 //// router.post('/neckangle/sendPushNotificationMessageForAverageNeckAngle', NeckAngleController.sendPushNotificationMessageForAverageNeckAngle);
 // //the sendPushNotificationMessageForAverageNeckAngle was commented out in neck angle controller
+
+/**
+ * @openapi
+ * /neck-angle/records/batch:
+ *   post:
+ *     tags: [NeckAngle]
+ *     summary: Submit a batch of neck-angle records for a user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [appUserId, neckAngleRecords]
+ *             properties:
+ *               appUserId:
+ *                 type: string
+ *               neckAngleRecords:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *     responses:
+ *       200:
+ *         description: Records saved
+ *       400:
+ *         description: appUserId or neckAngleRecords missing/invalid
+ */
 router.post('/records/batch', NeckAngleController.postBatchNeckAngleRecords);
+
+/**
+ * @openapi
+ * /neck-angle/records/random:
+ *   post:
+ *     tags: [NeckAngle]
+ *     summary: "[Dev] Submit a batch of randomly generated test neck-angle records"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [appUserId, testValues]
+ *             properties:
+ *               appUserId:
+ *                 type: string
+ *               testValues:
+ *                 type: array
+ *                 items:
+ *                   type: number
+ *     responses:
+ *       200:
+ *         description: Records saved
+ *       400:
+ *         description: appUserId or testValues missing/invalid
+ */
 router.post('/records/random', NeckAngleController.postRandomTestBatchNeckAngleRecords);
+
+/**
+ * @openapi
+ * /neck-angle/stats:
+ *   get:
+ *     tags: [NeckAngle]
+ *     summary: Get the authenticated user's computed neck-angle statistics
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistics computed
+ *       400:
+ *         description: Failed to compute statistics
+ *       401:
+ *         description: Not authenticated
+ */
 router.get('/stats', authenticateJWT, NeckAngleController.getUserNeckAngleStatistics);
+
+/**
+ * @openapi
+ * /neck-angle/notification-count/reset:
+ *   post:
+ *     tags: [NeckAngle]
+ *     summary: Reset the authenticated user's notification count
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Notification count reset
+ *       401:
+ *         description: Not authenticated
+ */
 router.post(
   '/notification-count/reset',
   authenticateJWT,
   NeckAngleController.resetNotificationCount
 );
+
+/**
+ * @openapi
+ * /neck-angle/test-users:
+ *   get:
+ *     tags: [NeckAngle]
+ *     summary: "[Dev] List up to 10 app users for testing"
+ *     responses:
+ *       200:
+ *         description: Users retrieved
+ */
 router.get('/test-users', NeckAngleController.getUsersForTesting);
+
+/**
+ * @openapi
+ * /neck-angle/reports/current-day:
+ *   get:
+ *     tags: [NeckAngle]
+ *     summary: Generate a text report for a given neck angle value
+ *     parameters:
+ *       - in: query
+ *         name: neckAngle
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Report generated
+ *       400:
+ *         description: neckAngle query param missing or not numeric
+ */
 router.get('/reports/current-day', NeckAngleController.getCurrentDayAverageNeckAngleTextReport);
+
+/**
+ * @openapi
+ * /neck-angle/weekly-averages:
+ *   post:
+ *     tags: [NeckAngle]
+ *     summary: Compute each week-of-month's average neck angle from raw records
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [records]
+ *             properties:
+ *               records:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     dateTimeRecorded:
+ *                       type: string
+ *                       format: date-time
+ *     responses:
+ *       200:
+ *         description: Weekly averages computed
+ *       400:
+ *         description: records missing or not an array
+ */
 router.post('/weekly-averages', NeckAngleController.getWeeklyNeckAngleAverages);
+
+/**
+ * @openapi
+ * /neck-angle/weekly-chart:
+ *   get:
+ *     tags: [NeckAngle]
+ *     summary: Get the authenticated user's weekly neck-angle chart data
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Chart data retrieved
+ *       401:
+ *         description: Not authenticated
+ */
 router.get('/weekly-chart', authenticateJWT, NeckAngleController.getWeeklyChartData);
 
 export default router;
