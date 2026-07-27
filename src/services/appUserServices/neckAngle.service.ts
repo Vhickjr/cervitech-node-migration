@@ -1,14 +1,14 @@
 import { Types } from 'mongoose';
-import { NeckAngleModel} from '../../models/NeckAngle';
+import { NeckAngleModel } from '../../models/NeckAngle';
 import { NeckAngleRecordModel } from '../../models/NeckAngleRecord';
 import { SendAverageNeckAnglePushNotificationViewModel } from '../../viewmodels/PushNotificationViewModel';
 import { getCraniumVertebralAngleFromNeckAngle } from '../../utils/computations';
-import  AppUser  from '../../models/AppUser';
+import AppUser from '../../models/AppUser';
 import { CustomException } from '../../utils/customException';
 import { logger } from '../../utils/logger';
-import { DateLibrary } from "../../utils/dateLibrary";
-import { AbbreviatedNeckAngleRecordViewModel } from "../../viewmodels/AbbreviatedNeckAngleRecord.viewmodel";
-import { WeeklyAngleDataViewModel } from "../../viewmodels/WeeklyAngleDataViewModel";
+import { DateLibrary } from '../../utils/dateLibrary';
+import { AbbreviatedNeckAngleRecordViewModel } from '../../viewmodels/AbbreviatedNeckAngleRecord.viewmodel';
+import { WeeklyAngleDataViewModel } from '../../viewmodels/WeeklyAngleDataViewModel';
 import { INeckAngleRecord } from '../../models/NeckAngleRecord';
 import ResponseRate from '../../models/ResponseRate';
 import { PushNotificationDriver } from '../pushNotificationDriver';
@@ -18,15 +18,12 @@ import { AutomatePostNeckAngleRecordsViewModel } from '../../viewmodels/Automate
 import { Goal } from '../../models/Goal';
 import { GoalCycleCompletionReport } from '../../models/GoalCycleCompletionReport';
 import { GOAL_FREQUENCY } from '../../enums/goalFrequency';
-import User from "../../models/User";
 
-import { NeckAngleParametersViewModel } from "../../viewmodels/NeckAngleParameters.viewmodel";
+import { NeckAngleParametersViewModel } from '../../viewmodels/NeckAngleParameters.viewmodel';
 
-import { DailyAngleDataViewModel } from "../../viewmodels/DailyAngleData.viewmodel";
-import { GoalCycleReportViewModel } from "../../viewmodels/GoalCycleReport.viewmodel";
-import { WeeklyChartDataViewModel } from "../../viewmodels/WeeklyChartData.viewmodel";
-
-
+import { DailyAngleDataViewModel } from '../../viewmodels/DailyAngleData.viewmodel';
+import { GoalCycleReportViewModel } from '../../viewmodels/GoalCycleReport.viewmodel';
+import { WeeklyChartDataViewModel } from '../../viewmodels/WeeklyChartData.viewmodel';
 
 export class NeckAngleService {
   static async postBatchNeckAngleRecordAsync(neckAngleModel: NeckAngleModel): Promise<boolean> {
@@ -38,9 +35,9 @@ export class NeckAngleService {
           continue;
         }
 
-        const lastRecord = await NeckAngleRecordModel
-          .findOne({_id: record.appUserId })
-          .sort({ counter: -1 });
+        const lastRecord = await NeckAngleRecordModel.findOne({ _id: record.appUserId }).sort({
+          counter: -1,
+        });
 
         const counter = (lastRecord?.counter ?? 0) + 1;
         const craniumVertebralAngle = getCraniumVertebralAngleFromNeckAngle(record.angle);
@@ -77,9 +74,14 @@ export class NeckAngleService {
     }
   }
 
-  static readonly numberOfRecordPostBeforeSendingAverageNeckAngle: number = parseInt(process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0', 10);
+  static readonly numberOfRecordPostBeforeSendingAverageNeckAngle: number = parseInt(
+    process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0',
+    10
+  );
 
-  static async getEachWeekOfTheMonthAverageNeckAngle(aMonthAngleRecords: AbbreviatedNeckAngleRecordViewModel[]): Promise<WeeklyAngleDataViewModel[]> {
+  static async getEachWeekOfTheMonthAverageNeckAngle(
+    aMonthAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
+  ): Promise<WeeklyAngleDataViewModel[]> {
     try {
       let weekOneRecords = 0,
         weekTwoRecords = 0,
@@ -133,64 +135,57 @@ export class NeckAngleService {
         },
         {
           week: 3,
-          averageNeckAngle:
-            weekThreeCount < 1 ? 0 : weekThreeRecords / weekThreeCount,
+          averageNeckAngle: weekThreeCount < 1 ? 0 : weekThreeRecords / weekThreeCount,
         },
         {
           week: 4,
-          averageNeckAngle:
-            weekFourCount < 1 ? 0 : weekFourRecords / weekFourCount,
+          averageNeckAngle: weekFourCount < 1 ? 0 : weekFourRecords / weekFourCount,
         },
         {
           week: 5,
-          averageNeckAngle:
-            weekFiveCount < 1 ? 0 : weekFiveRecords / weekFiveCount,
+          averageNeckAngle: weekFiveCount < 1 ? 0 : weekFiveRecords / weekFiveCount,
         },
       ];
 
       return averageNeckAngleForEachWeekOfTheMonthWeek;
     } catch (error: any) {
-      logger.error(
-        "Error in getEachWeekOfTheMonthAverageNeckAngle:",
-        error.message
-      );
-      throw new CustomException("Error calculating weekly averages.");
+      logger.error('Error in getEachWeekOfTheMonthAverageNeckAngle:', error.message);
+      throw new CustomException('Error calculating weekly averages.');
     }
-}
-
-static getEachDayOfTheWeekAverageNeckAngle(
-  aWeekAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
-): DailyAngleDataViewModel[] {
-  try {
-    // Sunday = 0, Monday = 1, etc.
-    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-    // keep totals and counts
-    const totals: { [key: number]: number } = {};
-    const counts: { [key: number]: number } = {};
-
-    for (const record of aWeekAngleRecords) {
-      const dayNum = record.dateTimeRecorded.getDay(); // 0-6
-      totals[dayNum] = (totals[dayNum] || 0) + record.angle;
-      counts[dayNum] = (counts[dayNum] || 0) + 1;
-    }
-
-    const averages: DailyAngleDataViewModel[] = [];
-
-    for (let i = 0; i < 7; i++) {
-      averages.push({
-        day: daysMap[i],
-        averageNeckAngle:
-          counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
-      });
-    }
-
-    return averages;
-  } catch (error: any) {
-    logger.error("Error in getEachDayOfTheWeekAverageNeckAngle:", error.message);
-    throw new CustomException("Error calculating daily averages.");
   }
-}
+
+  static getEachDayOfTheWeekAverageNeckAngle(
+    aWeekAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
+  ): DailyAngleDataViewModel[] {
+    try {
+      // Sunday = 0, Monday = 1, etc.
+      const daysMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      // keep totals and counts
+      const totals: { [key: number]: number } = {};
+      const counts: { [key: number]: number } = {};
+
+      for (const record of aWeekAngleRecords) {
+        const dayNum = record.dateTimeRecorded.getDay(); // 0-6
+        totals[dayNum] = (totals[dayNum] || 0) + record.angle;
+        counts[dayNum] = (counts[dayNum] || 0) + 1;
+      }
+
+      const averages: DailyAngleDataViewModel[] = [];
+
+      for (let i = 0; i < 7; i++) {
+        averages.push({
+          day: daysMap[i],
+          averageNeckAngle: counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
+        });
+      }
+
+      return averages;
+    } catch (error: any) {
+      logger.error('Error in getEachDayOfTheWeekAverageNeckAngle:', error.message);
+      throw new CustomException('Error calculating daily averages.');
+    }
+  }
 
   static async calculateAverageOfLastSetNeckAngles(userId: string): Promise<number> {
     const records = await NeckAngleRecordModel.find({ appUserId: userId })
@@ -198,17 +193,20 @@ static getEachDayOfTheWeekAverageNeckAngle(
       .limit(NeckAngleService.numberOfRecordPostBeforeSendingAverageNeckAngle);
 
     if (!records || records.length === 0) {
-      throw new Error("No records found for this user");
+      throw new Error('No records found for this user');
     }
 
     const sumOfAngles = records.reduce((sum, record) => sum + record.angle, 0);
-    let averageAngle = Math.round((sumOfAngles / NeckAngleService.numberOfRecordPostBeforeSendingAverageNeckAngle) * 10) / 10;
+    let averageAngle =
+      Math.round(
+        (sumOfAngles / NeckAngleService.numberOfRecordPostBeforeSendingAverageNeckAngle) * 10
+      ) / 10;
 
     if (isNaN(averageAngle)) averageAngle = 0;
 
     const user = await AppUser.findById(userId);
     if (user) {
-      user.responseRate = 100 - (100 * (90 - averageAngle) / 90);
+      user.responseRate = 100 - (100 * (90 - averageAngle)) / 90;
       await user.save();
     }
 
@@ -301,7 +299,7 @@ static getEachDayOfTheWeekAverageNeckAngle(
   // Optional: Define defaultPrompt if needed
   static defaultPrompt = 5;
   static scheduleResetNotificationCount(userId: string): void {
-  throw new Error('Function not implemented.');
+    throw new Error('Function not implemented.');
   }
 
   // static async calculateAverageOfLastWeekOrDay(
@@ -312,10 +310,10 @@ static getEachDayOfTheWeekAverageNeckAngle(
   // ): Promise<boolean> {
   //   try {
   //     let average = 0;
-  
+
   //     let startDate: Date;
   //     let endDate: Date = DateLibrary.getCurrentDateTime();
-  
+
   //     if (frequency === GOAL_FREQUENCY.DAILY) {
   //       startDate = DateLibrary.getYesterdayDateTime();
   //     } else if (frequency === GOAL_FREQUENCY.WEEKLY) {
@@ -323,7 +321,7 @@ static getEachDayOfTheWeekAverageNeckAngle(
   //     } else {
   //       throw new Error("Invalid Goal Frequency");
   //     }
-  
+
   //     const records = await NeckAngleRecordModel.find({
   //       appUserId: new Types.ObjectId(userId),
   //       dateTimeRecorded: {
@@ -331,23 +329,23 @@ static getEachDayOfTheWeekAverageNeckAngle(
   //         $lte: endDate,
   //       },
   //     }).lean();
-  
+
   //     if (records.length > 0) {
   //       average = records.reduce((sum, r) => sum + r.angle, 0) / records.length;
   //     }
-  
+
   //     const goal = await Goal.findById(goalId);
   //     if (!goal) return false;
-  
+
   //     let complianceInPercentage =
   //       average >= goal.targetedAverageNeckAngle
   //         ? 100
   //         : Math.round((average / goal.targetedAverageNeckAngle) * 100 * 10) / 10;
-  
+
   //     complianceInPercentage = complianceInPercentage > 100 ? 100 : complianceInPercentage;
-  
+
   //     if (isNaN(complianceInPercentage)) complianceInPercentage = 0;
-  
+
   //     const report = new GoalCycleCompletionReport({
   //       actualAverageNeckAngle: isNaN(average)
   //         ? 0
@@ -356,30 +354,29 @@ static getEachDayOfTheWeekAverageNeckAngle(
   //       dateOfConcludedCycle: DateLibrary.getCurrentDateTime(),
   //       goalId: new Types.ObjectId(goalId),
   //     });
-  
+
   //     await report.save();
-  
+
   //     const userFCMToken = await getFCMTokenById(userId); // implement separately
-  
+
   //     if (userFCMToken && userFCMToken.trim() !== "") {
   //       const pushNotificationModel = {
   //         to: userFCMToken,
   //         title: "Your set goal",
   //         body: `Hi, you scored ${Math.round(report.complianceInPercentage * 10) / 10}/100`,
   //       };
-  
+
   //       await PushNotificationDriver.sendPushNotification(pushNotificationModel); // implement separately
   //     } else {
   //       throw new Error("User does not have an FCM Token");
   //     }
-  
+
   //     return true;
   //   } catch (err) {
   //     console.error("Error in calculateAverageOfLastWeekOrDay:", err);
   //     throw err;
   //   }
   // }
-
 
   static async getWeeklyChartData(userId: string): Promise<WeeklyChartDataViewModel> {
     const today = new Date();
@@ -391,7 +388,7 @@ static getEachDayOfTheWeekAverageNeckAngle(
       dateTimeRecorded: { $gte: startOfWeek, $lte: endOfWeek },
     }).lean();
 
-    const daysMap = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const totals: { [key: number]: number } = {};
     const counts: { [key: number]: number } = {};
 
@@ -411,9 +408,9 @@ static getEachDayOfTheWeekAverageNeckAngle(
 
   static async computeNeckAngleParameters(userId: string): Promise<NeckAngleParametersViewModel> {
     try {
-      const userDetails = await User.findById(userId).exec();
+      const userDetails = await AppUser.findById(userId).exec();
       if (!userDetails) throw new CustomException('User not found');
-  
+
       const today = new Date();
       const startOfDay = DateLibrary.startOfDay(today);
       const endOfDay = DateLibrary.endOfDay(today);
@@ -421,29 +418,40 @@ static getEachDayOfTheWeekAverageNeckAngle(
       const endOfWeek = DateLibrary.endOfWeek(today);
       const currentMonth = today.getMonth();
       const currentYear = today.getFullYear();
-  
+
       const recordsRaw = await NeckAngleRecordModel.find({ appUserId: userId }).exec();
       const records: AbbreviatedNeckAngleRecordViewModel[] = recordsRaw.map((r: any) => ({
         angle: r.angle,
         craniumVertebralAngle: r.craniumVertebralAngle,
-        dateTimeRecorded: r.dateTimeRecorded instanceof Date ? r.dateTimeRecorded : new Date(r.dateTimeRecorded)
+        dateTimeRecorded:
+          r.dateTimeRecorded instanceof Date ? r.dateTimeRecorded : new Date(r.dateTimeRecorded),
       }));
-  
 
       const safeAvg = (arr: AbbreviatedNeckAngleRecordViewModel[]): number =>
         arr.length === 0 ? 0 : +(arr.reduce((s, a) => s + a.angle, 0) / arr.length).toFixed(1);
-  
-      const thisDay = records.filter(r => r.dateTimeRecorded >= startOfDay && r.dateTimeRecorded <= endOfDay);
-      const thisWeek = records.filter(r => r.dateTimeRecorded >= startOfWeek && r.dateTimeRecorded <= endOfWeek);
-      const thisMonth = records.filter(r => r.dateTimeRecorded.getMonth() === currentMonth && r.dateTimeRecorded.getFullYear() === currentYear);
-  
+
+      const thisDay = records.filter(
+        (r) => r.dateTimeRecorded >= startOfDay && r.dateTimeRecorded <= endOfDay
+      );
+      const thisWeek = records.filter(
+        (r) => r.dateTimeRecorded >= startOfWeek && r.dateTimeRecorded <= endOfWeek
+      );
+      const thisMonth = records.filter(
+        (r) =>
+          r.dateTimeRecorded.getMonth() === currentMonth &&
+          r.dateTimeRecorded.getFullYear() === currentYear
+      );
+
       const currentDayAverageNeckAngle = safeAvg(thisDay);
       const currentWeekAverageNeckAngle = safeAvg(thisWeek);
       const currentMonthAverageNeckAngle = safeAvg(thisMonth);
-  
-      const averageNeckAngleForEachDayOfTheCurrentWeek = this.getEachDayOfTheWeekAverageNeckAngle(thisWeek);
-      const withPositive = (await averageNeckAngleForEachDayOfTheCurrentWeek).filter((d: DailyAngleDataViewModel) => d.averageNeckAngle > 0);
-  
+
+      const averageNeckAngleForEachDayOfTheCurrentWeek =
+        this.getEachDayOfTheWeekAverageNeckAngle(thisWeek);
+      const withPositive = (await averageNeckAngleForEachDayOfTheCurrentWeek).filter(
+        (d: DailyAngleDataViewModel) => d.averageNeckAngle > 0
+      );
+
       let bestDay: DailyAngleDataViewModel | null = null;
       let badDay: DailyAngleDataViewModel | null = null;
       if (withPositive.length > 0) {
@@ -451,7 +459,7 @@ static getEachDayOfTheWeekAverageNeckAngle(
         badDay = withPositive.reduce((a, b) => (a.averageNeckAngle <= b.averageNeckAngle ? a : b));
         if (badDay && bestDay && badDay.day === bestDay.day) badDay = null;
       }
-  
+
       // scoring
       let totalPoint = 0;
       for (const rec of records) {
@@ -462,10 +470,15 @@ static getEachDayOfTheWeekAverageNeckAngle(
         else if (a >= 40 && a <= 49) totalPoint += 4;
         else if (a >= 50) totalPoint += 5;
       }
-      const averageNeckAngleStarRatingOver5 = records.length === 0 ? 0 : +(totalPoint / records.length).toFixed(2);
-  
+      const averageNeckAngleStarRatingOver5 =
+        records.length === 0 ? 0 : +(totalPoint / records.length).toFixed(2);
+
       // last goals
-      const lastGoals = await Goal.find({ appUserId: userId }).sort({ _id: -1 }).limit(2).lean().exec();
+      const lastGoals = await Goal.find({ appUserId: userId })
+        .sort({ _id: -1 })
+        .limit(2)
+        .lean()
+        .exec();
       let lastSetGoalWithDetails: GoalCycleReportViewModel | null = null;
       if (lastGoals && lastGoals.length > 0) {
         const g = lastGoals[0] as any;
@@ -476,23 +489,28 @@ static getEachDayOfTheWeekAverageNeckAngle(
           complianceInPercentage: null,
           dateOfConcludedCycle: null,
           dayOfConcludedCycle: null,
-          colorTag: null
+          colorTag: null,
         };
-  
-        const goalReport = await GoalCycleCompletionReport.findOne({ goalId: g._id }).sort({ _id: -1 }).exec();
+
+        const goalReport = await GoalCycleCompletionReport.findOne({ goalId: g._id })
+          .sort({ _id: -1 })
+          .exec();
         if (goalReport) {
           lastSetGoalWithDetails.actualAverageNeckAngle = goalReport.actualAverageNeckAngle;
           lastSetGoalWithDetails.complianceInPercentage = goalReport.complianceInPercentage;
           lastSetGoalWithDetails.dateOfConcludedCycle = goalReport.dateOfConcludedCycle;
-          lastSetGoalWithDetails.dayOfConcludedCycle = DateLibrary.formatDay(goalReport.dateOfConcludedCycle?.toString() ?? '');
-          lastSetGoalWithDetails.colorTag = Utils.getColorTag(goalReport.complianceInPercentage ?? 0);
+          lastSetGoalWithDetails.dayOfConcludedCycle = DateLibrary.formatDay(
+            goalReport.dateOfConcludedCycle?.toString() ?? ''
+          );
+          lastSetGoalWithDetails.colorTag = Utils.getColorTag(
+            goalReport.complianceInPercentage ?? 0
+          );
         }
       }
-  
 
-      const averageNeckAngleForEachWeekOfTheCurrentMonth = await this.getEachWeekOfTheMonthAverageNeckAngle(thisMonth);
-    
-  
+      const averageNeckAngleForEachWeekOfTheCurrentMonth =
+        await this.getEachWeekOfTheMonthAverageNeckAngle(thisMonth);
+
       return {
         username: userDetails.username,
         averageNeckAngleStarRatingOver5,
@@ -507,18 +525,17 @@ static getEachDayOfTheWeekAverageNeckAngle(
         bestWeekDayAverageNeckAngle: bestDay,
         badWeekDayAverageNeckAngle: badDay,
         averageNeckAngleForEachDayOfTheCurrentWeek,
-        averageNeckAngleForEachWeekOfTheCurrentMonth : averageNeckAngleForEachWeekOfTheCurrentMonth.map(w => ({
-          weekNumber: w.week,
-          averageNeckAngle: w.averageNeckAngle,
-        }))
+        averageNeckAngleForEachWeekOfTheCurrentMonth:
+          averageNeckAngleForEachWeekOfTheCurrentMonth.map((w) => ({
+            weekNumber: w.week,
+            averageNeckAngle: w.averageNeckAngle,
+          })),
       };
     } catch (error) {
-      logger.error("Error in computeNeckAngleParametersAsync:", error);
-      throw error instanceof CustomException ? error : new CustomException('Error computing neck angle parameters');
+      logger.error('Error in computeNeckAngleParametersAsync:', error);
+      throw error instanceof CustomException
+        ? error
+        : new CustomException('Error computing neck angle parameters');
     }
   }
-  
-
 }
-
-
