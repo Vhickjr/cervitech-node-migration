@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import TransactionRecord from '../models/TransactionRecord';
-import { TransactionViewModel, AppUserViewModel } from '../types/transaction.types';
+import { TransactionViewModel } from '../types/transaction.types';
 import { AppUserService } from './appUserServices/appUserService.service';
 import { CustomException } from '../utils/customException';
 import { TRANSACTION_STATUS } from '../enums/transaction';
+import { AppUserResponse } from '../viewmodels/ResponseRateViewModel';
 
 export class TransactionService {
   // Define your service methods here
@@ -66,7 +67,7 @@ export class TransactionService {
   static async transactionRecords(
     appUserId: string,
     transactionVM: TransactionViewModel
-  ): Promise<AppUserViewModel> {
+  ): Promise<AppUserResponse> {
     if (await this.paymentRefAlreadyExists(transactionVM.paymentRef)) {
       throw new CustomException('A payment with the same payment reference already exists.');
     }
