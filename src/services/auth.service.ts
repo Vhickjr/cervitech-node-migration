@@ -212,6 +212,7 @@ export class AuthService {
       message: 'Authentication successful',
       data: {
         ...toAppUserViewModel(user),
+        notificationCount: user.notificationCount ?? 0,
         currentTargetedAverageNeckAngle,
         token,
       },

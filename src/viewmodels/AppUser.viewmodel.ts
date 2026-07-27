@@ -23,7 +23,7 @@ export interface AppUserViewModel {
 
 export function toAppUserViewModel(user: IAppUser): AppUserViewModel {
   return {
-    id: user._id.toString(),
+    id: String(user._id),
     username: user.username,
     email: user.email,
     firstName: user.firstName,
