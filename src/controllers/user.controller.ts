@@ -9,6 +9,7 @@ import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import TokenBlacklist from '../models/TokenBlacklist';
 import { CustomException } from '../utils/customException';
+import { sendSuccess, sendError } from '../utils/apiResponse';
 
 export class UserController {
   // -------------------------
@@ -21,23 +22,21 @@ export class UserController {
     };
 
     if (!updateViewModel.userId || !updateViewModel.pictureUrl) {
-      res.status(400).json({ success: false, message: 'User ID and Picture URL are required.' });
+      sendError(res, 400, 'User ID and Picture URL are required.');
       return;
     }
 
     try {
       const result = await AppUserService.updatePictureUrlAsync(updateViewModel);
       if (!result) {
-        res
-          .status(404)
-          .json({ success: false, message: 'User not found or picture could not be updated.' });
+        sendError(res, 404, 'User not found or picture could not be updated.');
         return;
       }
 
-      res.status(200).json({ success: true, message: 'Profile picture updated successfully.' });
+      sendSuccess(res, undefined, 'Profile picture updated successfully.', 200);
     } catch (error: any) {
       logger.error('UpdatePictureUrl Error:', error.message);
-      res.status(500).json({ success: false, message: 'Internal server error.' });
+      sendError(res, 500, 'Internal server error.');
     }
   }
 
@@ -47,18 +46,16 @@ export class UserController {
   static async updateSubscription(req: AuthenticatedRequest, res: Response): Promise<void> {
     const id = req.user?.userId;
     if (!id) {
-      res.status(400).json({ success: false, message: 'User ID is required.' });
+      sendError(res, 400, 'User ID is required.');
       return;
     }
 
     try {
       await AppUserService.updateSubscriptionAsync(id);
-      res.status(200).json({ success: true, message: 'Subscription updated successfully.' });
+      sendSuccess(res, undefined, 'Subscription updated successfully.', 200);
     } catch (error: any) {
       logger.error('UpdateSubscription Error:', error.message);
-      res
-        .status(400)
-        .json({ success: false, message: error.message || 'Failed to update subscription.' });
+      sendError(res, 400, error.message || 'Failed to update subscription.');
     }
   }
 
@@ -68,21 +65,21 @@ export class UserController {
   static async deleteById(req: Request, res: Response): Promise<void> {
     const id = req.params.id ?? req.query.id;
     if (!id) {
-      res.status(400).json({ success: false, message: 'User ID is required.' });
+      sendError(res, 400, 'User ID is required.');
       return;
     }
 
     try {
       const result = await AppUserService.deleteByIdAsync(id);
       if (!result) {
-        res.status(404).json({ success: false, message: 'User not found.' });
+        sendError(res, 404, 'User not found.');
         return;
       }
 
-      res.status(200).json({ success: true, message: 'User deleted successfully.' });
+      sendSuccess(res, undefined, 'User deleted successfully.', 200);
     } catch (error: any) {
       logger.error('DeleteById Error:', error.message);
-      res.status(500).json({ success: false, message: 'Failed to delete user.' });
+      sendError(res, 500, 'Failed to delete user.');
     }
   }
 
@@ -92,23 +89,21 @@ export class UserController {
   static async deleteMyAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     const email = req.user?.email;
     if (!email) {
-      res.status(400).json({ success: false, message: 'Email is required.' });
+      sendError(res, 400, 'Email is required.');
       return;
     }
 
     try {
       const result = await AppUserService.deleteAccountRequest(email);
       if (!result) {
-        res.status(404).json({ success: false, message: 'Account not found.' });
+        sendError(res, 404, 'Account not found.');
         return;
       }
 
-      res
-        .status(200)
-        .json({ success: true, message: 'Account deletion request submitted successfully.' });
+      sendSuccess(res, undefined, 'Account deletion request submitted successfully.', 200);
     } catch (error: any) {
       logger.error('DeleteMyAccount Error:', error.message);
-      res.status(500).json({ success: false, message: 'Internal server error.' });
+      sendError(res, 500, 'Internal server error.');
     }
   }
 
@@ -118,33 +113,31 @@ export class UserController {
   static async confirmDeleteMyAccount(req: Request, res: Response): Promise<void> {
     const token = (req.query.token as string) ?? req.body.Token ?? req.body.token;
     if (!token) {
-      res.status(400).json({ success: false, message: 'Token is required.' });
+      sendError(res, 400, 'Token is required.');
       return;
     }
 
     try {
       const blacklisted = await TokenBlacklist.findOne({ token });
       if (blacklisted) {
-        res
-          .status(400)
-          .json({ success: false, message: 'This token has already been used or is invalid.' });
+        sendError(res, 400, 'This token has already been used or is invalid.');
         return;
       }
 
       const decoded = TokenUtil.verifyToken(token);
       if (!decoded?.userId) {
-        res.status(400).json({ success: false, message: 'Invalid or expired token.' });
+        sendError(res, 400, 'Invalid or expired token.');
         return;
       }
 
       const result = await AppUserService.deleteByIdAsync(decoded.userId);
       await TokenBlacklist.create({ token, expiresAt: new Date() });
 
-      if (result) res.status(200).json({ success: true, message: 'Account deleted successfully.' });
-      else res.status(404).json({ success: false, message: 'Account not found.' });
+      if (result) sendSuccess(res, undefined, 'Account deleted successfully.', 200);
+      else sendError(res, 404, 'Account not found.');
     } catch (error: any) {
       logger.error('ConfirmDeleteMyAccount Error:', error.message);
-      res.status(500).json({ success: false, message: 'Internal server error.' });
+      sendError(res, 500, 'Internal server error.');
     }
   }
 
@@ -154,10 +147,10 @@ export class UserController {
   static async deleteAll(req: Request, res: Response): Promise<void> {
     try {
       await AppUserService.deleteAllAsync();
-      res.status(200).json({ success: true, message: 'All accounts deleted successfully.' });
+      sendSuccess(res, undefined, 'All accounts deleted successfully.', 200);
     } catch (error: any) {
       logger.error('DeleteAll Error:', error.message);
-      res.status(500).json({ success: false, message: 'Failed to delete all accounts.' });
+      sendError(res, 500, 'Failed to delete all accounts.');
     }
   }
 
@@ -170,18 +163,16 @@ export class UserController {
   ): Promise<void> {
     const id = req.user?.userId;
     if (!id) {
-      res.status(400).json({ success: false, message: 'User ID is required.' });
+      sendError(res, 400, 'User ID is required.');
       return;
     }
 
     try {
       await AppUserService.toggleAllowPushNotificationsAsync(id);
-      res
-        .status(200)
-        .json({ success: true, message: 'Push notification preference updated successfully.' });
+      sendSuccess(res, undefined, 'Push notification preference updated successfully.', 200);
     } catch (error: any) {
       logger.error('ToggleAllowPushNotifications Error:', error.message);
-      res.status(500).json({ success: false, message: 'Failed to toggle push notifications.' });
+      sendError(res, 500, 'Failed to toggle push notifications.');
     }
   }
 
@@ -194,12 +185,12 @@ export class UserController {
     const dateStr = (req.query.date as string) ?? body.date;
 
     if (!id || !dateStr || isNaN(Date.parse(dateStr))) {
-      res.status(400).json({ success: false, message: 'Invalid or missing user ID/date.' });
+      sendError(res, 400, 'Invalid or missing user ID/date.');
       return;
     }
 
     if (!mongoose.isValidObjectId(id)) {
-      res.status(400).json({ success: false, message: 'Invalid user ID format.' });
+      sendError(res, 400, 'Invalid user ID format.');
       return;
     }
 
@@ -210,9 +201,7 @@ export class UserController {
       res.status(200).json({ success: true, data: result });
     } catch (error: any) {
       logger.error('GetResponseRate Error:', error);
-      res
-        .status(500)
-        .json({ success: false, message: error?.message || 'Failed to fetch response rate.' });
+      sendError(res, 500, error?.message || 'Failed to fetch response rate.');
     }
   }
 
@@ -222,7 +211,7 @@ export class UserController {
   static async updateUser(req: AuthenticatedRequest, res: Response) {
     const userId = req.user?.userId ?? req.body.Id ?? req.body.id ?? req.body._id;
     if (!userId) {
-      res.status(400).json({ success: false, message: 'User ID is required.' });
+      sendError(res, 400, 'User ID is required.');
       return;
     }
 
@@ -242,12 +231,10 @@ export class UserController {
       };
 
       const updatedUser = await AppUserService.updateUser(userId, normalizedUpdate);
-      res
-        .status(200)
-        .json({ success: true, message: 'User profile updated successfully.', data: updatedUser });
+      sendSuccess(res, updatedUser, 'User profile updated successfully.', 200);
     } catch (err: any) {
       logger.error('UpdateUser Error:', err.message);
-      res.status(400).json({ success: false, message: err.message || 'Failed to update user.' });
+      sendError(res, 400, err.message || 'Failed to update user.');
     }
   }
 
@@ -258,7 +245,7 @@ export class UserController {
     const email = req.query.email;
     console.log(email);
     if (!email || typeof email !== 'string') {
-      res.status(400).json({ success: false, message: 'Email is required and must be a string.' });
+      sendError(res, 400, 'Email is required and must be a string.');
       return;
     }
 
@@ -267,9 +254,8 @@ export class UserController {
       res.status(200).json({ success: true, data: user });
     } catch (error: any) {
       logger.error('GetByEmail Error:', error.message);
-      if (error instanceof CustomException)
-        res.status(404).json({ success: false, message: error.message });
-      else res.status(500).json({ success: false, message: 'Internal server error.' });
+      if (error instanceof CustomException) sendError(res, 404, error.message);
+      else sendError(res, 500, 'Internal server error.');
     }
   }
 
@@ -279,7 +265,7 @@ export class UserController {
       const id = req.params.id ?? req.query.id;
 
       if (!id || typeof id !== 'string') {
-        res.status(400).json({ success: false, message: 'Id is required and must be a string.' });
+        sendError(res, 400, 'Id is required and must be a string.');
         return;
       }
 
@@ -287,9 +273,8 @@ export class UserController {
       res.status(200).json({ success: true, data: user });
     } catch (error: any) {
       logger.error('GetById Error:', error.message);
-      if (error instanceof CustomException)
-        res.status(404).json({ success: false, message: error.message });
-      else res.status(500).json({ success: false, message: 'Internal server error.' });
+      if (error instanceof CustomException) sendError(res, 404, error.message);
+      else sendError(res, 500, 'Internal server error.');
     }
   }
 
@@ -311,10 +296,11 @@ export class UserController {
       res.status(200).json({ success: true, data: { allowPushNotifications: allowPush } });
     } catch (error: any) {
       logger.error('GetAllowPushNotificationStatus Error:', error.message);
-      res.status(error instanceof CustomException ? 404 : 500).json({
-        success: false,
-        message: error instanceof CustomException ? error.message : 'Internal server error.',
-      });
+      sendError(
+        res,
+        error instanceof CustomException ? 404 : 500,
+        error instanceof CustomException ? error.message : 'Internal server error.'
+      );
     }
   }
 
@@ -324,9 +310,7 @@ export class UserController {
   static async getFCMTokenByUsername(req: Request, res: Response): Promise<void> {
     const username = req.query.username ?? req.query.Username;
     if (!username || typeof username !== 'string') {
-      res
-        .status(400)
-        .json({ success: false, message: 'Username is required and must be a string.' });
+      sendError(res, 400, 'Username is required and must be a string.');
       return;
     }
 
@@ -336,10 +320,11 @@ export class UserController {
       res.status(200).json({ success: true, data: { fcmToken: token } });
     } catch (error: any) {
       logger.error('GetFCMTokenByUsername Error:', error.message);
-      res.status(error instanceof CustomException ? 404 : 500).json({
-        success: false,
-        message: error instanceof CustomException ? error.message : 'Internal server error.',
-      });
+      sendError(
+        res,
+        error instanceof CustomException ? 404 : 500,
+        error instanceof CustomException ? error.message : 'Internal server error.'
+      );
     }
   }
 
@@ -352,24 +337,25 @@ export class UserController {
     const _id = req.user?.userId;
 
     if (!_id) {
-      res.status(401).json({ success: false, message: 'Unauthorized' });
+      sendError(res, 401, 'Unauthorized');
       return;
     }
 
     if (!fcmToken || typeof fcmToken !== 'string') {
-      res.status(400).json({ success: false, message: 'Invalid request. Provide valid fcmToken.' });
+      sendError(res, 400, 'Invalid request. Provide valid fcmToken.');
       return;
     }
 
     try {
       await FCMTokenService.updateFCMToken({ fcmToken, _id });
-      res.status(200).json({ success: true, message: 'FCM token updated successfully.' });
+      sendSuccess(res, undefined, 'FCM token updated successfully.', 200);
     } catch (error: any) {
       logger.error('UpdateFCMToken Error:', error.message);
-      res.status(error instanceof CustomException ? 400 : 500).json({
-        success: false,
-        message: error instanceof CustomException ? error.message : 'Internal server error.',
-      });
+      sendError(
+        res,
+        error instanceof CustomException ? 400 : 500,
+        error instanceof CustomException ? error.message : 'Internal server error.'
+      );
     }
   }
 }
