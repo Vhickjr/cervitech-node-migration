@@ -25,6 +25,7 @@ import { DateLibrary } from '../utils/dateLibrary.js';
 import { EmailUtils } from '../utils/EmailService/emailutils.js';
 import { AuthValidation } from '../validation/authValidation.js';
 import { Goal } from '../models/Goal.js';
+import { toAppUserViewModel } from '../viewmodels/AppUser.viewmodel.js';
 
 export class AuthService {
   static async signup(data: SignupRequest): Promise<SignupResponse> {
@@ -210,25 +211,9 @@ export class AuthService {
       success: true,
       message: 'Authentication successful',
       data: {
-        id: user._id.toString(),
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        hasPaid: user.hasPaid,
-        pictureUrl: user.pictureUrl,
-        fcmToken: user.fcmToken,
-        isGoalOn: user.isGoalOn,
-        allowPushNotifications: user.allowPushNotifications,
-        mobileChannel: user.mobileChannel,
+        ...toAppUserViewModel(user),
         currentTargetedAverageNeckAngle,
-        dateRegistered: user.dateRegistered.toISOString(),
-        responseRate: user.responseRate,
-        lastLoginDateTime: user.lastLoginDateTime,
-        prompt: user.prompt,
-        notificationCount: user.notificationCount,
         token,
-        deleted: user.deleted,
       },
     };
   }

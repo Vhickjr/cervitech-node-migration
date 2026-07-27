@@ -1,4 +1,4 @@
-import AppUser from '../../viewmodels/AppUser';
+import AppUser, { IAppUser } from '../../models/AppUser';
 import ResponseRate from '../../models/ResponseRate';
 import { PictureUrlUpdateViewModel } from '../../viewmodels/PictureUrlUpdateViewModel';
 import { SubscriptionUpdateViewModel } from '../../viewmodels/SubscriptionUpdateViewModel';
@@ -13,7 +13,7 @@ import { PushNotificationDriver } from '../pushNotificationDriver';
 import { PushNotificationModelDTO } from '../../types/pushNotificationModel.types';
 import { logger } from '../../utils/logger';
 import { UpdateUserRequest } from '../../types/user.types';
-import { AppUserViewModel } from '../../viewmodels/AppUserViewModel';
+import { AppUserViewModel, toAppUserViewModel } from '../../viewmodels/AppUser.viewmodel';
 import User from '../../models/User';
 // import {FCMTokenUpdateViewModel} from "../../viewmodels/FCMTokenUpdateViewModel";
 import { TokenUtil } from '../../utils/token.util';
@@ -343,7 +343,10 @@ export class AppUserService {
     }
   }
 
-  static async updateUser(userId: string, update: UpdateUserRequest): Promise<AppUserViewModel> {
+  static async updateUser(
+    userId: string,
+    update: UpdateUserRequest
+  ): Promise<AppUserViewModel & { neckAngleRecords: IAppUser['neckAngleRecords'] }> {
     if (!userId) {
       throw new CustomException('User Id is missing from request.');
     }
@@ -362,32 +365,13 @@ export class AppUserService {
 
     await user.save();
 
-    return {
-      id: user._id.toString(),
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      pictureUrl: user.pictureUrl,
-      fcmToken: user.fcmToken,
-      /* hash: user.hash,
-        salt: user.salt, */
-      currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle ?? 0,
-      isGoalOn: user.isGoalOn ?? false,
-      hasPaid: user.hasPaid ?? false,
-      allowPushNotifications: user.allowPushNotifications ?? true,
-      mobileChannel: user.mobileChannel ?? 1,
-      dateRegistered: user.dateRegistered?.toISOString() ?? new Date().toISOString(),
-      responseRate: user.responseRate ?? 0,
-      lastLoginDateTime: user.lastLoginDateTime ?? new Date(),
-      neckAngleRecords: user.neckAngleRecords ?? [],
-      notificationCount: user.notificationCount ?? 0,
-      prompt: user.prompt ?? 0,
-      deleted: user.deleted ?? false,
-    };
+    return { ...toAppUserViewModel(user), neckAngleRecords: user.neckAngleRecords ?? [] };
   }
 
-  static async updateFCMToken(userId: string, fcmToken: string): Promise<AppUserViewModel> {
+  static async updateFCMToken(
+    userId: string,
+    fcmToken: string
+  ): Promise<AppUserViewModel & { neckAngleRecords: IAppUser['neckAngleRecords'] }> {
     if (!userId) {
       throw new CustomException('UserId is not provided');
     }
@@ -403,27 +387,7 @@ export class AppUserService {
 
     await user.save();
 
-    return {
-      id: user._id.toString(),
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      pictureUrl: user.pictureUrl,
-      fcmToken: user.fcmToken,
-      currentTargetedAverageNeckAngle: user.currentTargetedAverageNeckAngle ?? 0,
-      isGoalOn: user.isGoalOn ?? false,
-      hasPaid: user.hasPaid ?? false,
-      allowPushNotifications: user.allowPushNotifications ?? true,
-      mobileChannel: user.mobileChannel ?? 1,
-      dateRegistered: user.dateRegistered?.toISOString() ?? new Date().toISOString(),
-      responseRate: user.responseRate ?? 0,
-      lastLoginDateTime: user.lastLoginDateTime ?? new Date(),
-      neckAngleRecords: user.neckAngleRecords ?? [],
-      notificationCount: user.notificationCount ?? 0,
-      prompt: user.prompt ?? 0,
-      deleted: user.deleted ?? false,
-    };
+    return { ...toAppUserViewModel(user), neckAngleRecords: user.neckAngleRecords ?? [] };
   }
 
   static async emailAlreadyExistsAsync(email: string): Promise<boolean> {

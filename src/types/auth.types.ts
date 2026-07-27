@@ -56,28 +56,6 @@ export interface LoginViewModel {
   mobileChannel: MOBILE_CHANNEL; // Use the enum type
 }
 
-export interface AppUserViewModel {
-  id: string;
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  hasPaid: boolean;
-  pictureUrl?: string;
-  fcmToken?: string;
-  isGoalOn: boolean;
-  allowPushNotifications: boolean;
-  mobileChannel: MOBILE_CHANNEL; // Use the enum type
-  currentTargetedAverageNeckAngle: number;
-  dateRegistered: string; // Convert to string in view model
-  responseRate?: number;
-  lastLoginDateTime?: Date;
-  prompt?: number; // Keep as number
-  notificationCount?: number;
-  deleted: boolean;
-}
-
 export interface LogoutRequest{
   userId: string,
   token: string

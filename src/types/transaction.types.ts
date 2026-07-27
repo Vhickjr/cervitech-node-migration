@@ -1,5 +1,3 @@
-import { MobileChannel } from '../viewmodels/AppUser';
-
 export interface TransactionViewModel {
   id?: string;
   paymentRef: string;
@@ -7,21 +5,4 @@ export interface TransactionViewModel {
   status: number;
   transDate: Date;
   description?: string;
-}
-
-export interface AppUserViewModel {
-  id: string;
-  username: string;
-  email: string;
-  FCMToken: string;
-  hasPaid: boolean;
-  firstName?: string;
-  lastName?: string;
-  pictureUrl?: string;
-  isGoalOn: boolean;
-  allowPushNotifications: boolean;
-  mobileChannel: MobileChannel;
-  dateRegistered?: string;
-  responseRate: number;
-  lastLoginDateTime?: Date;
 }
