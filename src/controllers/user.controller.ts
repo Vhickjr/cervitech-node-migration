@@ -124,7 +124,7 @@ export class UserController {
         return;
       }
 
-      const decoded = TokenUtil.verifyToken(token);
+      const decoded = TokenUtil.verifyToken(token, 'account_deletion');
       if (!decoded?.userId) {
         sendError(res, 400, 'Invalid or expired token.');
         return;

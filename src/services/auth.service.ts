@@ -135,7 +135,7 @@ export class AuthService {
       return { success: false, message: 'User does not exist' };
     }
 
-    const token = TokenUtil.generateToken(user._id.toString());
+    const token = TokenUtil.generateToken(user._id.toString(), 'password_reset');
     await EmailUtils.sendPasswordResetEmail(user.email, user.username, token);
 
     return { success: true, message: 'Password reset email sent' };
@@ -145,7 +145,7 @@ export class AuthService {
     const blacklisted = await TokenBlacklist.findOne({ token });
     if (blacklisted) throw new Error('This token has already been used or is invalid');
 
-    const { userId } = TokenUtil.verifyToken(token);
+    const { userId } = TokenUtil.verifyToken(token, 'password_reset');
 
     const hashed = await HashUtil.hash(newPassword);
     await AppUser.findByIdAndUpdate(userId, { password: hashed });

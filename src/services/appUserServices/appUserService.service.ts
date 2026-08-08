@@ -140,7 +140,7 @@ export class AppUserService {
         throw new CustomException('User does not exist');
       }
 
-      const token = TokenUtil.generateToken(user._id.toString());
+      const token = TokenUtil.generateToken(user._id.toString(), 'account_deletion');
       console.log('Generated token:', token);
 
       console.log('Token before sending email:', token);
