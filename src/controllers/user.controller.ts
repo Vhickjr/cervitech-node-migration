@@ -41,25 +41,6 @@ export class UserController {
   }
 
   // -------------------------
-  // Update subscription
-  // -------------------------
-  static async updateSubscription(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const id = req.user?.userId;
-    if (!id) {
-      sendError(res, 400, 'User ID is required.');
-      return;
-    }
-
-    try {
-      await AppUserService.updateSubscriptionAsync(id);
-      sendSuccess(res, undefined, 'Subscription updated successfully.', 200);
-    } catch (error: any) {
-      logger.error('UpdateSubscription Error:', error.message);
-      sendError(res, 400, error.message || 'Failed to update subscription.');
-    }
-  }
-
-  // -------------------------
   // Delete user by ID
   // -------------------------
   static async deleteById(req: Request, res: Response): Promise<void> {

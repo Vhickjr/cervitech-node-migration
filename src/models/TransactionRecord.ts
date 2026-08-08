@@ -8,6 +8,7 @@ export interface ITransactionRecord extends Document {
   status: number;
   transDate: Date;
   description?: string;
+  entitlementGranted: boolean;
   createdOn: Date;
   updatedOn?: Date;
   deletedOn?: Date;
@@ -20,6 +21,9 @@ const TransactionRecordSchema = new Schema<ITransactionRecord>({
   status: { type: Number, enum: Object.values(TRANSACTION_STATUS), required: true },
   transDate: { type: Date, required: true, default: Date.now },
   description: { type: String },
+  // Set once this record has granted hasPaid, so it can't re-grant on replay
+  // (e.g. a future status re-check via #08/#09 re-processing the same record).
+  entitlementGranted: { type: Boolean, default: false },
   createdOn: { type: Date, default: Date.now },
   updatedOn: { type: Date, default: Date.now },
   deletedOn: { type: Date },

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import TransactionRecord from '../models/TransactionRecord';
+import TransactionRecord, { ITransactionRecord } from '../models/TransactionRecord';
 import { TransactionViewModel } from '../types/transaction.types';
 import { AppUserService } from './appUserServices/appUserService.service';
 import { CustomException } from '../utils/customException';
@@ -83,19 +83,40 @@ export class TransactionService {
       throw new CustomException('A record exists with this user id.');
     }
 
+    const status = this.parseTransactionStatus(transactionVM.status);
+
     const transaction = new TransactionRecord({
       appUserId,
       paymentRef: transactionVM.paymentRef,
       amount: transactionVM.amount,
-      status: this.parseTransactionStatus(transactionVM.status),
+      status,
       transDate: this.parseTransactionDate(transactionVM.transDate),
       description: transactionVM.description,
     });
 
-    console.log('Saving transaction:', transaction);
     await transaction.save();
 
-    return AppUserService.updateSubscriptionAsync(appUserId);
+    if (status === TRANSACTION_STATUS.Completed) {
+      return this.grantEntitlement(transaction);
+    }
+
+    return AppUserService.getAppUserResponse(appUserId);
+  }
+
+  // Grants hasPaid for a Completed transaction, guarding against granting
+  // twice if the same record is ever re-processed (e.g. a future status
+  // re-check via the Play Developer API).
+  private static async grantEntitlement(transaction: ITransactionRecord): Promise<AppUserResponse> {
+    if (transaction.entitlementGranted) {
+      return AppUserService.getAppUserResponse(transaction.appUserId);
+    }
+
+    const response = await AppUserService.grantPaidEntitlement(transaction.appUserId);
+
+    transaction.entitlementGranted = true;
+    await transaction.save();
+
+    return response;
   }
 
   static async getAllTransactionRecords(): Promise<TransactionViewModel[]> {

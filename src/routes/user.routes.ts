@@ -308,30 +308,6 @@ router.put('/picture', authenticateJWT, UserController.updatePictureUrl);
 
 /**
  * @openapi
- * /user/subscription:
- *   put:
- *     tags: [User]
- *     summary: Upgrade/renew the authenticated user's subscription
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Subscription updated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiSuccessResponse'
- *       400:
- *         description: User ID missing, or update failed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiErrorResponse'
- */
-router.put('/subscription', authenticateJWT, UserController.updateSubscription);
-
-/**
- * @openapi
  * /user/toggle-push-notification:
  *   put:
  *     tags: [User]

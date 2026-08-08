@@ -20,14 +20,47 @@ import { TokenUtil } from '../../utils/token.util';
 import { EmailUtils } from '../../utils/EmailService/emailutils';
 
 export class AppUserService {
-  static async updateSubscriptionAsync(userId: string): Promise<AppUserResponse> {
+  private static toAppUserResponse(user: IAppUser): AppUserResponse {
+    return {
+      id: String(user._id),
+      username: user.username,
+      email: user.email,
+      FCMToken: user.fcmToken,
+      hasPaid: user.hasPaid,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      pictureUrl: user.pictureUrl,
+      isGoalOn: user.isGoalOn,
+      allowPushNotifications: user.allowPushNotifications,
+      mobileChannel: user.mobileChannel,
+      dateRegistered: user.dateRegistered?.toString(),
+      responseRate: user.responseRate,
+      lastLoginDateTime: user.lastLoginDateTime,
+    };
+  }
+
+  static async getAppUserResponse(userId: string): Promise<AppUserResponse> {
+    if (!userId || userId.trim() === '') {
+      throw new CustomException('UserId not provided');
+    }
+
+    const user = await AppUser.findById(userId);
+    if (!user) {
+      throw new CustomException('This user cannot be retrieved at the moment. Please contact support.');
+    }
+
+    return this.toAppUserResponse(user);
+  }
+
+  // Grants paid entitlement directly. Only call this for a transaction whose
+  // status is confirmed Completed -- see TransactionService.transactionRecords.
+  static async grantPaidEntitlement(userId: string): Promise<AppUserResponse> {
     try {
       if (!userId || userId.trim() === '') {
         throw new Error('UserId not provided');
       }
 
       const user = await AppUser.findById(userId);
-      console.log('Fetched user:', user);
       if (!user) {
         throw new Error('This user cannot be retrieved at the moment. Please contact support.');
       }
@@ -35,24 +68,9 @@ export class AppUserService {
       user.hasPaid = true;
       await user.save();
 
-      return {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        FCMToken: user.fcmToken,
-        hasPaid: user.hasPaid,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        pictureUrl: user.pictureUrl,
-        isGoalOn: user.isGoalOn,
-        allowPushNotifications: user.allowPushNotifications,
-        mobileChannel: user.mobileChannel,
-        dateRegistered: user.dateRegistered?.toString(),
-        responseRate: user.responseRate,
-        lastLoginDateTime: user.lastLoginDateTime,
-      };
+      return this.toAppUserResponse(user);
     } catch (error) {
-      logger.error('Error in updateSubscriptionAsync:');
+      logger.error('Error in grantPaidEntitlement:');
       throw new CustomException('Error updating subscription.');
     }
   }
