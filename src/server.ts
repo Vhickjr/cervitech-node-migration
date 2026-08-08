@@ -19,6 +19,7 @@ import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
 import emailRoutes from './routes/email.routes.js';
 import { startMonthlyReminderJob } from './jobs/monthlyReminder.job';
+import { startSubscriptionSyncJob } from './jobs/subscriptionSync.job';
 
 // Load environment variables
 dotenv.config();
@@ -75,6 +76,7 @@ mongoose
       console.log(frontendUrl);
     });
     startMonthlyReminderJob();
+    startSubscriptionSyncJob();
   })
   .catch((err) => {
     logger.error('MongoDB connection error:', err);
