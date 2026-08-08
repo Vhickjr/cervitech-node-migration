@@ -14,7 +14,7 @@ const router = Router();
  *     tags: [FCM]
  *     summary: Update the authenticated user's FCM push token
  *     deprecated: true
- *     description: Deprecated. Use `PUT /user/fcm-token` instead.
+ *     description: Deprecated. Use `PUT /users/me/fcm-token` instead.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -43,7 +43,7 @@ const router = Router();
  *       401:
  *         description: Not authenticated
  */
-router.put('/token', deprecatedRoute('/user/fcm-token'), authenticateJWT, UserController.updateFCMToken);
+router.put('/token', deprecatedRoute('/users/me/fcm-token'), authenticateJWT, UserController.updateFCMToken);
 
 // Test/dev endpoints (no auth)
 

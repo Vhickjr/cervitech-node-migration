@@ -1,3 +1,9 @@
+// src/routes/user.routes.ts
+//
+// Deprecated alias layer. /users is the canonical mount (see users.routes.ts);
+// every route here calls the same controller method as its /users equivalent
+// and is kept only so existing /user/* callers don't break. New clients
+// should use /users/*.
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { AuthController } from '../controllers/auth.controller.js';
@@ -12,6 +18,8 @@ const router = Router();
  *   get:
  *     tags: [User]
  *     summary: Get a user's response rate for a given date
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /users/response-rate` instead.
  *     parameters:
  *       - in: query
  *         name: id
@@ -38,7 +46,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
-router.get('/response-rate', UserController.getResponseRate);
+router.get('/response-rate', deprecatedRoute('/users/response-rate'), UserController.getResponseRate);
 
 /**
  * @openapi
@@ -101,11 +109,12 @@ router.get('/emails/validate', deprecatedRoute('/auth/validate-email'), AuthCont
  *   get:
  *     tags: [User]
  *     summary: Check whether an account-deletion token is valid/pending (does not delete)
+ *     deprecated: true
  *     description: >
- *       This GET no longer deletes the account -- it only reports whether the
- *       token is valid and pending. Superseded by
- *       `GET /users/me/deletion-requests/{token}`; use
- *       `DELETE /users/me/deletion-requests/{token}` to actually confirm deletion.
+ *       Deprecated. Use `GET /users/me/deletion-requests/{token}` to check a
+ *       token, and `DELETE /users/me/deletion-requests/{token}` to confirm
+ *       deletion. This GET never deletes the account -- it only reports
+ *       whether the token is valid and pending.
  *     parameters:
  *       - in: query
  *         name: token
@@ -126,7 +135,7 @@ router.get('/emails/validate', deprecatedRoute('/auth/validate-email'), AuthCont
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
-router.get('/deletions/confirm', UserController.checkDeletionRequest);
+router.get('/deletions/confirm', deprecatedRoute('/users/me/deletion-requests/{token}'), UserController.checkDeletionRequest);
 
 /**
  * @openapi
@@ -134,6 +143,8 @@ router.get('/deletions/confirm', UserController.checkDeletionRequest);
  *   get:
  *     tags: [User]
  *     summary: Get a user's FCM token by username
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /users/fcm-token` instead.
  *     parameters:
  *       - in: query
  *         name: username
@@ -158,7 +169,7 @@ router.get('/deletions/confirm', UserController.checkDeletionRequest);
  *       404:
  *         description: User not found
  */
-router.get('/fcm-token', UserController.getFCMTokenByUsername);
+router.get('/fcm-token', deprecatedRoute('/users/fcm-token'), UserController.getFCMTokenByUsername);
 
 /**
  * @openapi
@@ -166,6 +177,8 @@ router.get('/fcm-token', UserController.getFCMTokenByUsername);
  *   get:
  *     tags: [User]
  *     summary: Get a user by email
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /users` instead.
  *     parameters:
  *       - in: query
  *         name: email
@@ -181,7 +194,7 @@ router.get('/fcm-token', UserController.getFCMTokenByUsername);
  *       404:
  *         description: User not found
  */
-router.get('/', UserController.getByEmail);
+router.get('/', deprecatedRoute('/users'), UserController.getByEmail);
 
 /**
  * @openapi
@@ -189,6 +202,8 @@ router.get('/', UserController.getByEmail);
  *   get:
  *     tags: [User]
  *     summary: Get the authenticated user's push-notification preference
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /users/me/allow-push-notification` instead.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -201,6 +216,7 @@ router.get('/', UserController.getByEmail);
  */
 router.get(
   '/allow-push-notification',
+  deprecatedRoute('/users/me/allow-push-notification'),
   authenticateJWT,
   UserController.getAllowPushNotificationStatus
 );
@@ -211,6 +227,8 @@ router.get(
  *   get:
  *     tags: [User]
  *     summary: Get a user profile by ID
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /users/{id}` instead.
  *     parameters:
  *       - in: path
  *         name: id
@@ -225,7 +243,7 @@ router.get(
  *       404:
  *         description: User not found
  */
-router.get('/:id', UserController.fetch_user_profile);
+router.get('/:id', deprecatedRoute('/users/{id}'), UserController.fetch_user_profile);
 
 /**
  * @openapi
@@ -233,6 +251,8 @@ router.get('/:id', UserController.fetch_user_profile);
  *   put:
  *     tags: [User]
  *     summary: Update the authenticated user's profile
+ *     deprecated: true
+ *     description: Deprecated. Use `PUT /users/me` instead.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -267,7 +287,7 @@ router.get('/:id', UserController.fetch_user_profile);
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
-router.put('/', authenticateJWT, UserController.updateUser);
+router.put('/', deprecatedRoute('/users/me'), authenticateJWT, UserController.updateUser);
 
 /**
  * @openapi
@@ -275,6 +295,8 @@ router.put('/', authenticateJWT, UserController.updateUser);
  *   put:
  *     tags: [User]
  *     summary: Update the authenticated user's profile picture
+ *     deprecated: true
+ *     description: Deprecated. Use `PUT /users/me/picture` instead.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -304,7 +326,7 @@ router.put('/', authenticateJWT, UserController.updateUser);
  *       404:
  *         description: User not found
  */
-router.put('/picture', authenticateJWT, UserController.updatePictureUrl);
+router.put('/picture', deprecatedRoute('/users/me/picture'), authenticateJWT, UserController.updatePictureUrl);
 
 /**
  * @openapi
@@ -312,6 +334,8 @@ router.put('/picture', authenticateJWT, UserController.updatePictureUrl);
  *   put:
  *     tags: [User]
  *     summary: Toggle the authenticated user's push-notification preference
+ *     deprecated: true
+ *     description: Deprecated. Use `PUT /users/me/toggle-push-notification` instead.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -330,6 +354,7 @@ router.put('/picture', authenticateJWT, UserController.updatePictureUrl);
  */
 router.put(
   '/toggle-push-notification',
+  deprecatedRoute('/users/me/toggle-push-notification'),
   authenticateJWT,
   UserController.toggleAllowPushNotifications
 );
@@ -340,6 +365,8 @@ router.put(
  *   put:
  *     tags: [User]
  *     summary: Update the authenticated user's FCM token
+ *     deprecated: true
+ *     description: Deprecated. Use `PUT /users/me/fcm-token` instead.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -368,7 +395,7 @@ router.put(
  *       401:
  *         description: Not authenticated
  */
-router.put('/fcm-token', authenticateJWT, UserController.updateFCMToken);
+router.put('/fcm-token', deprecatedRoute('/users/me/fcm-token'), authenticateJWT, UserController.updateFCMToken);
 
 /**
  * @openapi
@@ -402,6 +429,8 @@ router.post('/logout', deprecatedRoute('/auth/logout'), authenticateJWT, AuthCon
  *   post:
  *     tags: [User]
  *     summary: Request deletion of the authenticated user's account
+ *     deprecated: true
+ *     description: Deprecated. Use `POST /users/me/deletion-requests` instead.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -420,6 +449,6 @@ router.post('/logout', deprecatedRoute('/auth/logout'), authenticateJWT, AuthCon
  *       404:
  *         description: Account not found
  */
-router.post('/deletion-requests', authenticateJWT, UserController.deleteMyAccount);
+router.post('/deletion-requests', deprecatedRoute('/users/me/deletion-requests'), authenticateJWT, UserController.deleteMyAccount);
 
 export default router;
