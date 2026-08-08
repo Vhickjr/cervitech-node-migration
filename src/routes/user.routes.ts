@@ -100,7 +100,12 @@ router.get('/emails/validate', deprecatedRoute('/auth/validate-email'), AuthCont
  * /user/deletions/confirm:
  *   get:
  *     tags: [User]
- *     summary: Confirm account deletion using a token (e.g. from an email link)
+ *     summary: Check whether an account-deletion token is valid/pending (does not delete)
+ *     description: >
+ *       This GET no longer deletes the account -- it only reports whether the
+ *       token is valid and pending. Superseded by
+ *       `GET /users/me/deletion-requests/{token}`; use
+ *       `DELETE /users/me/deletion-requests/{token}` to actually confirm deletion.
  *     parameters:
  *       - in: query
  *         name: token
@@ -109,7 +114,7 @@ router.get('/emails/validate', deprecatedRoute('/auth/validate-email'), AuthCont
  *           type: string
  *     responses:
  *       200:
- *         description: Account deleted
+ *         description: Token is valid and deletion is pending confirmation
  *         content:
  *           application/json:
  *             schema:
@@ -121,7 +126,7 @@ router.get('/emails/validate', deprecatedRoute('/auth/validate-email'), AuthCont
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
-router.get('/deletions/confirm', UserController.confirmDeleteMyAccount);
+router.get('/deletions/confirm', UserController.checkDeletionRequest);
 
 /**
  * @openapi
