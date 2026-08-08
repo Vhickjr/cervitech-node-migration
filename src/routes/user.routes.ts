@@ -434,8 +434,4 @@ router.post('/logout', authenticateJWT, AuthController.logout);
  */
 router.post('/deletion-requests', authenticateJWT, UserController.deleteMyAccount);
 
-// DELETE routes
-// router.delete('/', UserController.deleteAll);
-// router.delete('/:id', UserController.deleteById);
-
 export default router;
