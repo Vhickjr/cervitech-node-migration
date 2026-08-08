@@ -6,6 +6,8 @@ import { CustomException } from '../utils/customException';
 import { TRANSACTION_STATUS } from '../enums/transaction';
 import { AppUserResponse } from '../viewmodels/ResponseRateViewModel';
 import { TransactionValidation } from '../validation/transactionValidation';
+import { GooglePlayService, PlayEntitlementStatus } from './googlePlay.service';
+import { logger } from '../utils/logger';
 
 export class TransactionService {
   // Define your service methods here
@@ -58,6 +60,17 @@ export class TransactionService {
     return status;
   }
 
+  private static mapPlayStatusToTransactionStatus(status: PlayEntitlementStatus): number {
+    switch (status) {
+      case 'entitled':
+        return TRANSACTION_STATUS.Completed;
+      case 'pending':
+        return TRANSACTION_STATUS.Pending;
+      case 'not_entitled':
+        return TRANSACTION_STATUS.Failed;
+    }
+  }
+
   static async paymentRefAlreadyExists(paymentRef: string): Promise<boolean> {
     const count = await TransactionRecord.countDocuments({
       paymentRef: paymentRef.trim().toLowerCase(),
@@ -74,7 +87,32 @@ export class TransactionService {
       throw new CustomException(validationError);
     }
 
-    if (await this.paymentRefAlreadyExists(transactionVM.paymentRef)) {
+    let status: number;
+    let paymentRef: string;
+
+    if (transactionVM.purchaseToken) {
+      // #08: independently verify the purchase with Google rather than
+      // trusting the client-submitted status. packageName/subscriptionId are
+      // guaranteed present by the Joi schema whenever purchaseToken is set.
+      const verification = await GooglePlayService.verifySubscriptionPurchase({
+        packageName: transactionVM.packageName!,
+        subscriptionId: transactionVM.subscriptionId!,
+        purchaseToken: transactionVM.purchaseToken,
+      });
+      status = this.mapPlayStatusToTransactionStatus(verification.status);
+      paymentRef = transactionVM.purchaseToken;
+    } else {
+      // Legacy path: no purchase token, so the client-submitted status is
+      // trusted as-is. Still pending frontend coordination on migrating
+      // fully to purchase tokens (see #08's ticket notes).
+      logger.warn('Recording transaction without Play verification; status is client-submitted.', {
+        appUserId,
+      });
+      status = this.parseTransactionStatus(transactionVM.status);
+      paymentRef = transactionVM.paymentRef!;
+    }
+
+    if (await this.paymentRefAlreadyExists(paymentRef)) {
       throw new CustomException('A payment with the same payment reference already exists.');
     }
 
@@ -83,15 +121,16 @@ export class TransactionService {
       throw new CustomException('A record exists with this user id.');
     }
 
-    const status = this.parseTransactionStatus(transactionVM.status);
-
     const transaction = new TransactionRecord({
       appUserId,
-      paymentRef: transactionVM.paymentRef,
+      paymentRef,
       amount: transactionVM.amount,
       status,
       transDate: this.parseTransactionDate(transactionVM.transDate),
       description: transactionVM.description,
+      purchaseToken: transactionVM.purchaseToken,
+      packageName: transactionVM.packageName,
+      subscriptionId: transactionVM.subscriptionId,
     });
 
     await transaction.save();
