@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { AuthController } from '../controllers/auth.controller.js';
 import { authenticateJWT } from '../middlewares/auth.middleware.js';
+import { deprecatedRoute } from '../middlewares/deprecatedRoute.js';
 
 const router = Router();
 
@@ -45,6 +46,8 @@ router.get('/response-rate', UserController.getResponseRate);
  *   get:
  *     tags: [User]
  *     summary: Check whether a username is already taken
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /auth/usernames/exists` instead.
  *     parameters:
  *       - in: query
  *         name: username
@@ -62,7 +65,7 @@ router.get('/response-rate', UserController.getResponseRate);
  *                 exists:
  *                   type: boolean
  */
-router.get('/usernames/exists', AuthController.usernameAlreadyExists);
+router.get('/usernames/exists', deprecatedRoute('/auth/usernames/exists'), AuthController.usernameAlreadyExists);
 
 /**
  * @openapi
@@ -70,6 +73,8 @@ router.get('/usernames/exists', AuthController.usernameAlreadyExists);
  *   get:
  *     tags: [User]
  *     summary: Check whether an email address is valid/deliverable
+ *     deprecated: true
+ *     description: Deprecated. Use `GET /auth/validate-email` instead.
  *     parameters:
  *       - in: query
  *         name: Email
@@ -88,7 +93,7 @@ router.get('/usernames/exists', AuthController.usernameAlreadyExists);
  *                 isValid:
  *                   type: boolean
  */
-router.get('/emails/validate', AuthController.isValidEmail);
+router.get('/emails/validate', deprecatedRoute('/auth/validate-email'), AuthController.isValidEmail);
 
 /**
  * @openapi
@@ -390,6 +395,8 @@ router.put('/fcm-token', authenticateJWT, UserController.updateFCMToken);
  *   post:
  *     tags: [User]
  *     summary: Log out and blacklist the current token
+ *     deprecated: true
+ *     description: Deprecated. Use `POST /auth/logout` instead.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -406,7 +413,7 @@ router.put('/fcm-token', authenticateJWT, UserController.updateFCMToken);
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
-router.post('/logout', authenticateJWT, AuthController.logout);
+router.post('/logout', deprecatedRoute('/auth/logout'), authenticateJWT, AuthController.logout);
 
 /**
  * @openapi

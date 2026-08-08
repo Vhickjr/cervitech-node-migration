@@ -368,28 +368,6 @@ export class AppUserService {
     return { ...toAppUserViewModel(user), neckAngleRecords: user.neckAngleRecords ?? [] };
   }
 
-  static async updateFCMToken(
-    userId: string,
-    fcmToken: string
-  ): Promise<AppUserViewModel & { neckAngleRecords: IAppUser['neckAngleRecords'] }> {
-    if (!userId) {
-      throw new CustomException('UserId is not provided');
-    }
-
-    const user = await AppUser.findById(userId);
-    if (!user) {
-      throw new CustomException(
-        'This user cannot be retrieved at the moment, please contact support.'
-      );
-    }
-
-    user.fcmToken = fcmToken ?? user.fcmToken;
-
-    await user.save();
-
-    return { ...toAppUserViewModel(user), neckAngleRecords: user.neckAngleRecords ?? [] };
-  }
-
   static async emailAlreadyExistsAsync(email: string): Promise<boolean> {
     const normalizedEmail = email.trim().toLowerCase();
 
