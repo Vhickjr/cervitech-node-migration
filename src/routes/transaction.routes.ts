@@ -61,20 +61,7 @@ router.get('/:id', authenticateJWT, TransactionController.getTransactionRecordBy
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [paymentRef, amount, status, transDate]
- *             properties:
- *               paymentRef:
- *                 type: string
- *               amount:
- *                 type: number
- *               status:
- *                 type: number
- *               transDate:
- *                 type: string
- *                 format: date-time
- *               description:
- *                 type: string
+ *             $ref: '#/components/schemas/TransactionRequest'
  *     responses:
  *       201:
  *         description: Transaction created

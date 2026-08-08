@@ -2,6 +2,7 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import j2s from 'joi-to-swagger';
 import { signupSchema, loginSchema, logoutSchema } from '../validation/schemas/auth.schema';
+import { transactionSchema } from '../validation/schemas/transaction.schema';
 
 // Request-body schemas are derived from the same Joi schemas the controllers
 // validate against at runtime, so the docs can't drift from actual behavior.
@@ -31,6 +32,7 @@ const definition: swaggerJSDoc.OAS3Definition = {
       SignupRequest: fromJoi(signupSchema),
       LoginRequest: fromJoi(loginSchema),
       LogoutRequest: fromJoi(logoutSchema),
+      TransactionRequest: fromJoi(transactionSchema),
       ApiSuccessResponse: {
         type: 'object',
         properties: {

@@ -5,6 +5,7 @@ import { AppUserService } from './appUserServices/appUserService.service';
 import { CustomException } from '../utils/customException';
 import { TRANSACTION_STATUS } from '../enums/transaction';
 import { AppUserResponse } from '../viewmodels/ResponseRateViewModel';
+import { TransactionValidation } from '../validation/transactionValidation';
 
 export class TransactionService {
   // Define your service methods here
@@ -68,6 +69,11 @@ export class TransactionService {
     appUserId: string,
     transactionVM: TransactionViewModel
   ): Promise<AppUserResponse> {
+    const validationError = TransactionValidation.transactionValidation(transactionVM);
+    if (validationError) {
+      throw new CustomException(validationError);
+    }
+
     if (await this.paymentRefAlreadyExists(transactionVM.paymentRef)) {
       throw new CustomException('A payment with the same payment reference already exists.');
     }
