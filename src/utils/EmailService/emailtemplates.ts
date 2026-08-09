@@ -753,7 +753,9 @@ export const EmailTemplates = {
   },
 
   accountDeletionRequest: (username: string, to: string, token: string) => {
-    const confirmationLink = `${baseUrl}/api/v1/user/deletions/confirm?token=${encodeURIComponent(token)}`;
+    // Deletion is a destructive DELETE call, so (like the password-reset link)
+    // this points at a frontend confirmation page rather than the API route directly.
+    const confirmationLink = `${frontendBaseUrl}/confirm-account-deletion?token=${encodeURIComponent(token)}`;
 
     return `
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

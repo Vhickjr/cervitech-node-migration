@@ -134,6 +134,19 @@ This document lists all environment variables used in the CerviTech Node.js appl
 
 ---
 
+## 8a. Google Play Billing (2)
+
+| Variable | Purpose | Required | Default |
+|----------|---------|----------|---------|
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_KEY` | JSON key for a Google Cloud service account with Finance/Orders access in Play Console; used to verify purchase tokens against the Android Publisher API | No* | - |
+| `GOOGLE_PLAY_PACKAGE_NAME` | Android package name the subscriptions belong to | No* | - |
+
+**Files:** `src/services/googlePlay.service.ts`, `src/jobs/subscriptionSync.job.ts`, `src/services/transaction.service.ts`
+
+*Required only to verify Play purchase tokens (`POST /transaction` with `purchaseToken`) and to run the subscription-sync job. Without it, `POST /transaction` still works via the legacy client-submitted-status path, and the sync job logs a warning and no-ops on each scheduled run.
+
+---
+
 ## 8. Environment Colors (5)
 
 Used for logging and UI indication of environment status.

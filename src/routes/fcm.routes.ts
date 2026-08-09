@@ -1,7 +1,9 @@
 // src/routes/fcm.routes.ts
 import { Router } from 'express';
 import { FCMController } from '../controllers/fcmToken.controller';
+import { UserController } from '../controllers/user.controller';
 import { authenticateJWT } from '../middlewares/auth.middleware';
+import { deprecatedRoute } from '../middlewares/deprecatedRoute';
 
 const router = Router();
 
@@ -11,6 +13,8 @@ const router = Router();
  *   put:
  *     tags: [FCM]
  *     summary: Update the authenticated user's FCM push token
+ *     deprecated: true
+ *     description: Deprecated. Use `PUT /users/me/fcm-token` instead.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -29,23 +33,17 @@ const router = Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
+ *               $ref: '#/components/schemas/ApiSuccessResponse'
  *       400:
  *         description: fcmToken missing
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ *       401:
+ *         description: Not authenticated
  */
-router.put('/token', authenticateJWT, FCMController.updateFCMToken);
+router.put('/token', deprecatedRoute('/users/me/fcm-token'), authenticateJWT, UserController.updateFCMToken);
 
 // Test/dev endpoints (no auth)
 

@@ -63,7 +63,7 @@ class BackofficeUserService {
     const user = await BackofficeUser.findOne({ email });
     if (!user) throw new Error("User not found");
 
-    const resetToken = TokenUtil.generateToken(user._id.toString());
+    const resetToken = TokenUtil.generateToken(user._id.toString(), 'password_reset');
 
     await EmailUtils.sendPasswordResetEmail(user.email, user.username, resetToken);
 
@@ -71,7 +71,7 @@ class BackofficeUserService {
   }
 
   static async resetPassword(token: string, newPassword: string) {
-    const { userId } = TokenUtil.verifyToken(token);
+    const { userId } = TokenUtil.verifyToken(token, 'password_reset');
 
     const user = await BackofficeUser.findById(userId);
     if (!user) throw new Error("Invalid or expired token");

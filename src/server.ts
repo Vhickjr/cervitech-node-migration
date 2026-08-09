@@ -12,12 +12,13 @@ import legacyRoutes from './routes/legacy.routes';
 import backOfficeUser from './routes/backOfficeUser.routes';
 import authRoutes from './routes/auth.routes.js';
 import fcmRoutes from './routes/fcm.routes.js';
-import userRoutes from './routes/user.routes.js';
+import usersRoutes from './routes/users.routes.js';
 import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
 import emailRoutes from './routes/email.routes.js';
 import { startMonthlyReminderJob } from './jobs/monthlyReminder.job';
+import { startSubscriptionSyncJob } from './jobs/subscriptionSync.job';
 
 // Load environment variables
 dotenv.config();
@@ -53,7 +54,7 @@ app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/fcm', fcmRoutes);
-app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/neck-angle', neckAngleRoutes);
 app.use('/api/v1/backoffice-users', backOfficeUser);
 app.use('/api/v1/transaction', transactionRoutes);
@@ -73,6 +74,7 @@ mongoose
       console.log(frontendUrl);
     });
     startMonthlyReminderJob();
+    startSubscriptionSyncJob();
   })
   .catch((err) => {
     logger.error('MongoDB connection error:', err);
