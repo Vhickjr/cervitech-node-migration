@@ -54,6 +54,14 @@ router.get('/:id', authenticateJWT, TransactionController.getTransactionRecordBy
  *   post:
  *     tags: [Transaction]
  *     summary: Create a transaction record for the authenticated user
+ *     description: >
+ *       Two ways to submit: (1) a Play purchase -- send `purchaseToken`,
+ *       `packageName`, and `subscriptionId`; the backend verifies the
+ *       purchase against the Android Publisher API and derives `status`
+ *       from Google's response, ignoring any client-submitted status. (2)
+ *       Legacy -- send `paymentRef` and `status` directly (not independently
+ *       verified). `status: 1` (Completed) grants `hasPaid` on the caller's
+ *       account in the same request.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -61,25 +69,14 @@ router.get('/:id', authenticateJWT, TransactionController.getTransactionRecordBy
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [paymentRef, amount, status, transDate]
- *             properties:
- *               paymentRef:
- *                 type: string
- *               amount:
- *                 type: number
- *               status:
- *                 type: number
- *               transDate:
- *                 type: string
- *                 format: date-time
- *               description:
- *                 type: string
+ *             $ref: '#/components/schemas/TransactionRequest'
  *     responses:
  *       201:
  *         description: Transaction created
  *       400:
- *         description: Transaction data missing/invalid, or creation failed
+ *         description: >
+ *           Transaction data missing/invalid, creation failed, or (for a
+ *           Play purchase) the purchase token could not be verified
  *       401:
  *         description: Not authenticated
  */

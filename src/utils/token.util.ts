@@ -21,6 +21,8 @@ export interface BaseTokenPayload {
   exp?: number;
 }
 
+export type GeneralTokenPurpose = "password_reset" | "account_deletion";
+
 export class TokenUtil {
   // 🔹 App User Auth Token
   static generateAppUserToken(user: IAppUser): string {
@@ -46,18 +48,35 @@ export class TokenUtil {
   }
 
   // General-purpose Token (for password reset, account deletion, etc.)
-  static generateToken(identifier: string, email?: string): string {
-  const payload: { userId: string; email?: string } = { userId: identifier };
+  static generateToken(identifier: string, purpose: GeneralTokenPurpose, email?: string): string {
+  const payload: { userId: string; purpose: GeneralTokenPurpose; email?: string } = {
+    userId: identifier,
+    purpose,
+  };
   if (email) payload.email = email;
   return jwt.sign(payload, GENERAL_TOKEN_SECRET, { expiresIn: "30m" });
 }
 
-static verifyToken(token: string): { userId: string; email?: string } {
+static verifyToken(
+  token: string,
+  expectedPurpose: GeneralTokenPurpose
+): { userId: string; purpose: GeneralTokenPurpose; email?: string } {
+  let decoded: { userId: string; purpose?: GeneralTokenPurpose; email?: string };
   try {
-    return jwt.verify(token, GENERAL_TOKEN_SECRET) as { userId: string; email?: string };
+    decoded = jwt.verify(token, GENERAL_TOKEN_SECRET) as {
+      userId: string;
+      purpose?: GeneralTokenPurpose;
+      email?: string;
+    };
   } catch {
     throw new Error("Invalid or expired general token");
   }
+
+  if (decoded.purpose !== expectedPurpose) {
+    throw new Error("Token is not valid for this operation");
+  }
+
+  return decoded as { userId: string; purpose: GeneralTokenPurpose; email?: string };
 }
 
 static async verifyUserToken(token: string): Promise<BaseTokenPayload> {

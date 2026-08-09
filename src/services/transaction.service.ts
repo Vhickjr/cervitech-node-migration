@@ -1,10 +1,13 @@
 import mongoose from 'mongoose';
-import TransactionRecord from '../models/TransactionRecord';
+import TransactionRecord, { ITransactionRecord } from '../models/TransactionRecord';
 import { TransactionViewModel } from '../types/transaction.types';
 import { AppUserService } from './appUserServices/appUserService.service';
 import { CustomException } from '../utils/customException';
 import { TRANSACTION_STATUS } from '../enums/transaction';
 import { AppUserResponse } from '../viewmodels/ResponseRateViewModel';
+import { TransactionValidation } from '../validation/transactionValidation';
+import { GooglePlayService, PlayEntitlementStatus } from './googlePlay.service';
+import { logger } from '../utils/logger';
 
 export class TransactionService {
   // Define your service methods here
@@ -57,6 +60,17 @@ export class TransactionService {
     return status;
   }
 
+  private static mapPlayStatusToTransactionStatus(status: PlayEntitlementStatus): number {
+    switch (status) {
+      case 'entitled':
+        return TRANSACTION_STATUS.Completed;
+      case 'pending':
+        return TRANSACTION_STATUS.Pending;
+      case 'not_entitled':
+        return TRANSACTION_STATUS.Failed;
+    }
+  }
+
   static async paymentRefAlreadyExists(paymentRef: string): Promise<boolean> {
     const count = await TransactionRecord.countDocuments({
       paymentRef: paymentRef.trim().toLowerCase(),
@@ -68,7 +82,37 @@ export class TransactionService {
     appUserId: string,
     transactionVM: TransactionViewModel
   ): Promise<AppUserResponse> {
-    if (await this.paymentRefAlreadyExists(transactionVM.paymentRef)) {
+    const validationError = TransactionValidation.transactionValidation(transactionVM);
+    if (validationError) {
+      throw new CustomException(validationError);
+    }
+
+    let status: number;
+    let paymentRef: string;
+
+    if (transactionVM.purchaseToken) {
+      // #08: independently verify the purchase with Google rather than
+      // trusting the client-submitted status. packageName/subscriptionId are
+      // guaranteed present by the Joi schema whenever purchaseToken is set.
+      const verification = await GooglePlayService.verifySubscriptionPurchase({
+        packageName: transactionVM.packageName!,
+        subscriptionId: transactionVM.subscriptionId!,
+        purchaseToken: transactionVM.purchaseToken,
+      });
+      status = this.mapPlayStatusToTransactionStatus(verification.status);
+      paymentRef = transactionVM.purchaseToken;
+    } else {
+      // Legacy path: no purchase token, so the client-submitted status is
+      // trusted as-is. Still pending frontend coordination on migrating
+      // fully to purchase tokens (see #08's ticket notes).
+      logger.warn('Recording transaction without Play verification; status is client-submitted.', {
+        appUserId,
+      });
+      status = this.parseTransactionStatus(transactionVM.status);
+      paymentRef = transactionVM.paymentRef!;
+    }
+
+    if (await this.paymentRefAlreadyExists(paymentRef)) {
       throw new CustomException('A payment with the same payment reference already exists.');
     }
 
@@ -79,17 +123,39 @@ export class TransactionService {
 
     const transaction = new TransactionRecord({
       appUserId,
-      paymentRef: transactionVM.paymentRef,
+      paymentRef,
       amount: transactionVM.amount,
-      status: this.parseTransactionStatus(transactionVM.status),
+      status,
       transDate: this.parseTransactionDate(transactionVM.transDate),
       description: transactionVM.description,
+      purchaseToken: transactionVM.purchaseToken,
+      packageName: transactionVM.packageName,
+      subscriptionId: transactionVM.subscriptionId,
     });
 
-    console.log('Saving transaction:', transaction);
     await transaction.save();
 
-    return AppUserService.updateSubscriptionAsync(appUserId);
+    if (status === TRANSACTION_STATUS.Completed) {
+      return this.grantEntitlement(transaction);
+    }
+
+    return AppUserService.getAppUserResponse(appUserId);
+  }
+
+  // Grants hasPaid for a Completed transaction, guarding against granting
+  // twice if the same record is ever re-processed (e.g. a future status
+  // re-check via the Play Developer API).
+  private static async grantEntitlement(transaction: ITransactionRecord): Promise<AppUserResponse> {
+    if (transaction.entitlementGranted) {
+      return AppUserService.getAppUserResponse(transaction.appUserId);
+    }
+
+    const response = await AppUserService.grantPaidEntitlement(transaction.appUserId);
+
+    transaction.entitlementGranted = true;
+    await transaction.save();
+
+    return response;
   }
 
   static async getAllTransactionRecords(): Promise<TransactionViewModel[]> {

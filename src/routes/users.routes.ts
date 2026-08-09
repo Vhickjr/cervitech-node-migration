@@ -1,13 +1,40 @@
+// src/routes/users.routes.ts
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
-import { AuthController } from '../controllers/auth.controller.js';
-import { authenticateJWT } from '../middlewares/auth.middleware.js';
+import { authenticateJWT, authorizeRole } from '../middlewares/auth.middleware';
 
 const router = Router();
 
+// -------------------------
+// Public lookups
+// -------------------------
+
 /**
  * @openapi
- * /user/response-rate:
+ * /users:
+ *   get:
+ *     tags: [User]
+ *     summary: Get a user by email
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: email
+ *     responses:
+ *       200:
+ *         description: User found
+ *       400:
+ *         description: Email missing
+ *       404:
+ *         description: User not found
+ */
+router.get('/', UserController.getByEmail);
+
+/**
+ * @openapi
+ * /users/response-rate:
  *   get:
  *     tags: [User]
  *     summary: Get a user's response rate for a given date
@@ -41,86 +68,7 @@ router.get('/response-rate', UserController.getResponseRate);
 
 /**
  * @openapi
- * /user/usernames/exists:
- *   get:
- *     tags: [User]
- *     summary: Check whether a username is already taken
- *     parameters:
- *       - in: query
- *         name: username
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Whether the username exists
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 exists:
- *                   type: boolean
- */
-router.get('/usernames/exists', AuthController.usernameAlreadyExists);
-
-/**
- * @openapi
- * /user/emails/validate:
- *   get:
- *     tags: [User]
- *     summary: Check whether an email address is valid/deliverable
- *     parameters:
- *       - in: query
- *         name: Email
- *         required: true
- *         schema:
- *           type: string
- *           format: email
- *     responses:
- *       200:
- *         description: Whether the email is valid
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 isValid:
- *                   type: boolean
- */
-router.get('/emails/validate', AuthController.isValidEmail);
-
-/**
- * @openapi
- * /user/deletions/confirm:
- *   get:
- *     tags: [User]
- *     summary: Confirm account deletion using a token (e.g. from an email link)
- *     parameters:
- *       - in: query
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Account deleted
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiSuccessResponse'
- *       400:
- *         description: Token missing, already used, or invalid
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiErrorResponse'
- */
-router.get('/deletions/confirm', UserController.confirmDeleteMyAccount);
-
-/**
- * @openapi
- * /user/fcm-token:
+ * /users/fcm-token:
  *   get:
  *     tags: [User]
  *     summary: Get a user's FCM token by username
@@ -152,52 +100,7 @@ router.get('/fcm-token', UserController.getFCMTokenByUsername);
 
 /**
  * @openapi
- * /user:
- *   get:
- *     tags: [User]
- *     summary: Get a user by email
- *     parameters:
- *       - in: query
- *         name: email
- *         required: true
- *         schema:
- *           type: string
- *           format: email
- *     responses:
- *       200:
- *         description: User found
- *       400:
- *         description: Email missing
- *       404:
- *         description: User not found
- */
-router.get('/', UserController.getByEmail);
-
-/**
- * @openapi
- * /user/allow-push-notification:
- *   get:
- *     tags: [User]
- *     summary: Get the authenticated user's push-notification preference
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Preference retrieved
- *       401:
- *         description: Not authenticated
- *       404:
- *         description: User not found
- */
-router.get(
-  '/allow-push-notification',
-  authenticateJWT,
-  UserController.getAllowPushNotificationStatus
-);
-
-/**
- * @openapi
- * /user/{id}:
+ * /users/{id}:
  *   get:
  *     tags: [User]
  *     summary: Get a user profile by ID
@@ -217,9 +120,59 @@ router.get(
  */
 router.get('/:id', UserController.fetch_user_profile);
 
+// -------------------------
+// Back office (admin)
+// -------------------------
+
 /**
  * @openapi
- * /user:
+ * /users/{id}:
+ *   delete:
+ *     tags: [User]
+ *     summary: "[Back office] Delete an app user's account by ID"
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiSuccessResponse'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ *       403:
+ *         description: Authenticated, but not a back-office user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ */
+router.delete('/:id', authenticateJWT, authorizeRole('BACKOFFICE_USER'), UserController.deleteById);
+
+// -------------------------
+// Authenticated self-service ("me")
+// -------------------------
+
+/**
+ * @openapi
+ * /users/me:
  *   put:
  *     tags: [User]
  *     summary: Update the authenticated user's profile
@@ -257,11 +210,11 @@ router.get('/:id', UserController.fetch_user_profile);
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
-router.put('/', authenticateJWT, UserController.updateUser);
+router.put('/me', authenticateJWT, UserController.updateUser);
 
 /**
  * @openapi
- * /user/picture:
+ * /users/me/picture:
  *   put:
  *     tags: [User]
  *     summary: Update the authenticated user's profile picture
@@ -294,35 +247,33 @@ router.put('/', authenticateJWT, UserController.updateUser);
  *       404:
  *         description: User not found
  */
-router.put('/picture', authenticateJWT, UserController.updatePictureUrl);
+router.put('/me/picture', authenticateJWT, UserController.updatePictureUrl);
 
 /**
  * @openapi
- * /user/subscription:
- *   put:
+ * /users/me/allow-push-notification:
+ *   get:
  *     tags: [User]
- *     summary: Upgrade/renew the authenticated user's subscription
+ *     summary: Get the authenticated user's push-notification preference
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Subscription updated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiSuccessResponse'
- *       400:
- *         description: User ID missing, or update failed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiErrorResponse'
+ *         description: Preference retrieved
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: User not found
  */
-router.put('/subscription', authenticateJWT, UserController.updateSubscription);
+router.get(
+  '/me/allow-push-notification',
+  authenticateJWT,
+  UserController.getAllowPushNotificationStatus
+);
 
 /**
  * @openapi
- * /user/toggle-push-notification:
+ * /users/me/toggle-push-notification:
  *   put:
  *     tags: [User]
  *     summary: Toggle the authenticated user's push-notification preference
@@ -343,14 +294,14 @@ router.put('/subscription', authenticateJWT, UserController.updateSubscription);
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
 router.put(
-  '/toggle-push-notification',
+  '/me/toggle-push-notification',
   authenticateJWT,
   UserController.toggleAllowPushNotifications
 );
 
 /**
  * @openapi
- * /user/fcm-token:
+ * /users/me/fcm-token:
  *   put:
  *     tags: [User]
  *     summary: Update the authenticated user's FCM token
@@ -382,35 +333,11 @@ router.put(
  *       401:
  *         description: Not authenticated
  */
-router.put('/fcm-token', authenticateJWT, UserController.updateFCMToken);
+router.put('/me/fcm-token', authenticateJWT, UserController.updateFCMToken);
 
 /**
  * @openapi
- * /user/logout:
- *   post:
- *     tags: [User]
- *     summary: Log out and blacklist the current token
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Logged out
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiSuccessResponse'
- *       401:
- *         description: Not authenticated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiErrorResponse'
- */
-router.post('/logout', authenticateJWT, AuthController.logout);
-
-/**
- * @openapi
- * /user/deletion-requests:
+ * /users/me/deletion-requests:
  *   post:
  *     tags: [User]
  *     summary: Request deletion of the authenticated user's account
@@ -432,10 +359,68 @@ router.post('/logout', authenticateJWT, AuthController.logout);
  *       404:
  *         description: Account not found
  */
-router.post('/deletion-requests', authenticateJWT, UserController.deleteMyAccount);
+router.post('/me/deletion-requests', authenticateJWT, UserController.deleteMyAccount);
 
-// DELETE routes
-// router.delete('/', UserController.deleteAll);
-// router.delete('/:id', UserController.deleteById);
+/**
+ * @openapi
+ * /users/me/deletion-requests/{token}:
+ *   get:
+ *     tags: [User]
+ *     summary: Check whether an account-deletion token is valid/pending (does not delete)
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Token is valid and deletion is pending confirmation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiSuccessResponse'
+ *       400:
+ *         description: Token missing, already used, invalid, or not an account-deletion token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ */
+router.get('/me/deletion-requests/:token', UserController.checkDeletionRequest);
+
+/**
+ * @openapi
+ * /users/me/deletion-requests/{token}:
+ *   delete:
+ *     tags: [User]
+ *     summary: Confirm account deletion using a token (e.g. from an email link)
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Account deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiSuccessResponse'
+ *       400:
+ *         description: Token missing, already used, invalid, or not an account-deletion token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ *       404:
+ *         description: Account not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ */
+router.delete('/me/deletion-requests/:token', UserController.confirmDeleteMyAccount);
 
 export default router;

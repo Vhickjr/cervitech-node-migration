@@ -41,25 +41,6 @@ export class UserController {
   }
 
   // -------------------------
-  // Update subscription
-  // -------------------------
-  static async updateSubscription(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const id = req.user?.userId;
-    if (!id) {
-      sendError(res, 400, 'User ID is required.');
-      return;
-    }
-
-    try {
-      await AppUserService.updateSubscriptionAsync(id);
-      sendSuccess(res, undefined, 'Subscription updated successfully.', 200);
-    } catch (error: any) {
-      logger.error('UpdateSubscription Error:', error.message);
-      sendError(res, 400, error.message || 'Failed to update subscription.');
-    }
-  }
-
-  // -------------------------
   // Delete user by ID
   // -------------------------
   static async deleteById(req: Request, res: Response): Promise<void> {
@@ -108,10 +89,10 @@ export class UserController {
   }
 
   // -------------------------
-  // Confirm deletion via token
+  // Check deletion-request token (safe, non-destructive)
   // -------------------------
-  static async confirmDeleteMyAccount(req: Request, res: Response): Promise<void> {
-    const token = (req.query.token as string) ?? req.body.Token ?? req.body.token;
+  static async checkDeletionRequest(req: Request, res: Response): Promise<void> {
+    const token = (req.params.token as string) ?? (req.query.token as string) ?? req.body.Token ?? req.body.token;
     if (!token) {
       sendError(res, 400, 'Token is required.');
       return;
@@ -124,7 +105,37 @@ export class UserController {
         return;
       }
 
-      const decoded = TokenUtil.verifyToken(token);
+      const decoded = TokenUtil.verifyToken(token, 'account_deletion');
+      if (!decoded?.userId) {
+        sendError(res, 400, 'Invalid or expired token.');
+        return;
+      }
+
+      sendSuccess(res, { valid: true, pending: true }, 'Token is valid; deletion is pending confirmation.', 200);
+    } catch (error: any) {
+      logger.error('CheckDeletionRequest Error:', error.message);
+      sendError(res, 400, 'Invalid or expired token.');
+    }
+  }
+
+  // -------------------------
+  // Confirm deletion via token (destructive)
+  // -------------------------
+  static async confirmDeleteMyAccount(req: Request, res: Response): Promise<void> {
+    const token = (req.params.token as string) ?? (req.query.token as string) ?? req.body.Token ?? req.body.token;
+    if (!token) {
+      sendError(res, 400, 'Token is required.');
+      return;
+    }
+
+    try {
+      const blacklisted = await TokenBlacklist.findOne({ token });
+      if (blacklisted) {
+        sendError(res, 400, 'This token has already been used or is invalid.');
+        return;
+      }
+
+      const decoded = TokenUtil.verifyToken(token, 'account_deletion');
       if (!decoded?.userId) {
         sendError(res, 400, 'Invalid or expired token.');
         return;
@@ -137,7 +148,7 @@ export class UserController {
       else sendError(res, 404, 'Account not found.');
     } catch (error: any) {
       logger.error('ConfirmDeleteMyAccount Error:', error.message);
-      sendError(res, 500, 'Internal server error.');
+      sendError(res, 400, 'Invalid or expired token.');
     }
   }
 

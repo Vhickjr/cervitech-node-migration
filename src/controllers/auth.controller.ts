@@ -126,7 +126,7 @@ export const AuthController = {
       const email = req.body.Email ?? req.body.email ?? req.query.email;
       if (!email) return sendError(res, 400, 'Email is required');
 
-      const result = await AuthService.sendPasswordResetToken(email);
+      const result = await AuthService.sendPasswordResetToken({ email });
       if (!result?.success) return sendError(res, 400, result.message);
 
       return sendSuccess(res, undefined, result.message, 200);

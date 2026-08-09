@@ -1,10 +1,8 @@
 // fcm.controller.ts
 import { Request, Response } from 'express';
 // import {FCMTokenUpdateViewModel} from "../viewmodels/FCMTokenUpdateViewModel";
-import { AppUserService } from '../services/appUserServices/appUserService.service';
 import { getApiResponseMessages, ApiResponseStatus } from '../utils/apiResponse';
 import { logger } from '../utils/logger';
-import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import { PushNotificationDriver } from '../services/pushNotificationDriver';
 import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
 import { JobScheduler } from '../services/JobScheduler';
@@ -68,27 +66,6 @@ export const updateFCMToken = async (req: Request, res: Response): Promise<void>
  */
 
 export class FCMController {
-  static async updateFCMToken(req: AuthenticatedRequest, res: Response) {
-    try {
-      const userId = req.user?.userId;
-      const { fcmToken } = req.body;
-
-      if (!fcmToken) {
-        return res.status(400).json({ error: 'fcmToken is required' });
-      }
-
-      const updatedUser = await AppUserService.updateFCMToken(userId!, fcmToken);
-
-      res.status(200).json({
-        message: 'FCM token updated successfully',
-        data: updatedUser,
-      });
-    } catch (err: any) {
-      logger.error(`FCMToken update failed: ${err.message}`);
-      res.status(500).json({ error: err.message || 'FCMToken update failed' });
-    }
-  }
-
   static async testPush(req: Request, res: Response): Promise<void> {
     const token = req.query.token as string | undefined;
 
