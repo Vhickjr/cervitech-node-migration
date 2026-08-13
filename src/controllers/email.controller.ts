@@ -25,10 +25,10 @@ export class EmailController {
   }
 
   static async passwordReset(req: Request, res: Response) {
-    const { to, username, token } = req.body; // lowercase 'token'
+    const { to, username, code } = req.body;
 
     try {
-      const result = await EmailUtils.sendPasswordResetEmail(to, username, token);
+      const result = await EmailUtils.sendPasswordResetOtpEmail(to, username, code);
       res.status(200).json({ message: "Password reset email sent successfully", result });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to send password reset email" });

@@ -173,8 +173,7 @@ export const EmailTemplates = {
 </html>`;
   },
 
-  passwordReset: (username: string, token: string) => {
-    const resetLink = `${frontendBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+  passwordResetOtp: (username: string, otpCode: string) => {
     return `
       <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
@@ -253,8 +252,8 @@ export const EmailTemplates = {
                     <p
                       style="font-size:16px;color:rgb(2,3,4);margin-bottom:0px;margin:0px;line-height:24px;margin-top:0px;margin-left:0px;margin-right:0px">
                       You requested a password reset for your CerviTech account.
-                      Click the button below to set your new password and
-                      continue monitoring your neck posture health.
+                      Enter the code below in the app to set your new password
+                      and continue monitoring your neck posture health.
                     </p>
                     <table
                       align="center"
@@ -266,27 +265,16 @@ export const EmailTemplates = {
                       style="text-align:center;margin-bottom:24px">
                       <tbody>
                         <tr>
-                          <td>
-                            <a
-                              href="${resetLink}"
-                              style="background-color:rgb(148,59,253);color:rgb(255,255,255);padding-left:32px;padding-right:32px;padding-top:12px;padding-bottom:12px;border-radius:8px;font-size:16px;font-weight:700;text-decoration-line:none;box-sizing:border-box;line-height:100%;text-decoration:none;display:inline-block;max-width:100%;mso-padding-alt:0px"
-                              target="_blank"
-                              ><span
-                                ><!--[if mso]><i style="mso-font-width:400%;mso-text-raise:18" hidden>&#8202;&#8202;&#8202;&#8202;</i><![endif]--></span
-                              ><span
-                                style="max-width:100%;display:inline-block;line-height:120%;mso-padding-alt:0px;mso-text-raise:9px"
-                                >Reset Password</span
-                              ><span
-                                ><!--[if mso]><i style="mso-font-width:400%" hidden>&#8202;&#8202;&#8202;&#8202;&#8203;</i><![endif]--></span
-                              ></a
-                            >
+                          <td
+                            style="background-color:rgb(247,242,255);border:2px dashed rgb(148,59,253);border-radius:8px;padding-top:16px;padding-bottom:16px;font-size:32px;font-weight:700;color:rgb(148,59,253);letter-spacing:8px;mso-line-height-rule:exactly;line-height:36px">
+                            ${otpCode}
                           </td>
                         </tr>
                       </tbody>
                     </table>
                     <p
                       style="font-size:14px;color:rgb(102,102,102);margin-bottom:0px;margin:0px;text-align:center;line-height:24px;margin-top:0px;margin-left:0px;margin-right:0px">
-                      This link will expire in 30 minutes for your security.
+                      This code will expire in 10 minutes for your security.
                     </p>
                     <p
                       style="font-size:16px;color:rgb(2,3,4);margin-bottom:0px;margin:0px;line-height:24px;margin-top:0px;margin-left:0px;margin-right:0px">

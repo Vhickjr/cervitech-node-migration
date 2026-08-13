@@ -7,6 +7,8 @@ import {
   SendPasswordTokenResponse,
   PasswordResetResponse,
   PasswordResetRequest,
+  VerifyOtpRequest,
+  VerifyOtpResponse,
 } from '../viewmodels/auth.viewmodel.js';
 import {
   LoginResponse,
@@ -22,6 +24,7 @@ import TokenBlacklist from '../models/TokenBlacklist.js';
 import AppUser from '../models/AppUser.js';
 import { logger } from '../utils/logger.js';
 import { DateLibrary } from '../utils/dateLibrary.js';
+import { OtpService } from './otp.service.js';
 import { EmailUtils } from '../utils/EmailService/emailutils.js';
 import { AuthValidation } from '../validation/authValidation.js';
 import { Goal } from '../models/Goal.js';
@@ -130,15 +133,31 @@ export class AuthService {
   }
 
   static async sendPasswordResetToken({email}: PasswordResetTokenRequest): Promise<SendPasswordTokenResponse> {
-    const user = await AppUser.findOne({ email: email.toLowerCase() });
+    const user = await AppUser.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
-      return { success: false, message: 'User does not exist' };
+      return { success: true, message: OtpService.genericMessage() };
+    }
+
+    const { code } = await OtpService.issueResetCode(user.email, user.username);
+
+    return { success: true, message: OtpService.genericMessage(), otp: code };
+  }
+
+  static async verifyResetOtp({email, otp}: VerifyOtpRequest): Promise<VerifyOtpResponse> {
+    const user = await AppUser.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return { success: false, message: 'Invalid or expired OTP' };
+    }
+
+    try {
+      await OtpService.verifyResetCode(email, otp);
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Invalid or expired OTP' };
     }
 
     const token = TokenUtil.generateToken(user._id.toString(), 'password_reset');
-    await EmailUtils.sendPasswordResetEmail(user.email, user.username, token);
 
-    return { success: true, message: 'Password reset email sent' };
+    return { success: true, message: 'OTP verified successfully', token };
   }
 
   static async resetPassword({token, newPassword}: PasswordResetRequest): Promise<PasswordResetResponse> {
