@@ -216,7 +216,10 @@ export class NeckAngleService {
   static async sendPushNotificationMessageForAverageNeckAngle(
     notificationPayload: SendAverageNeckAnglePushNotificationViewModel
   ): Promise<boolean> {
-    const appUsers = await AppUser.find();
+    // Was `AppUser.find()` — every batch post from any single user was
+    // pushing a notification to every user in the database. This only
+    // concerns the one user whose batch just crossed their prompt count.
+    const appUsers = await AppUser.find({ _id: notificationPayload.userId });
 
     for (const appUser of appUsers) {
       if (!appUser.fcmToken) continue;

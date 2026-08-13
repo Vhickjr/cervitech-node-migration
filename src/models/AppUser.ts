@@ -21,6 +21,8 @@ export interface IAppUser extends IUser {
   notificationResponse?: number;
   deleted: boolean;
   dateRegistered: Date; // Keep as Date type
+  lastGoalReminderSentAt?: Date;
+  lastCheckInReminderSentAt?: Date;
 }
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
@@ -52,6 +54,8 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   prompt: { type: Number },
   notificationCount: { type: Number },
   deleted: { type: Boolean, default: false },
+  lastGoalReminderSentAt: { type: Date },
+  lastCheckInReminderSentAt: { type: Date },
 }, { timestamps: true });
 
 const AppUser = mongoose.models.AppUser || mongoose.model<IAppUser>('AppUser', AppUserSchema);
