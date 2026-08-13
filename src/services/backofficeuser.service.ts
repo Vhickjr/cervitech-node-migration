@@ -1,9 +1,9 @@
 import BackofficeUser, { IBackofficeUser } from "../models/BackOfficeUser";
 import { backOfficeUserModel } from "../types/backOfficeUserModel.types";
 import { HashUtil } from "../utils/hash";
-import { EmailUtils } from "../utils/EmailService/emailutils";
 import { TokenUtil } from "../utils/token.util";
 import TokenBlacklist from "../models/TokenBlacklist";
+import { OtpService } from "./otp.service";
 
 class BackofficeUserService {
   /** Create new backoffice user */
@@ -61,16 +61,30 @@ class BackofficeUserService {
 
   static async sendPasswordResetToken(email: string) {
     const user = await BackofficeUser.findOne({ email });
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      return { email, message: OtpService.genericMessage() };
+    }
+
+    const { code } = await OtpService.issueResetCode(user.email, user.username);
+
+    return { email: user.email, message: OtpService.genericMessage(), otp: code };
+  }
+
+  static async verifyResetOtp(email: string, otp: string) {
+    const user = await BackofficeUser.findOne({ email });
+    if (!user) throw new Error("Invalid or expired OTP");
+
+    await OtpService.verifyResetCode(email, otp);
 
     const resetToken = TokenUtil.generateToken(user._id.toString(), 'password_reset');
 
-    await EmailUtils.sendPasswordResetEmail(user.email, user.username, resetToken);
-
-    return { email: user.email, message: "Password reset email sent successfully" };
+    return { token: resetToken, message: "OTP verified successfully" };
   }
 
   static async resetPassword(token: string, newPassword: string) {
+    const blacklisted = await TokenBlacklist.findOne({ token });
+    if (blacklisted) throw new Error("This token has already been used or is invalid");
+
     const { userId } = TokenUtil.verifyToken(token, 'password_reset');
 
     const user = await BackofficeUser.findById(userId);
@@ -78,6 +92,8 @@ class BackofficeUserService {
 
     user.password = await HashUtil.hash(newPassword);
     await user.save();
+
+    await TokenBlacklist.create({ token });
 
     return { success: true, message: "Password reset successfully" };
   }
