@@ -5,7 +5,7 @@ import {
   computeCycleWindow,
   computeCompliance,
   buildGoalCyclePushPayload,
-} from './goalCycle';
+} from '../../src/services/goalCycle';
 
 describe('goalCycle — cycle boundaries', () => {
   it('DAILY first cycle ends at UTC end of the calendar day of dateSet', () => {

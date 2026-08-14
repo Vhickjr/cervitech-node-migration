@@ -4,11 +4,11 @@ const axiosPost = vi.fn();
 const logError = vi.fn();
 
 vi.mock('axios', () => ({ default: { post: (...args: unknown[]) => axiosPost(...args) } }));
-vi.mock('../utils/logger', () => ({
+vi.mock('../../src/utils/logger', () => ({
   logger: { error: (...args: unknown[]) => logError(...args) },
 }));
 
-import { notifyPushFailure } from './pushAlert.service';
+import { notifyPushFailure } from '../../src/services/pushAlert.service';
 
 const realWebhook = process.env.PUSH_ALERT_SLACK_WEBHOOK_URL;
 

@@ -7,7 +7,7 @@ const updateOne = vi.fn();
 const recordFind = vi.fn();
 const reportSave = vi.fn();
 
-vi.mock('../models/Goal', () => ({
+vi.mock('../../src/models/Goal', () => ({
   Goal: {
     find: vi.fn(),
     findOne: (...args: unknown[]) => findOne(...args),
@@ -15,32 +15,32 @@ vi.mock('../models/Goal', () => ({
   },
 }));
 
-vi.mock('../models/AppUser', () => ({
+vi.mock('../../src/models/AppUser', () => ({
   default: { findById: (...args: unknown[]) => findById(...args) },
 }));
 
-vi.mock('../models/NeckAngleRecord', () => ({
+vi.mock('../../src/models/NeckAngleRecord', () => ({
   NeckAngleRecordModel: { find: (...args: unknown[]) => recordFind(...args) },
 }));
 
-vi.mock('../models/GoalCycleCompletionReport', () => ({
+vi.mock('../../src/models/GoalCycleCompletionReport', () => ({
   GoalCycleCompletionReport: vi.fn(function (this: any, fields: unknown) {
     Object.assign(this, fields as object);
     this.save = reportSave;
   }),
 }));
 
-vi.mock('./pushNotificationDriver', () => ({
+vi.mock('../../src/services/pushNotificationDriver', () => ({
   PushNotificationDriver: {
     sendPushNotification: (...args: unknown[]) => sendPushNotification(...args),
   },
 }));
 
-import { Goal } from '../models/Goal';
-import AppUser from '../models/AppUser';
-import { NeckAngleRecordModel } from '../models/NeckAngleRecord';
-import { GoalCycleCompletionReport } from '../models/GoalCycleCompletionReport';
-import { runGoalCycleSummary } from './goalCycleSummary.service';
+import { Goal } from '../../src/models/Goal';
+import AppUser from '../../src/models/AppUser';
+import { NeckAngleRecordModel } from '../../src/models/NeckAngleRecord';
+import { GoalCycleCompletionReport } from '../../src/models/GoalCycleCompletionReport';
+import { runGoalCycleSummary } from '../../src/services/goalCycleSummary.service';
 
 const NOW = new Date('2026-08-17T08:00:00Z');
 const CYCLE_END = new Date('2026-08-16T23:59:59.999Z');

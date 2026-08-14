@@ -6,7 +6,7 @@ const jobRunUpdateOne = vi.fn();
 const appUserFind = vi.fn();
 const sendReminderEmail = vi.fn();
 
-vi.mock('../models/JobRun', () => ({
+vi.mock('../../src/models/JobRun', () => ({
   default: {
     create: (...args: unknown[]) => jobRunCreate(...args),
     findOne: (...args: unknown[]) => jobRunFindOne(...args),
@@ -14,15 +14,15 @@ vi.mock('../models/JobRun', () => ({
   },
 }));
 
-vi.mock('../models/AppUser', () => ({
+vi.mock('../../src/models/AppUser', () => ({
   default: { find: (...args: unknown[]) => appUserFind(...args) },
 }));
 
-vi.mock('../utils/EmailService/emailutils', () => ({
+vi.mock('../../src/utils/EmailService/emailutils', () => ({
   EmailUtils: { sendReminderEmail: (...args: unknown[]) => sendReminderEmail(...args) },
 }));
 
-import { runMonthlyReminder, runMonthlyReminderCatchUp, monthKeyOf } from './monthlyReminder.job';
+import { runMonthlyReminder, runMonthlyReminderCatchUp, monthKeyOf } from '../../src/jobs/monthlyReminder.job';
 
 const NOW = new Date('2026-08-14T09:00:00Z');
 

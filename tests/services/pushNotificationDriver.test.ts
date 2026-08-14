@@ -10,22 +10,22 @@ vi.mock('axios', () => ({
   default: { post: (...args: unknown[]) => axiosPost(...args) },
 }));
 
-vi.mock('../models/AppUser', () => ({
+vi.mock('../../src/models/AppUser', () => ({
   default: {
     find: (...args: unknown[]) => userFind(...args),
     updateMany: (...args: unknown[]) => updateMany(...args),
   },
 }));
 
-vi.mock('../models/PushNotificationLog', () => ({
+vi.mock('../../src/models/PushNotificationLog', () => ({
   PushNotificationLog: vi.fn(function (this: any, fields: unknown) {
     Object.assign(this, fields as object);
     this.save = logSave;
   }),
 }));
 
-import { PushNotificationDriver } from './pushNotificationDriver';
-import { PushNotificationLog } from '../models/PushNotificationLog';
+import { PushNotificationDriver } from '../../src/services/pushNotificationDriver';
+import { PushNotificationLog } from '../../src/models/PushNotificationLog';
 
 beforeEach(() => {
   vi.clearAllMocks();

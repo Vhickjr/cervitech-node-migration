@@ -5,20 +5,20 @@ const getReceipts = vi.fn();
 const clearToken = vi.fn();
 const notifyFailure = vi.fn();
 
-vi.mock('../models/PushNotificationLog', () => ({
+vi.mock('../../src/models/PushNotificationLog', () => ({
   PushNotificationLog: { find: (...args: unknown[]) => logFind(...args) },
 }));
 
-vi.mock('../services/pushNotificationDriver', () => ({
+vi.mock('../../src/services/pushNotificationDriver', () => ({
   PushNotificationDriver: { getReceipts: (...args: unknown[]) => getReceipts(...args) },
   clearInvalidToken: (...args: unknown[]) => clearToken(...args),
 }));
 
-vi.mock('../services/pushAlert.service', () => ({
+vi.mock('../../src/services/pushAlert.service', () => ({
   notifyPushFailure: (...args: unknown[]) => notifyFailure(...args),
 }));
 
-import { runPushReceiptPolling } from './pushReceipts.job';
+import { runPushReceiptPolling } from '../../src/jobs/pushReceipts.job';
 
 const NOW = new Date('2026-08-14T12:00:00Z');
 const pendingLog = (ticketId: string, extra: object = {}) => {

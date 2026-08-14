@@ -3,14 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const countDocuments = vi.fn();
 const findFn = vi.fn();
 
-vi.mock('../models/PushNotificationLog', () => ({
+vi.mock('../../src/models/PushNotificationLog', () => ({
   PushNotificationLog: {
     countDocuments: (...args: unknown[]) => countDocuments(...args),
     find: (...args: unknown[]) => findFn(...args),
   },
 }));
 
-import { HealthController } from './health.controller';
+import { HealthController } from '../../src/controllers/health.controller';
 
 const makeRes = () => {
   const res: any = { statusCode: 0, body: null };

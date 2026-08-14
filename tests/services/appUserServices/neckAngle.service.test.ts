@@ -25,7 +25,7 @@ interface StoredUser {
 const users = new Map<string, StoredUser>();
 const recordsByUser = new Map<string, { counter: number }[]>();
 
-vi.mock('../../models/AppUser', () => ({
+vi.mock('../../../src/models/AppUser', () => ({
   default: {
     findById: (...args: unknown[]) => userFindById(...args),
     find: (...args: unknown[]) => userFind(...args),
@@ -33,7 +33,7 @@ vi.mock('../../models/AppUser', () => ({
   },
 }));
 
-vi.mock('../../models/NeckAngleRecord', () => {
+vi.mock('../../../src/models/NeckAngleRecord', () => {
   const ctor = vi.fn(function (this: any, fields: any) {
     Object.assign(this, fields);
     const list = recordsByUser.get(fields.appUserId);
@@ -49,22 +49,22 @@ vi.mock('../../models/NeckAngleRecord', () => {
   };
 });
 
-vi.mock('../../utils/utils', () => ({
+vi.mock('../../../src/utils/utils', () => ({
   Utils: { compareAverageNeckAngle: (...args: unknown[]) => compareAverage(...args) },
 }));
 
-vi.mock('../pushNotificationDriver', () => ({
+vi.mock('../../../src/services/pushNotificationDriver', () => ({
   PushNotificationDriver: { sendPushNotification: (...args: unknown[]) => sendPush(...args) },
 }));
 
-vi.mock('../../models/ResponseRate', () => ({
+vi.mock('../../../src/models/ResponseRate', () => ({
   default: vi.fn(function (this: any, fields: unknown) {
     Object.assign(this, fields as object);
     this.save = responseRateSave;
   }),
 }));
 
-import { NeckAngleService } from './neckAngle.service';
+import { NeckAngleService } from '../../../src/services/appUserServices/neckAngle.service';
 
 const TOKEN = 'ExponentPushToken[abc]';
 const OTHER_TOKEN = 'ExponentPushToken[def]';
