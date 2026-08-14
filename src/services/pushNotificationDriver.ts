@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
 import AppUser from '../models/AppUser';
+import { PushNotificationLog } from '../models/PushNotificationLog';
 import { logger } from '../utils/logger';
 
 // The app registers devices with Expo's push service (expo-notifications'
@@ -14,18 +15,25 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_PUSH_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
 const MAX_TOKENS_PER_REQUEST = 100; // Expo's own batching limit
 
-interface ExpoTicket {
+export interface ExpoTicket {
   status: 'ok' | 'error';
   id?: string;
   message?: string;
   details?: { error?: string };
 }
 
+export interface SendBatchResult {
+  /** Per input message: true when Expo accepted the push (or the user opted out). */
+  delivered: boolean[];
+  /** Per input message: Expo ticket id when delivery is awaiting confirmation. */
+  ticketIds: (string | null)[];
+}
+
 function isExpoPushToken(token: unknown): token is string {
   return typeof token === 'string' && token.startsWith('ExponentPushToken[');
 }
 
-async function clearInvalidToken(token: string) {
+export async function clearInvalidToken(token: string) {
   try {
     await AppUser.updateMany({ fcmToken: token }, { $unset: { fcmToken: '' } });
   } catch (e: any) {
@@ -38,23 +46,25 @@ export class PushNotificationDriver {
    *  /fcm/test-scheduler dev endpoints and any other single-target caller. */
   static async sendPushNotification(model: PushNotificationModelDTO): Promise<boolean> {
     const results = await PushNotificationDriver.sendBatch([model]);
-    return results[0] ?? false;
+    return results.delivered[0] ?? false;
   }
 
   /**
    * Send up to many notifications in one go, chunked to Expo's 100-per-
    * request limit. Skips users who've opted out or don't have a valid
-   * Expo token, and clears tokens Expo reports as no longer registered so
-   * we stop retrying them.
+   * Expo token, clears tokens Expo reports as no longer registered, and
+   * records every accepted/failed message in PushNotificationLog so the
+   * receipts polling job can confirm actual device delivery.
    */
-  static async sendBatch(models: PushNotificationModelDTO[]): Promise<boolean[]> {
-    const results: boolean[] = new Array(models.length).fill(false);
+  static async sendBatch(models: PushNotificationModelDTO[]): Promise<SendBatchResult> {
+    const delivered: boolean[] = new Array(models.length).fill(false);
+    const ticketIds: (string | null)[] = new Array(models.length).fill(null);
 
     // Resolve opt-outs once per unique token instead of once per message.
     const uniqueTokens = [...new Set(models.map((m) => m.to))];
     const optedOut = new Set(
       (
-        await AppUser.find({ fcmToken: { $in: uniqueTokens }, allowPushNotifications: false }).select('fcmToken')
+        await AppUser.find({ fcmToken: { $in: uniqueTokens }, allowPushNotifications: false })
       ).map((u) => u.fcmToken)
     );
 
@@ -65,7 +75,7 @@ export class PushNotificationDriver {
         return null;
       }
       if (optedOut.has(model.to)) {
-        results[i] = true; // not an error, the user just opted out
+        delivered[i] = true; // not an error, the user just opted out
         return null;
       }
       sendableIndexes.push(i);
@@ -92,12 +102,18 @@ export class PushNotificationDriver {
         for (let j = 0; j < tickets.length; j++) {
           const ticket = tickets[j];
           const modelIndex = chunkIndexes[j];
+          const model = models[modelIndex];
+
           if (ticket.status === 'ok') {
-            results[modelIndex] = true;
+            delivered[modelIndex] = true;
+            ticketIds[modelIndex] = ticket.id ?? null;
+            await logPush(model, 'pending', ticket.id, undefined);
           } else {
-            logger.error(`Expo push error for token ${models[modelIndex].to}: ${ticket.message}`);
+            const error = ticket.details?.error ?? ticket.message ?? 'Expo push error';
+            logger.error(`Expo push error for token ${model.to}: ${error}`);
+            await logPush(model, 'failed', undefined, error);
             if (ticket.details?.error === 'DeviceNotRegistered') {
-              await clearInvalidToken(models[modelIndex].to);
+              await clearInvalidToken(model.to);
             }
           }
         }
@@ -106,13 +122,12 @@ export class PushNotificationDriver {
       }
     }
 
-    return results;
+    return { delivered, ticketIds };
   }
 
-  /** Optional: poll delivery receipts for tickets returned by sendBatch,
-   *  useful if you want to distinguish "accepted by Expo" from "actually
-   *  delivered". Not wired into anything yet — call this ~15+ min after
-   *  sendBatch with the ticket ids you want to check. */
+  /** Poll delivery receipts for tickets returned by sendBatch. Distinguishes
+   *  "accepted by Expo" from "actually delivered to the device". Call this
+   *  ~15+ min after sendBatch with the ticket ids you want to check. */
   static async getReceipts(ticketIds: string[]): Promise<Record<string, ExpoTicket>> {
     try {
       const response = await axios.post(
@@ -125,5 +140,26 @@ export class PushNotificationDriver {
       logger.error(`Failed to fetch Expo push receipts: ${error.message}`);
       return {};
     }
+  }
+}
+
+async function logPush(
+  model: PushNotificationModelDTO,
+  status: 'pending' | 'failed',
+  ticketId: string | undefined,
+  error: string | undefined
+): Promise<void> {
+  try {
+    const log = new PushNotificationLog({
+      token: model.to,
+      title: model.title,
+      dataType: model.data?.type as string | undefined,
+      ticketId,
+      status,
+      error,
+    });
+    await log.save();
+  } catch (e: any) {
+    logger.error(`Failed to write push audit log: ${e.message}`);
   }
 }

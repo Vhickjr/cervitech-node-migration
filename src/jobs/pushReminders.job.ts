@@ -56,13 +56,13 @@ export const startGoalReminderJob = () => {
 
       await Promise.all(
         due.map((u, i) => {
-          if (!results[i]) return Promise.resolve();
+          if (!results.delivered[i]) return Promise.resolve();
           u.lastGoalReminderSentAt = new Date();
           return u.save();
         })
       );
 
-      logger.info(`Goal reminder job: sent ${results.filter(Boolean).length}/${due.length}.`);
+      logger.info(`Goal reminder job: sent ${results.delivered.filter(Boolean).length}/${due.length}.`);
     } catch (err: any) {
       logger.error(`Error in goal reminder job: ${err.message}`);
     }
@@ -119,13 +119,15 @@ export const startCheckInReminderJob = () => {
 
       await Promise.all(
         dueUsers.map((u, i) => {
-          if (!results[i]) return Promise.resolve();
+          if (!results.delivered[i]) return Promise.resolve();
           u.lastCheckInReminderSentAt = new Date();
           return u.save();
         })
       );
 
-      logger.info(`Check-in reminder job: sent ${results.filter(Boolean).length}/${dueUsers.length}.`);
+      logger.info(
+        `Check-in reminder job: sent ${results.delivered.filter(Boolean).length}/${dueUsers.length}.`
+      );
     } catch (err: any) {
       logger.error(`Error in check-in reminder job: ${err.message}`);
     }

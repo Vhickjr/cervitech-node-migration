@@ -20,6 +20,9 @@ import emailRoutes from './routes/email.routes.js';
 import { startMonthlyReminderJob } from './jobs/monthlyReminder.job';
 import { startSubscriptionSyncJob } from './jobs/subscriptionSync.job';
 import { startPushReminderJobs } from './jobs/pushReminders.job';
+import { startGoalCycleSummaryJob } from './jobs/goalCycleSummary.job';
+import { startPushReceiptsJob } from './jobs/pushReceipts.job';
+import healthRoutes from './routes/health.routes';
 
 // Load environment variables
 dotenv.config();
@@ -61,6 +64,7 @@ app.use('/api/v1/backoffice-users', backOfficeUser);
 app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
 app.use('/api/v1/email', emailRoutes);
+app.use('/api/v1/health', healthRoutes);
 
 // Connect to MongoDB and start server
 mongoose
@@ -77,6 +81,8 @@ mongoose
     startMonthlyReminderJob();
     startSubscriptionSyncJob();
     startPushReminderJobs();
+    startGoalCycleSummaryJob();
+    startPushReceiptsJob();
   })
   .catch((err) => {
     logger.error('MongoDB connection error:', err);
