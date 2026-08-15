@@ -44,7 +44,7 @@ beforeEach(() => {
 describe('runPushReceiptPolling', () => {
   it('marks pending logs as delivered when Expo confirms delivery', async () => {
     const log = pendingLog('t1');
-    logFind.mockResolvedValue([log]);
+    logFind.mockResolvedValueOnce([]).mockResolvedValueOnce([log]);
     getReceipts.mockResolvedValue({ t1: { status: 'ok', id: 't1' } });
 
     const processed = await runPushReceiptPolling(NOW);
@@ -58,7 +58,7 @@ describe('runPushReceiptPolling', () => {
 
   it('marks DeviceNotRegistered as failed, clears the token, and raises an alert', async () => {
     const log = pendingLog('t1');
-    logFind.mockResolvedValue([log]);
+    logFind.mockResolvedValueOnce([]).mockResolvedValueOnce([log]);
     getReceipts.mockResolvedValue({
       t1: {
         status: 'error',
@@ -78,7 +78,7 @@ describe('runPushReceiptPolling', () => {
 
   it('keeps logs awaiting Expo confirmation untouched', async () => {
     const log = pendingLog('t1');
-    logFind.mockResolvedValue([log]);
+    logFind.mockResolvedValueOnce([]).mockResolvedValueOnce([log]);
     getReceipts.mockResolvedValue({});
 
     const processed = await runPushReceiptPolling(NOW);
@@ -98,7 +98,7 @@ describe('runPushReceiptPolling', () => {
     expect(getReceipts).not.toHaveBeenCalled();
   });
 
-  it('only polls logs older than the receipts grace period', async () => {
+  it('only polls logs older than the receipts grace period but younger than the 24h window', async () => {
     logFind.mockResolvedValue([]);
 
     await runPushReceiptPolling(NOW);
@@ -108,5 +108,42 @@ describe('runPushReceiptPolling', () => {
       ticketId: { $exists: true },
       sentAt: { $lte: expect.any(Date) },
     });
+    expect(logFind).toHaveBeenCalledWith({
+      status: 'pending',
+      ticketId: { $exists: true },
+      sentAt: { $gt: expect.any(Date), $lte: expect.any(Date) },
+    });
+  });
+
+  it('closes pending entries past Expo\u2019s 24h window as failed without polling them', async () => {
+    const expiredLog = pendingLog('old-ticket');
+    logFind.mockResolvedValueOnce([expiredLog]).mockResolvedValueOnce([]);
+
+    const processed = await runPushReceiptPolling(NOW);
+
+    expect(processed).toBe(1);
+    expect(expiredLog.status).toBe('failed');
+    expect(expiredLog.error).toBe('receipt window expired');
+    expect(expiredLog.save).toHaveBeenCalled();
+    expect(getReceipts).not.toHaveBeenCalled();
+    expect(notifyFailure).toHaveBeenCalledWith(expect.stringContaining('receipt window expired'));
+  });
+
+  it('counts expired windows in the same alert as confirmed failures', async () => {
+    const expiredLog = pendingLog('old-ticket');
+    const failedLog = pendingLog('t1');
+    logFind.mockResolvedValueOnce([expiredLog]).mockResolvedValueOnce([failedLog]);
+    getReceipts.mockResolvedValue({
+      t1: { status: 'error', message: 'MessageTooBig', details: { error: 'MessageTooBig' } },
+    });
+
+    await runPushReceiptPolling(NOW);
+
+    expect(notifyFailure).toHaveBeenCalledTimes(1);
+    expect(notifyFailure).toHaveBeenCalledWith(expect.stringContaining('MessageTooBig'));
+    expect(notifyFailure).toHaveBeenCalledWith(
+      expect.stringContaining('receipt window expired')
+    );
+    expect(getReceipts).toHaveBeenCalledWith(['t1']);
   });
 });

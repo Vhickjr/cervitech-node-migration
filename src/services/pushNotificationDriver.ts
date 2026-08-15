@@ -2,6 +2,7 @@ import axios from 'axios';
 import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
 import AppUser from '../models/AppUser';
 import { PushNotificationLog } from '../models/PushNotificationLog';
+import { notifyPushFailure } from './pushAlert.service';
 import { logger } from '../utils/logger';
 
 // The app registers devices with Expo's push service (expo-notifications'
@@ -14,6 +15,7 @@ import { logger } from '../utils/logger';
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_PUSH_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
 const MAX_TOKENS_PER_REQUEST = 100; // Expo's own batching limit
+const MAX_RECEIPT_IDS_PER_REQUEST = 1000; // Expo's own receipt lookup limit
 
 export interface ExpoTicket {
   status: 'ok' | 'error';
@@ -89,6 +91,7 @@ export class PushNotificationDriver {
       };
     }).filter(Boolean) as any[];
 
+    const failedChunks: { error: string; messageCount: number }[] = [];
     for (let start = 0; start < messages.length; start += MAX_TOKENS_PER_REQUEST) {
       const chunk = messages.slice(start, start + MAX_TOKENS_PER_REQUEST);
       const chunkIndexes = sendableIndexes.slice(start, start + MAX_TOKENS_PER_REQUEST);
@@ -118,8 +121,25 @@ export class PushNotificationDriver {
           }
         }
       } catch (error: any) {
-        logger.error(`Expo push batch request failed: ${error.message}`);
+        const message = error?.message ?? 'Expo push request failed';
+        logger.error(`Expo push batch request failed: ${message}`);
+        // No retry: the chunk may have been partially accepted, so re-sending
+        // could double-deliver. Audit every message in the failed chunk as
+        // failed instead, so the push is visible in the log and health view.
+        failedChunks.push({ error: message, messageCount: chunk.length });
+        for (const modelIndex of chunkIndexes) {
+          await logPush(models[modelIndex], 'failed', undefined, message);
+        }
       }
+    }
+
+    if (failedChunks.length > 0) {
+      const totalFailed = failedChunks.reduce((sum, f) => sum + f.messageCount, 0);
+      const errors = [...new Set(failedChunks.map((f) => f.error))].join('; ');
+      // One aggregated alert per send batch, not one per failed chunk.
+      await notifyPushFailure(
+        `Push batch request failed: ${totalFailed} message(s) across ${failedChunks.length} chunk(s) (${errors})`
+      );
     }
 
     return { delivered, ticketIds };
@@ -127,19 +147,28 @@ export class PushNotificationDriver {
 
   /** Poll delivery receipts for tickets returned by sendBatch. Distinguishes
    *  "accepted by Expo" from "actually delivered to the device". Call this
-   *  ~15+ min after sendBatch with the ticket ids you want to check. */
+   *  ~15+ min after sendBatch with the ticket ids you want to check. Lookups
+   *  over Expo's 1000-id limit are chunked into one request per chunk and the
+   *  results merged; a chunk whose request fails is skipped (its entries are
+   *  simply not in the merged map) without losing the other chunks' receipts. */
   static async getReceipts(ticketIds: string[]): Promise<Record<string, ExpoTicket>> {
-    try {
-      const response = await axios.post(
-        EXPO_PUSH_RECEIPTS_URL,
-        { ids: ticketIds },
-        { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
-      );
-      return response.data?.data ?? {};
-    } catch (error: any) {
-      logger.error(`Failed to fetch Expo push receipts: ${error.message}`);
-      return {};
+    const receipts: Record<string, ExpoTicket> = {};
+    for (let start = 0; start < ticketIds.length; start += MAX_RECEIPT_IDS_PER_REQUEST) {
+      const chunk = ticketIds.slice(start, start + MAX_RECEIPT_IDS_PER_REQUEST);
+      try {
+        const response = await axios.post(
+          EXPO_PUSH_RECEIPTS_URL,
+          { ids: chunk },
+          { headers: { 'Content-Type': 'application/json', Accept: 'application/json' } }
+        );
+        Object.assign(receipts, response.data?.data ?? {});
+      } catch (error: any) {
+        logger.error(
+          `Failed to fetch Expo push receipts: ${error?.message ?? 'unknown error'}`
+        );
+      }
     }
+    return receipts;
   }
 }
 
