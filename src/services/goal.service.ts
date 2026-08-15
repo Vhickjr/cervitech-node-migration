@@ -11,6 +11,7 @@ import { logger } from '../utils/logger';
 import { AppUserService } from './appUserServices/appUserService.service';
 import { PushNotificationModelDTO } from '../types/pushNotificationModel.types';
 import { GoalCycleCompletionReport } from '../models/GoalCycleCompletionReport';
+import { computeFirstCycleEndsAt, isSupportedFrequency } from './goalCycle';
 
 export class GoalService {
   static async turnOnGoalAsync(appUserId: string, model: SetGoalViewModel): Promise<boolean> {
@@ -37,6 +38,9 @@ export class GoalService {
         frequency: model.frequency,
         dateSet: DateLibrary.getCurrentDateTime(),
         goalCycleCompletionReports: model.goalCycleCompletionReports,
+        nextCycleEndsAt: isSupportedFrequency(model.frequency)
+          ? computeFirstCycleEndsAt(DateLibrary.getCurrentDateTime(), model.frequency)
+          : undefined,
       });
       await goal.save();
 

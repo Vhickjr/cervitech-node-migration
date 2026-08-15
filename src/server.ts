@@ -17,9 +17,12 @@ import neckAngleRoutes from './routes/neckAngle.routes';
 import transactionRoutes from './routes/transaction.routes';
 import goalsroutes from './routes/goals.routes.js';
 import emailRoutes from './routes/email.routes.js';
-import { startMonthlyReminderJob } from './jobs/monthlyReminder.job';
+import { startMonthlyReminderJob, runMonthlyReminderCatchUp } from './jobs/monthlyReminder.job';
 import { startSubscriptionSyncJob } from './jobs/subscriptionSync.job';
 import { startPushReminderJobs } from './jobs/pushReminders.job';
+import { startGoalCycleSummaryJob } from './jobs/goalCycleSummary.job';
+import { startPushReceiptsJob } from './jobs/pushReceipts.job';
+import healthRoutes from './routes/health.routes';
 
 // Load environment variables
 dotenv.config();
@@ -61,6 +64,7 @@ app.use('/api/v1/backoffice-users', backOfficeUser);
 app.use('/api/v1/transaction', transactionRoutes);
 app.use('/api/v1/goals', goalsroutes);
 app.use('/api/v1/email', emailRoutes);
+app.use('/api/v1/health', healthRoutes);
 
 // Connect to MongoDB and start server
 mongoose
@@ -77,6 +81,25 @@ mongoose
     startMonthlyReminderJob();
     startSubscriptionSyncJob();
     startPushReminderJobs();
+    startGoalCycleSummaryJob();
+    startPushReceiptsJob();
+    if (process.env.REMINDER_JOB_ENABLED !== 'false') {
+      runMonthlyReminderCatchUp()
+        .then((result) => {
+          if (result.outcome === 'ran') {
+            logger.info(
+              `Monthly reminder catch-up on boot: ${result.sent} sent, ${result.failed} failed, ${result.totalFound} found.`
+            );
+          } else {
+            logger.info('Monthly reminder catch-up on boot: no run required.');
+          }
+        })
+        .catch((err) =>
+          logger.error('Monthly reminder catch-up on boot failed', {
+            error: err instanceof Error ? err.message : String(err),
+          })
+        );
+    }
   })
   .catch((err) => {
     logger.error('MongoDB connection error:', err);

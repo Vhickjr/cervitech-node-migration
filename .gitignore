@@ -7,3 +7,4 @@ npm-cache/
 dist/
 .env.staging
 ,env.staging
+.scratch/

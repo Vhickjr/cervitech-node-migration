@@ -35,7 +35,7 @@ export class NeckAngleService {
           continue;
         }
 
-        const lastRecord = await NeckAngleRecordModel.findOne({ _id: record.appUserId }).sort({
+        const lastRecord = await NeckAngleRecordModel.findOne({ appUserId: record.appUserId }).sort({
           counter: -1,
         });
 
@@ -57,7 +57,8 @@ export class NeckAngleService {
           { $push: { neckAngleRecords: neckAngleRecord } }
         );
 
-        if (appUser.prompt && counter % appUser.prompt === 0) {
+        const prompt = appUser.prompt ?? NeckAngleService.defaultPrompt;
+        if (prompt > 0 && counter % prompt === 0) {
           const averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(record.appUserId);
           const notificationPayload: SendAverageNeckAnglePushNotificationViewModel = {
             userId: record.appUserId,
@@ -74,10 +75,10 @@ export class NeckAngleService {
     }
   }
 
-  static readonly numberOfRecordPostBeforeSendingAverageNeckAngle: number = parseInt(
-    process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE || '0',
-    10
-  );
+  static readonly numberOfRecordPostBeforeSendingAverageNeckAngle: number = (() => {
+    const raw = parseInt(process.env.ENV_NUMBER_OF_RECORD_POST_BEFORE_SENDING_AVERAGE_NECK_ANGLE ?? '', 10);
+    return Number.isFinite(raw) && raw > 0 ? raw : 5;
+  })();
 
   static async getEachWeekOfTheMonthAverageNeckAngle(
     aMonthAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
@@ -224,32 +225,16 @@ export class NeckAngleService {
     for (const appUser of appUsers) {
       if (!appUser.fcmToken) continue;
 
-      let averageNeckAngle: number;
-      try {
-        averageNeckAngle = await this.calculateAverageOfLastSetNeckAngles(appUser._id.toString());
-      } catch (error: any) {
-        logger.info(error.message);
-        continue;
-      }
-
-      appUser.notificationCount ??= 0;
-      appUser.prompt ??= this.defaultPrompt;
-
-      if (appUser.notificationCount > appUser.prompt) {
-        NeckAngleService.scheduleResetNotificationCount(appUser._id.toString());
-      }
-
-      const [title, body] = await Utils.compareAverageNeckAngle(averageNeckAngle);
+      const [title, body] = await Utils.compareAverageNeckAngle(notificationPayload.averageNeckAngle);
       const pushNotificationModel = {
         to: appUser.fcmToken,
         title,
         body,
+        data: { type: 'average_angle_report' },
       };
 
       const sent = await PushNotificationDriver.sendPushNotification(pushNotificationModel);
       if (sent) {
-        appUser.notificationCount++;
-
         const responseRate = new ResponseRate({
           appUserId: appUser._id,
           dateCreated: new Date(),
@@ -259,8 +244,6 @@ export class NeckAngleService {
 
         await responseRate.save();
       }
-
-      await appUser.save();
     }
 
     return true;
@@ -301,9 +284,6 @@ export class NeckAngleService {
 
   // Optional: Define defaultPrompt if needed
   static defaultPrompt = 5;
-  static scheduleResetNotificationCount(userId: string): void {
-    throw new Error('Function not implemented.');
-  }
 
   // static async calculateAverageOfLastWeekOrDay(
   //   userId: string,
