@@ -5,11 +5,15 @@
   "description": "Nodejs backend version for CerviTech App",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "start": "node dist/server.js",
     "dev": "dotenv -e .env.dev -- tsx watch src/server.ts",
     "stage": "dotenv -e .env.staging -- tsx watch src/server.ts",
-    "prod": "dotenv -e .env.prod -- tsx watch src/server.ts"
+    "prod": "dotenv -e .env.prod -- tsx watch src/server.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:file": "vitest run"
   },
   "repository": "https://github.com/Vhickjr/cervitech-node-migration.git",
   "author": "CerviTech",
@@ -34,7 +38,8 @@
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@azure/communication-email": "^1.1.0",

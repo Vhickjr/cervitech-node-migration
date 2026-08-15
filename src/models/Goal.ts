@@ -10,6 +10,7 @@ export interface IGoal extends Document {
   targetedAverageNeckAngle: number;
   frequency: string;
   goalCycleCompletionReports: IGoalCycleCompletionReport[];
+  nextCycleEndsAt?: Date;
 }
 
 export const GoalSchema = new Schema<IGoal>({
@@ -17,6 +18,7 @@ export const GoalSchema = new Schema<IGoal>({
   targetedAverageNeckAngle: { type: Number, required: true },
   frequency: { type: String, required: true },
   goalCycleCompletionReports: [GoalCycleCompletionReportSchema],
+  nextCycleEndsAt: { type: Date },
 });
 
 export const Goal = mongoose.models.Goal || mongoose.model<IGoal>('Goal', GoalSchema);
