@@ -66,13 +66,13 @@ export const startGoalReminderJob = () => {
 
       await Promise.all(
         due.map((u, i) => {
-          if (!results[i]) return Promise.resolve();
+          if (!results.delivered[i]) return Promise.resolve();
           u.lastGoalReminderSentAt = new Date();
           return u.save();
         })
       );
 
-      logger.info(`Goal reminder job: sent ${results.filter(Boolean).length}/${due.length}.`);
+      logger.info(`Goal reminder job: sent ${results.delivered.filter(Boolean).length}/${due.length}.`);
     } catch (err: any) {
       logger.error(`Error in goal reminder job: ${err.message}`);
     }
@@ -129,13 +129,13 @@ export const startCheckInReminderJob = () => {
 
       await Promise.all(
         dueUsers.map((u, i) => {
-          if (!results[i]) return Promise.resolve();
+          if (!results.delivered[i]) return Promise.resolve();
           u.lastCheckInReminderSentAt = new Date();
           return u.save();
         })
       );
 
-      logger.info(`Check-in reminder job: sent ${results.filter(Boolean).length}/${dueUsers.length}.`);
+      logger.info(`Check-in reminder job: sent ${results.delivered.filter(Boolean).length}/${dueUsers.length}.`);
     } catch (err: any) {
       logger.error(`Error in check-in reminder job: ${err.message}`);
     }
@@ -208,12 +208,12 @@ export const startGoalProgressJob = () => {
       const results = await PushNotificationDriver.sendBatch(messages);
       await Promise.all(
         dueUsers.map((u, i) => {
-          if (!results[i]) return Promise.resolve();
+          if (!results.delivered[i]) return Promise.resolve();
           u.lastGoalReminderSentAt = new Date();
           return u.save();
         })
       );
-      logger.info(`Goal-progress job: sent ${results.filter(Boolean).length}/${dueUsers.length}.`);
+      logger.info(`Goal-progress job: sent ${results.delivered.filter(Boolean).length}/${dueUsers.length}.`);
     } catch (err: any) {
       logger.error(`Error in goal-progress job: ${err.message}`);
     }
@@ -269,12 +269,12 @@ export const startBadPostureAlertJob = () => {
       const results = await PushNotificationDriver.sendBatch(messages);
       await Promise.all(
         dueUsers.map((u, i) => {
-          if (!results[i]) return Promise.resolve();
+          if (!results.delivered[i]) return Promise.resolve();
           u.lastBadPostureAlertSentAt = new Date();
           return u.save();
         })
       );
-      logger.info(`Bad-posture alert job: sent ${results.filter(Boolean).length}/${dueUsers.length}.`);
+      logger.info(`Bad-posture alert job: sent ${results.delivered.filter(Boolean).length}/${dueUsers.length}.`);
     } catch (err: any) {
       logger.error(`Error in bad-posture alert job: ${err.message}`);
     }
