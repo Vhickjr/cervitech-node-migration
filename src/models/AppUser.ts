@@ -23,6 +23,7 @@ export interface IAppUser extends IUser {
   dateRegistered: Date; // Keep as Date type
   lastGoalReminderSentAt?: Date;
   lastCheckInReminderSentAt?: Date;
+  lastBadPostureAlertSentAt?: Date;
 }
 
 const AppUserSchema: Schema = new Schema<IAppUser>({
@@ -56,6 +57,7 @@ const AppUserSchema: Schema = new Schema<IAppUser>({
   deleted: { type: Boolean, default: false },
   lastGoalReminderSentAt: { type: Date },
   lastCheckInReminderSentAt: { type: Date },
+  lastBadPostureAlertSentAt: { type: Date },
 }, { timestamps: true });
 
 const AppUser = mongoose.models.AppUser || mongoose.model<IAppUser>('AppUser', AppUserSchema);
