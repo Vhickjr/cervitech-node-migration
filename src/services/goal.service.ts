@@ -18,17 +18,30 @@ export class GoalService {
     try {
       const user = await AppUser.findById(appUserId);
 
-      if (!user) throw new CustomException('User does not exist');
+      if (!user) {
+        logger.warn('turn-on goal failed: user does not exist', { userId: appUserId });
+        throw new CustomException('User does not exist');
+      }
+
+      const reports = model.goalCycleCompletionReports ?? [];
+      if (reports.length === 0) {
+        logger.info('turn-on goal with no goal cycle reports', { userId: appUserId });
+      }
 
       // Save each GoalCycleCompletionReport individually
       const savedReports = await Promise.all(
-        model.goalCycleCompletionReports.map(async (report) => {
+        reports.map(async (report) => {
           const reportDoc = new GoalCycleCompletionReport({
             actualAverageNeckAngle: report.actualAverageNeckAngle,
             complianceInPercentage: report.complianceInPercentage,
             dateOfConcludedCycle: report.dateOfConcludedCycle,
           });
-          return await reportDoc.save();
+          const saved = await reportDoc.save();
+          logger.debug('Saved goal cycle completion report', {
+            userId: appUserId,
+            reportId: saved._id?.toString(),
+          });
+          return saved;
         })
       );
 
@@ -37,21 +50,33 @@ export class GoalService {
         targetedAverageNeckAngle: model.targetedAverageNeckAngle,
         frequency: model.frequency,
         dateSet: DateLibrary.getCurrentDateTime(),
-        goalCycleCompletionReports: model.goalCycleCompletionReports,
+        goalCycleCompletionReports: reports,
         nextCycleEndsAt: isSupportedFrequency(model.frequency)
           ? computeFirstCycleEndsAt(DateLibrary.getCurrentDateTime(), model.frequency)
           : undefined,
       });
-      await goal.save();
+      const savedGoal = await goal.save();
+      logger.info('Goal created', {
+        userId: appUserId,
+        goalId: savedGoal._id?.toString(),
+        targetedAverageNeckAngle: model.targetedAverageNeckAngle,
+        frequency: model.frequency,
+        reportCount: savedReports.length,
+      });
 
       user.isGoalOn = true;
       await user.save();
+      logger.info('Goal flag enabled for user', { userId: appUserId });
 
       // this.scheduleJob(model.appUserId, 'DAILY', savedGoal.dateSet, savedGoal._id?.toString() || '');
 
       return true;
     } catch (error: any) {
-      logger.error(error.message);
+      logger.error('turnOnGoalAsync failed', {
+        userId: appUserId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       throw new CustomException(error.message);
     }
   }
@@ -75,7 +100,6 @@ export class GoalService {
 
   static async getAllGoalsByIdAsync(
     appUserId: string,
-    model: TurnOnGoalViewModel
   ): Promise<GoalCycleReportViewModel[]> {
     try {
       const goals = await Goal.findById(appUserId).exec();

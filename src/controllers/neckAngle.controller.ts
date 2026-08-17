@@ -211,7 +211,7 @@ export class NeckAngleController {
       if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
       const data = await NeckAngleService.getWeeklyChartData(userId);
-      return res.status(200).json({ message: 'Successful', data });
+      return res.status(200).json({ success: true, message: 'Successful', data });
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }

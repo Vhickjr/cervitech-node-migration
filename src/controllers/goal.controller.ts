@@ -3,6 +3,7 @@ import { GoalService } from '../services/goal.service';
 import { SetGoalViewModel, TurnOnGoalViewModel } from '../types/goal.types';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+import { CustomException } from '../utils/customException';
 
 export class GoalController {
   static async turnOnGoalByUserId(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -10,12 +11,24 @@ export class GoalController {
     const appUserId = req.user?.userId;
 
     if (!appUserId) {
+      logger.warn('turn-on goal rejected: missing user ID in token', {
+        username: req.user?.username,
+        email: req.user?.email,
+      });
       res.status(401).json({ error: 'Unauthorized: User ID is missing.' });
       return;
     }
 
-    if (!model) {
-      res.status(400).json({ error: 'Goal data with valid user ID is required.' });
+    if (!model || typeof model.targetedAverageNeckAngle !== 'number' || !model.frequency) {
+      logger.warn('turn-on goal rejected: invalid or incomplete request body', {
+        userId: appUserId,
+        targetedAverageNeckAngle: model?.targetedAverageNeckAngle,
+        frequency: model?.frequency,
+        hasGoalCycleCompletionReports: Array.isArray(model?.goalCycleCompletionReports),
+      });
+      res.status(400).json({
+        error: 'Goal data with valid user ID is required (targetedAverageNeckAngle and frequency).',
+      });
       return;
     }
 
@@ -23,15 +36,34 @@ export class GoalController {
       const result = await GoalService.turnOnGoalAsync(appUserId, model);
 
       if (!result) {
+        logger.warn('turn-on goal returned false', {
+          userId: appUserId,
+          targetedAverageNeckAngle: model.targetedAverageNeckAngle,
+          frequency: model.frequency,
+        });
         res.status(400).json({ error: 'Failed to turn on goal.' });
         return;
       }
 
+      logger.info('Goal turned on successfully', {
+        userId: appUserId,
+        targetedAverageNeckAngle: model.targetedAverageNeckAngle,
+        frequency: model.frequency,
+        reportCount: model.goalCycleCompletionReports?.length ?? 0,
+      });
       res.status(201).json({ success: true, message: 'Goal turned on' });
     } catch (error) {
-      logger.error('Error turning on goal:', {
+      logger.error('Error turning on goal', {
+        userId: appUserId,
+        targetedAverageNeckAngle: model.targetedAverageNeckAngle,
+        frequency: model.frequency,
         error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       });
+      if (error instanceof CustomException) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -66,7 +98,6 @@ export class GoalController {
   }
 
   static async getGoalsByUserId(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const model: TurnOnGoalViewModel = req.body;
     const appUserId = req.user?.userId;
 
     if (!appUserId) {
@@ -74,13 +105,8 @@ export class GoalController {
       return;
     }
 
-    if (!model) {
-      res.status(400).json({ error: 'User ID is required to fetch goals.' });
-      return;
-    }
-
     try {
-      const result = await GoalService.getAllGoalsByIdAsync(appUserId, model);
+      const result = await GoalService.getAllGoalsByIdAsync(appUserId);
 
       if (!result || result.length === 0) {
         res.status(404).json({ error: 'No goals found for this user.' });
