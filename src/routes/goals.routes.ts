@@ -33,6 +33,15 @@ const router = Router();
  *     responses:
  *       201:
  *         description: Goal turned on
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
  *       400:
  *         description: Missing/invalid goal data, or failed to turn on
  *       401:
@@ -61,6 +70,15 @@ router.post('/turn-on', authenticateJWT, GoalController.turnOnGoalByUserId);
  *     responses:
  *       200:
  *         description: Goal turned off
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
  *       400:
  *         description: Missing/invalid goal data, or failed to turn off
  *       401:
@@ -79,6 +97,36 @@ router.put('/turn-off', authenticateJWT, GoalController.turnOffGoalByUserId);
  *     responses:
  *       200:
  *         description: Goals found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       appUserId:
+ *                         type: string
+ *                       frequency:
+ *                         type: string
+ *                       targetedAverageNeckAngle:
+ *                         type: number
+ *                       actualAverageNeckAngle:
+ *                         type: number
+ *                       complianceInPercentage:
+ *                         type: number
+ *                       dateOfConcludedCycle:
+ *                         type: string
+ *                       dayOfConcludedCycle:
+ *                         type: string
+ *                       colorTag:
+ *                         type: string
  *       401:
  *         description: Not authenticated
  *       404:
@@ -97,6 +145,15 @@ router.get('/user-goals', authenticateJWT, GoalController.getGoalsByUserId);
  *     responses:
  *       200:
  *         description: Targeted average neck angle
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: number
  *       400:
  *         description: Not authenticated
  *       404:
