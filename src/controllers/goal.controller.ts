@@ -27,7 +27,7 @@ export class GoalController {
         return;
       }
 
-      res.status(201).json(result);
+      res.status(201).json({ success: true, message: 'Goal turned on' });
     } catch (error) {
       logger.error('Error turning on goal:', {
         error: error instanceof Error ? error.message : String(error),
@@ -58,7 +58,7 @@ export class GoalController {
         return;
       }
 
-      res.status(200).json(result);
+      res.status(200).json({ success: true, message: 'Goal turned off' });
     } catch (error) {
       logger.error('Error turning off goal:');
       res.status(500).json({ error: 'Internal server error' });
@@ -87,7 +87,7 @@ export class GoalController {
         return;
       }
 
-      res.status(200).json(result);
+      res.status(200).json({ success: true, data: result });
     } catch (error) {
       logger.error('Error fetching goals by user ID:');
       res.status(500).json({ error: 'Internal server error' });
@@ -113,7 +113,7 @@ export class GoalController {
         return;
       }
 
-      res.status(200).json(result);
+      res.status(200).json({ success: true, data: result });
     } catch (error) {
       logger.error('Error fetching neck angle data:');
       res.status(500).json({ error: 'Internal server error' });
