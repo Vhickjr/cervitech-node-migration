@@ -83,7 +83,7 @@ router.post("/login", BackOfficeUserController.loginController);
  * /backoffice-users/forgot-password:
  *   post:
  *     tags: [BackOfficeUser]
- *     summary: Send a password reset token to a back-office user's email
+ *     summary: Send a password reset OTP to a back-office user's email
  *     requestBody:
  *       required: true
  *       content:
@@ -97,7 +97,7 @@ router.post("/login", BackOfficeUserController.loginController);
  *                 format: email
  *     responses:
  *       200:
- *         description: Reset token sent
+ *         description: If the account exists, an OTP is sent
  *         content:
  *           application/json:
  *             schema:
@@ -110,6 +110,42 @@ router.post("/login", BackOfficeUserController.loginController);
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
 router.post("/forgot-password", BackOfficeUserController.forgotPassword);
+
+/**
+ * @openapi
+ * /backoffice-users/verify-reset-otp:
+ *   post:
+ *     tags: [BackOfficeUser]
+ *     summary: Verify a back-office user's password reset OTP and receive a reset token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               otp:
+ *                 type: string
+ *                 description: 6-digit code sent by email
+ *     responses:
+ *       200:
+ *         description: OTP verified; data contains a short-lived reset token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiSuccessResponse'
+ *       400:
+ *         description: Invalid or expired OTP, or fields missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ */
+router.post("/verify-reset-otp", BackOfficeUserController.verifyResetOtp);
 
 /**
  * @openapi

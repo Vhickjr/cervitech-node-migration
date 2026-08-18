@@ -127,11 +127,30 @@ export const AuthController = {
       if (!email) return sendError(res, 400, 'Email is required');
 
       const result = await AuthService.sendPasswordResetToken({ email });
-      if (!result?.success) return sendError(res, 400, result.message);
+      const data = result.otp ? { otp: result.otp } : undefined;
 
-      return sendSuccess(res, undefined, result.message, 200);
+      return sendSuccess(res, data, result.message, 200);
     } catch (err: any) {
       logger.error('SendPasswordToken failed', { error: err.message });
+      return sendError(res, 500, 'Internal server error');
+    }
+  },
+
+  // -------------------------
+  // Verify password reset OTP
+  // -------------------------
+  async verifyResetOtp(req: Request, res: Response) {
+    try {
+      const email = req.body.Email ?? req.body.email ?? req.query.email;
+      const otp = req.body.Otp ?? req.body.otp ?? req.query.otp;
+      if (!email || !otp) return sendError(res, 400, 'Email and OTP are required');
+
+      const result = await AuthService.verifyResetOtp({ email, otp });
+      if (!result?.success) return sendError(res, 400, result.message);
+
+      return sendSuccess(res, { token: result.token }, result.message, 200);
+    } catch (err: any) {
+      logger.error('VerifyResetOtp failed', { error: err.message });
       return sendError(res, 500, 'Internal server error');
     }
   },

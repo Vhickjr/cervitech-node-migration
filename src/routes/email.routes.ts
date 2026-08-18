@@ -52,22 +52,23 @@ router.post('/sign-up', EmailController.signup);
  * /email/password-reset:
  *   post:
  *     tags: [Email]
- *     summary: Send the password-reset email
+ *     summary: Send the password-reset OTP email with a provided code
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [to, username, token]
+ *             required: [to, username, code]
  *             properties:
  *               to:
  *                 type: string
  *                 format: email
  *               username:
  *                 type: string
- *               token:
+ *               code:
  *                 type: string
+ *                 description: 6-digit OTP to include in the email
  *     responses:
  *       200:
  *         description: Email sent

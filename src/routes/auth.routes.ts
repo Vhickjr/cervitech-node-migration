@@ -74,7 +74,7 @@ router.put('/change-password', authenticateJWT, AuthController.changePassword);
  * /auth/request-reset:
  *   post:
  *     tags: [Auth]
- *     summary: Send a password reset token to the given email
+ *     summary: Send a password reset OTP to the given email
  *     requestBody:
  *       required: true
  *       content:
@@ -88,19 +88,55 @@ router.put('/change-password', authenticateJWT, AuthController.changePassword);
  *                 format: email
  *     responses:
  *       200:
- *         description: Reset token sent
+ *         description: If the account exists, an OTP is sent
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiSuccessResponse'
  *       400:
- *         description: Email missing or unknown
+ *         description: Email missing
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
 router.post('/request-reset', AuthController.sendPasswordToken);
+
+/**
+ * @openapi
+ * /auth/verify-reset-otp:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Verify a password reset OTP and receive a reset token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               otp:
+ *                 type: string
+ *                 description: 6-digit code sent by email
+ *     responses:
+ *       200:
+ *         description: OTP verified; data contains a short-lived reset token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiSuccessResponse'
+ *       400:
+ *         description: Invalid or expired OTP, or fields missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiErrorResponse'
+ */
+router.post('/verify-reset-otp', AuthController.verifyResetOtp);
 
 /**
  * @openapi

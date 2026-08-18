@@ -66,11 +66,27 @@ class BackOfficeUserController {
       }
 
       const data = await backofficeUserService.sendPasswordResetToken(email);
-      logger.info('Password reset token sent.', { email });
-      sendSuccess(res, data, 'Password reset token sent.', 200);
+      logger.info('Password reset code sent.', { email });
+      sendSuccess(res, data, 'Password reset code sent.', 200);
     } catch (err: any) {
       logger.error('Forgot Password Error', { error: err.message });
-      sendError(res, 500, 'Failed to send password reset token.', err.message);
+      sendError(res, 500, 'Failed to send password reset code.', err.message);
+    }
+  }
+
+  static async verifyResetOtp(req: Request, res: Response) {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) {
+        return sendError(res, 400, 'Email and OTP are required.');
+      }
+
+      const data = await backofficeUserService.verifyResetOtp(email, otp);
+      logger.info('Reset OTP verified.', { email });
+      sendSuccess(res, data, 'OTP verified successfully.', 200);
+    } catch (err: any) {
+      logger.error('Verify Reset OTP Error', { error: err.message });
+      sendError(res, 400, err.message);
     }
   }
 
