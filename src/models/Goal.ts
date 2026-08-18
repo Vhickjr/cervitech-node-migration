@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 
 
 export interface IGoal extends Document {
+  appUserId: string;
   dateSet: Date;
   targetedAverageNeckAngle: number;
   frequency: string;
@@ -14,6 +15,7 @@ export interface IGoal extends Document {
 }
 
 export const GoalSchema = new Schema<IGoal>({
+  appUserId: { type: String, required: true, index: true },
   dateSet: { type: Date, required: true },
   targetedAverageNeckAngle: { type: Number, required: true },
   frequency: { type: String, required: true },

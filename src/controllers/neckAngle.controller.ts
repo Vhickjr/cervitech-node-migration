@@ -208,24 +208,24 @@ export class NeckAngleController {
   static async getWeeklyChartData(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.userId;
-      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
       const data = await NeckAngleService.getWeeklyChartData(userId);
-      return res.status(200).json({ message: 'Successful', data });
+      return res.status(200).json({ success: true, message: 'Successful', data });
     } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ success: false, error: err.message });
     }
   }
 
   static async getUserNeckAngleStatistics(req: AuthenticatedRequest, res: Response) {
     try {
       const userId = req.user?.userId;
-      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
       const data = await NeckAngleService.computeNeckAngleParameters(userId);
-      return res.status(200).json({ message: 'Successful', data });
+      return res.status(200).json({ success: true, message: 'Successful', data });
     } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ success: false, error: err.message });
     }
   }
 }

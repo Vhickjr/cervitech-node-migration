@@ -8,5 +8,5 @@ export interface TurnOnGoalViewModel {
 export interface SetGoalViewModel {
   targetedAverageNeckAngle: number;
   frequency: GOAL_FREQUENCY;
-  goalCycleCompletionReports: GoalCycleReportViewModel[];
+  goalCycleCompletionReports?: GoalCycleReportViewModel[];
 }
