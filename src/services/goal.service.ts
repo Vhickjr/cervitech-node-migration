@@ -20,9 +20,11 @@ export class GoalService {
 
       if (!user) throw new CustomException('User does not exist');
 
+      const incomingReports = model.goalCycleCompletionReports ?? [];
+
       // Save each GoalCycleCompletionReport individually
       const savedReports = await Promise.all(
-        model.goalCycleCompletionReports.map(async (report) => {
+        incomingReports.map(async (report) => {
           const reportDoc = new GoalCycleCompletionReport({
             actualAverageNeckAngle: report.actualAverageNeckAngle,
             complianceInPercentage: report.complianceInPercentage,
@@ -37,7 +39,7 @@ export class GoalService {
         targetedAverageNeckAngle: model.targetedAverageNeckAngle,
         frequency: model.frequency,
         dateSet: DateLibrary.getCurrentDateTime(),
-        goalCycleCompletionReports: model.goalCycleCompletionReports,
+        goalCycleCompletionReports: incomingReports,
         nextCycleEndsAt: isSupportedFrequency(model.frequency)
           ? computeFirstCycleEndsAt(DateLibrary.getCurrentDateTime(), model.frequency)
           : undefined,
@@ -73,13 +75,12 @@ export class GoalService {
     }
   }
 
-  static async getAllGoalsByIdAsync(
-    appUserId: string,
-    model: TurnOnGoalViewModel
-  ): Promise<GoalCycleReportViewModel[]> {
+  static async getAllGoalsByIdAsync(appUserId: string): Promise<GoalCycleReportViewModel[]> {
     try {
-      const goals = await Goal.findById(appUserId).exec();
-      if (!goals || goals.length === 0) return [];
+      const goals = await Goal.findOne({ appUserId }).sort({ dateSet: -1 }).exec();
+      if (!goals || !goals.goalCycleCompletionReports || goals.goalCycleCompletionReports.length === 0) {
+        return [];
+      }
 
       const reports: GoalCycleReportViewModel[] = [];
 
@@ -107,7 +108,7 @@ export class GoalService {
 
   static async getCurrentTargetedAverageNeckAngleAsync(appUserId: string): Promise<number> {
     try {
-      const goals = await Goal.find({ _id: appUserId }).sort({ dateSet: -1 }).exec();
+      const goals = await Goal.find({ appUserId }).sort({ dateSet: -1 }).exec();
       const lastGoal = goals[0]; // Most recent goal due to sorting
       console.log('Last Goal:', lastGoal);
       return lastGoal?.targetedAverageNeckAngle ?? 0;

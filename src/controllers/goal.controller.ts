@@ -66,7 +66,6 @@ export class GoalController {
   }
 
   static async getGoalsByUserId(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const model: TurnOnGoalViewModel = req.body;
     const appUserId = req.user?.userId;
 
     if (!appUserId) {
@@ -74,13 +73,8 @@ export class GoalController {
       return;
     }
 
-    if (!model) {
-      res.status(400).json({ error: 'User ID is required to fetch goals.' });
-      return;
-    }
-
     try {
-      const result = await GoalService.getAllGoalsByIdAsync(appUserId, model);
+      const result = await GoalService.getAllGoalsByIdAsync(appUserId);
 
       if (!result || result.length === 0) {
         res.status(404).json({ error: 'No goals found for this user.' });
