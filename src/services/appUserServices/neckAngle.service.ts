@@ -29,7 +29,7 @@ export class NeckAngleService {
   static async postBatchNeckAngleRecordAsync(neckAngleModel: NeckAngleModel): Promise<boolean> {
     try {
       for (const record of neckAngleModel.neckAngleRecords) {
-        const appUser = await AppUser.findById({ _id: record.appUserId });
+        const appUser = await AppUser.findById(record.appUserId);
         if (!appUser) {
           logger.warn(`AppUser ${record.appUserId} not found, skipping.`);
           continue;
@@ -152,6 +152,40 @@ export class NeckAngleService {
     } catch (error: any) {
       logger.error('Error in getEachWeekOfTheMonthAverageNeckAngle:', error.message);
       throw new CustomException('Error calculating weekly averages.');
+    }
+  }
+
+  static getEachMonthOfTheYearAverageNeckAngle(
+    aYearAngleRecords: AbbreviatedNeckAngleRecordViewModel[]
+  ): { month: string; averageNeckAngle: number }[] {
+    try {
+      const monthsMap = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+
+      const totals: { [key: number]: number } = {};
+      const counts: { [key: number]: number } = {};
+
+      for (const record of aYearAngleRecords) {
+        const monthNum = record.dateTimeRecorded.getMonth(); // 0-11
+        totals[monthNum] = (totals[monthNum] || 0) + record.angle;
+        counts[monthNum] = (counts[monthNum] || 0) + 1;
+      }
+
+      const averages: { month: string; averageNeckAngle: number }[] = [];
+
+      for (let i = 0; i < 12; i++) {
+        averages.push({
+          month: monthsMap[i],
+          averageNeckAngle: counts[i] && counts[i] > 0 ? totals[i] / counts[i] : 0,
+        });
+      }
+
+      return averages;
+    } catch (error: any) {
+      logger.error('Error in getEachMonthOfTheYearAverageNeckAngle:', error.message);
+      throw new CustomException('Error calculating yearly averages.');
     }
   }
 
@@ -424,6 +458,9 @@ export class NeckAngleService {
           r.dateTimeRecorded.getMonth() === currentMonth &&
           r.dateTimeRecorded.getFullYear() === currentYear
       );
+      const thisYear = records.filter(
+        (r) => r.dateTimeRecorded.getFullYear() === currentYear
+      );
 
       const currentDayAverageNeckAngle = safeAvg(thisDay);
       const currentWeekAverageNeckAngle = safeAvg(thisWeek);
@@ -494,6 +531,12 @@ export class NeckAngleService {
       const averageNeckAngleForEachWeekOfTheCurrentMonth =
         await this.getEachWeekOfTheMonthAverageNeckAngle(thisMonth);
 
+      const averageNeckAngleForEachMonthOfTheCurrentYear =
+        this.getEachMonthOfTheYearAverageNeckAngle(thisYear);
+
+      const currentDayAverageNeckAngleTextReport =
+        Utils.currentDayAverageNeckAngleTextReport(currentDayAverageNeckAngle);
+
       return {
         username: userDetails.username,
         averageNeckAngleStarRatingOver5,
@@ -513,6 +556,8 @@ export class NeckAngleService {
             weekNumber: w.week,
             averageNeckAngle: w.averageNeckAngle,
           })),
+        averageNeckAngleForEachMonthOfTheCurrentYear,
+        currentDayAverageNeckAngleTextReport,
       };
     } catch (error) {
       logger.error('Error in computeNeckAngleParametersAsync:', error);

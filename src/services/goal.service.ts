@@ -28,6 +28,8 @@ export class GoalService {
         logger.info('turn-on goal with no goal cycle reports', { userId: appUserId });
       }
 
+      const incomingReports = model.goalCycleCompletionReports ?? [];
+
       // Save each GoalCycleCompletionReport individually
       const savedReports = await Promise.all(
         reports.map(async (report) => {
@@ -102,8 +104,10 @@ export class GoalService {
     appUserId: string,
   ): Promise<GoalCycleReportViewModel[]> {
     try {
-      const goals = await Goal.findById(appUserId).exec();
-      if (!goals || goals.length === 0) return [];
+      const goals = await Goal.findOne({ appUserId }).sort({ dateSet: -1 }).exec();
+      if (!goals || !goals.goalCycleCompletionReports || goals.goalCycleCompletionReports.length === 0) {
+        return [];
+      }
 
       const reports: GoalCycleReportViewModel[] = [];
 
@@ -131,7 +135,7 @@ export class GoalService {
 
   static async getCurrentTargetedAverageNeckAngleAsync(appUserId: string): Promise<number> {
     try {
-      const goals = await Goal.find({ _id: appUserId }).sort({ dateSet: -1 }).exec();
+      const goals = await Goal.find({ appUserId }).sort({ dateSet: -1 }).exec();
       const lastGoal = goals[0]; // Most recent goal due to sorting
       console.log('Last Goal:', lastGoal);
       return lastGoal?.targetedAverageNeckAngle ?? 0;
