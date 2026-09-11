@@ -175,6 +175,29 @@ router.post('/weekly-averages', NeckAngleController.getWeeklyNeckAngleAverages);
  *     responses:
  *       200:
  *         description: Chart data retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: number
+ *                   example:
+ *                     Sunday: 42.5
+ *                     Monday: 0
+ *                     Tuesday: 55
+ *                     Wednesday: 48.2
+ *                     Thursday: 0
+ *                     Friday: 61.7
+ *                     Saturday: 0
+ *       400:
+ *         description: Failed to compute chart data
  *       401:
  *         description: Not authenticated
  */

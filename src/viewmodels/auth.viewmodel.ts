@@ -36,5 +36,14 @@ export interface PasswordResetRequest {
 export interface PasswordResetResponse extends BaseServiceResponse {}
 
 export interface SendPasswordTokenResponse extends BaseServiceResponse {
-  resetLink?: string;
+  otp?: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse extends BaseServiceResponse {
+  token?: string;
 }
