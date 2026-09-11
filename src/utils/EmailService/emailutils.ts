@@ -35,9 +35,9 @@ export class EmailUtils {
     return await EmailUtils.sendEmail(to, "Welcome to CerviTech!", html);
   }
 
-  static async sendPasswordResetEmail(to: string, username: string, token: string) {
-    const html = EmailTemplates.passwordReset(username, token);
-    return await EmailUtils.sendEmail(to, "Password Reset Request", html);
+  static async sendPasswordResetOtpEmail(to: string, username: string, otpCode: string) {
+    const html = EmailTemplates.passwordResetOtp(username, otpCode);
+    return await EmailUtils.sendEmail(to, "Your CerviTech Password Reset Code", html);
   }
 
   static async sendReminderEmail(to: string, username: string) {

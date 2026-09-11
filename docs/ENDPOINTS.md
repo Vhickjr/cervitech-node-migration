@@ -6,7 +6,8 @@ Base URL: `/api/v1`
 
 - POST `/signup` — public — `AuthController.signup` — body: `username, email, password`
 - PUT `/change-password` — auth required — `AuthController.changePassword` — body: `oldPassword, newPassword`
-- POST `/request-reset` — public — `AuthController.sendPasswordToken` — body: `email`
+- POST `/request-reset` — public — `AuthController.sendPasswordToken` — body: `email` (sends a 6-digit OTP; returns `otp` in the response only when `OTP_DEBUG=true`)
+- POST `/verify-reset-otp` — public — `AuthController.verifyResetOtp` — body: `email, otp` (returns `data.token`, a short-lived reset JWT)
 - POST `/reset-password` — public — `AuthController.resetPassword` — body: `token, newPassword`
 - POST `/login` — public — `AuthController.authenticate` — body: `emailOrUsername, password`
 - POST `/logout` — auth required — `AuthController.logout`
@@ -17,8 +18,9 @@ Base URL: `/api/v1`
 
 - POST `/signup` — public — `BackOfficeUserController.createUser` — body: user fields
 - POST `/login` — public — `BackOfficeUserController.loginController` — body: credentials
-- POST `/forgot-password` — public — `BackOfficeUserController.forgotPassword`
-- POST `/reset-password` — public — `BackOfficeUserController.resetPassword`
+- POST `/forgot-password` — public — `BackOfficeUserController.forgotPassword` — body: `email` (sends a 6-digit OTP)
+- POST `/verify-reset-otp` — public — `BackOfficeUserController.verifyResetOtp` — body: `email, otp` (returns `data.token`)
+- POST `/reset-password` — public — `BackOfficeUserController.resetPassword` — body: `token, newPassword`
 - POST `/logout` — auth+role `BACKOFFICE_USER` — `BackOfficeUserController.logoutController`
 - POST `/change-password` — auth+role `BACKOFFICE_USER` — `BackOfficeUserController.changePassword`
 - GET `/` — auth+role `BACKOFFICE_USER` — `BackOfficeUserController.getUsers`
@@ -29,7 +31,7 @@ Base URL: `/api/v1`
 ## Email (`/api/v1/email`)
 
 - POST `/sign-up` — `EmailController.signup` — body: email template data
-- POST `/password-reset` — `EmailController.passwordReset`
+- POST `/password-reset` — `EmailController.passwordReset` — body: `to, username, code`
 - POST `/account-deletion-request` — `EmailController.accountDeletionRequest`
 - POST `/account-deletion` — `EmailController.accountDeletion`
 - POST `/reminder` — `EmailController.reminder`
