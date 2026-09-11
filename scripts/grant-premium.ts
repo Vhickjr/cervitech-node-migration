@@ -27,8 +27,7 @@ import AppUser from '../src/models/AppUser';
 
 // ---- EDIT THIS LIST ----
 const EMAILS: string[] = [
-  'jnrdev01@gmail.com',
-  'akoduashiyat@gmail.com'
+  'email'
 ];
 // -------------------------
 
